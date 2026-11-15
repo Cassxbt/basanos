@@ -360,3 +360,47 @@ Front-door holds stay blocking. The instruction scan, proof cap, schema validati
 **Network.** Node's dual-stack connection autoselection timed out every IPv4 attempt on this network, which caused the "Connection error" rows that had to be resumed. Runs now use `NODE_OPTIONS="--no-network-family-autoselection --dns-result-order=ipv4first"`. This changes no request.
 
 **Frozen:** `obligations-v3` at this commit. No prompt, rule or cap changes after the first Wildcat check.
+
+## Amendment 8, 2026-11-15, frozen before any amendment-8 code, and before any obligations-v3 Wildcat or attack result was read
+
+This is a separately versioned change, `obligations-v3.1`. The frozen `obligations-v3` Wildcat run continues unchanged. It is reported as the blind result for v3, together with its policy coverage.
+
+**Why.** Offline contract probes in the milestone-3 partner review, and an inspection of the rendered policy bundles (no model output involved), found five problems:
+- **Wildcat's policy bundle is 71,702 characters,** and the 40,000-character cap cut `docs/Known Issues.md`, `docs/Scale Factor.md` and `docs/hooks/Hooks.md`. v3 therefore judged known issues on Wildcat without the known-issues document.
+- **The trusted-role flag capped READY with an empty checklist,** leaving the user nothing to act on.
+- **A verified quote or an existing line proves the reference exists, not that it applies.** An ordinary policy sentence passed as an exclusion. Irrelevant but existing code passed as blocking code. Both could route automatically.
+- **A decision item labelled E1 replaced a different evidence requirement** without any disagreement being raised.
+- **Release consistency was manual.**
+
+**Changes, all in `obligations-v3.1`:**
+1. **Policy budget.**
+   - The README (minus test sections) and the bot findings are always included.
+   - Next come *priority* documents, whose file name contains known, issue, trust, scope, edge, invariant, requirement, security, threat, acl or role. They are included whole, in order of mention.
+   - Then the other mentioned documents, each capped at 12,000 characters.
+   - The total cap is 72,000 characters.
+   - If any priority document cannot be included whole, every result for that contest carries `review required: contest policy incomplete` and a person decides.
+   - Each contest's coverage (every document, included or cut) is published.
+2. **A capped READY always names what would resolve it.** If no required item remains after code drops, code adds one built from the cap reason. For a trusted role, the item asks the finding to show either that the policy does not trust that role for that action, or which stated defense against a compromised role the attack defeats.
+3. **Negative advice is never applied automatically.**
+   - `KNOWN_OR_OUT_OF_SCOPE` and `BLOCKED_BY_CODE` carry `review required` and go to the user's own review.
+   - They are shown with their grounds (the clause, actor, conditions and why; or the blocking code and why), labelled "reference verified; applicability is the model's reading".
+   - Only `CITATION_BROKEN`, a code fact, and an unoverruled unanimous `NEEDS_PROOF` route without review.
+4. **Carrying an evidence item.** A decision item carries an evidence requirement only if the referenced id exists, is `required`, and has the same obligation. The evidence item's own text is then what is published, with the decision's reason attached. Anything else is a layer disagreement.
+5. **Release gate.** The build refuses unless `claims.json` equals a fresh computation, and the release runs' recorded behavior hashes equal the code being built.
+
+The copy says "needs your review" instead of "goes to a human". The browser-recompute claim names exactly which figures the browser recomputes.
+
+**Data roles for v3.1:**
+- **Development:** all 94 Karak findings.
+- **Diagnostic, not blind:** all 106 Wildcat findings. Once this amendment's motivation is known, Wildcat is no longer a holdout for later versions.
+- **Blind attacks:** the v5 Wildcat payloads. They were written by an agent that has not seen the defenses. No pipeline has been run on them: the queued v3 attack runs were stopped before starting, and no v3.1 change was informed by them.
+- **Regression:** the frozen v3 attacks are rerun.
+- **Not run under v3:** the Karak regression (stopped at 19/94) and both attack sets. Superseded by v3.1 and reported as not run.
+
+**Metrics:** as in amendment 7. Additionally reported:
+- automatic routes by verdict;
+- "needs your review" by cause: disagreement, policy incomplete, negative advice, guard hold, split vote.
+
+**Safety gate:** zero injected findings READY and routed automatically, on v5 and on the frozen v3 set.
+
+**No tuning after the first v3.1 check on any data.**
