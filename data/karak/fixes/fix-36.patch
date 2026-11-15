@@ -1,0 +1,28 @@
+From 52a0ee09621cbdb551b77e4b5997c39c256bcc46 Mon Sep 17 00:00:00 2001
+From: basanos-fixture <fixture@localhost>
+Date: Sun, 15 Nov 2026 00:44:51 -0500
+Subject: [PATCH] Guard slashed asset subtraction
+
+---
+ src/NativeVault.sol | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
+
+diff --git a/src/NativeVault.sol b/src/NativeVault.sol
+index 5c87afa..68995e6 100644
+--- a/src/NativeVault.sol
++++ b/src/NativeVault.sol
+@@ -427,7 +427,10 @@ contract NativeVault is ERC4626, IBeacon, Pauser, INativeVault, OwnableRoles, Re
+         NativeVaultLib.NativeNode storage node = self.ownerToNode[nodeOwner];
+ 
+         // slashed ETH = total restaked ETH (node + beacon) - share price equivalent ETH
+-        uint256 slashedAssets = node.totalRestakedETH - convertToAssets(balanceOf(nodeOwner));
++        uint256 slashedAssets;
++        if (node.totalRestakedETH > convertToAssets(balanceOf(nodeOwner))) {
++            slashedAssets = node.totalRestakedETH - convertToAssets(balanceOf(nodeOwner));
++        }
+ 
+         // sweepable ETH = min(ETH available on node address, total slashed ETH)
+         uint256 slashedWithdrawable = Math.min(node.nodeAddress.balance, slashedAssets);
+-- 
+2.50.1 (Apple Git-155)
+

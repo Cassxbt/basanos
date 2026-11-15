@@ -1,0 +1,74 @@
+From e775a74340783c163e43924cc230d2fbda673713 Mon Sep 17 00:00:00 2001
+From: basanos-fixture <fixture@localhost>
+Date: Sun, 15 Nov 2026 00:44:51 -0500
+Subject: [PATCH] Track queued slashings per operator and DSS
+
+---
+ src/entities/Operator.sol   | 2 ++
+ src/entities/SlasherLib.sol | 3 +++
+ src/interfaces/Errors.sol   | 1 +
+ 3 files changed, 6 insertions(+)
+
+diff --git a/src/entities/Operator.sol b/src/entities/Operator.sol
+index 31a3964..7ba279f 100644
+--- a/src/entities/Operator.sol
++++ b/src/entities/Operator.sol
+@@ -21,6 +21,7 @@ library Operator {
+         mapping(IDSS dss => EnumerableSet.AddressSet vaultStakeInDss) vaultStakedInDssMap;
+         mapping(IDSS dss => uint256 timestamp) nextSlashableTimestamp; // When this operator can be slashed again by a DSS
+         mapping(address vault => bytes32 updateHash) pendingStakeUpdates; //Supporting only 1 update per vault at a time
++        mapping(IDSS dss => uint256 count) pendingSlashings;
+     }
+ 
+     struct StakeUpdateRequest {
+@@ -189,6 +190,7 @@ library Operator {
+         address[] memory vaults = getVaultsStakedToDSS(operatorState, dss);
+         if (vaults.length != 0) revert AllVaultsNotUnstakedFromDSS();
+         if (!isOperatorRegisteredToDSS(self, operator, dss)) revert OperatorNotValidatingForDSS();
++        if (operatorState.pendingSlashings[dss] != 0) revert PendingSlashingRequests();
+ 
+         self.operatorState[operator].dssMap.remove(address(dss));
+         HookLib.callHookIfInterfaceImplemented({
+diff --git a/src/entities/SlasherLib.sol b/src/entities/SlasherLib.sol
+index dfd650a..c623039 100644
+--- a/src/entities/SlasherLib.sol
++++ b/src/entities/SlasherLib.sol
+@@ -108,6 +108,7 @@ library SlasherLib {
+             nonce: nonce
+         });
+         self.slashingRequests[calculateRoot(queuedSlashing)] = true;
++        self.operatorState[slashingMetadata.operator].pendingSlashings[dss]++;
+         self.operatorState[slashingMetadata.operator].nextSlashableTimestamp[dss] =
+             block.timestamp + Constants.SLASHING_COOLDOWN;
+         HookLib.callHookIfInterfaceImplemented({
+@@ -130,6 +131,7 @@ library SlasherLib {
+             revert MinSlashingDelayNotPassed();
+         }
+         delete self.slashingRequests[slashRoot];
++        self.operatorState[queuedSlashing.operator].pendingSlashings[queuedSlashing.dss]--;
+ 
+         for (uint256 i = 0; i < queuedSlashing.vaults.length; i++) {
+             IKarakBaseVault(queuedSlashing.vaults[i]).slashAssets(
+@@ -154,6 +156,7 @@ library SlasherLib {
+         bytes32 slashRoot = calculateRoot(queuedSlashing);
+         if (!self.slashingRequests[slashRoot]) revert InvalidSlashingParams();
+         delete self.slashingRequests[slashRoot];
++        self.operatorState[queuedSlashing.operator].pendingSlashings[queuedSlashing.dss]--;
+         IDSS dss = queuedSlashing.dss;
+ 
+         HookLib.callHookIfInterfaceImplemented({
+diff --git a/src/interfaces/Errors.sol b/src/interfaces/Errors.sol
+index 94ee319..4353e7e 100644
+--- a/src/interfaces/Errors.sol
++++ b/src/interfaces/Errors.sol
+@@ -26,6 +26,7 @@ error PendingStakeUpdateRequest();
+ error MaxVaultCapacityReached();
+ error AllVaultsNotUnstakedFromDSS();
+ error MaxDSSCapacityReached();
++error PendingSlashingRequests();
+ 
+ // Core
+ error VaultAlreadyDeployed();
+-- 
+2.50.1 (Apple Git-155)
+

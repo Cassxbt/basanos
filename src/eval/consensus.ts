@@ -1,8 +1,10 @@
-import { readFileSync, appendFileSync, existsSync, mkdirSync } from "node:fs";
+import { readFileSync, appendFileSync, existsSync, mkdirSync, writeFileSync } from "node:fs";
+import { createHash } from "node:crypto";
+import { execFileSync } from "node:child_process";
 import { KARAK, KARAK_POLICY, type Report } from "../data/karak.ts";
 import { DOLPHIN_MODEL } from "../evidence.ts";
 import { SERV_MODEL } from "../verdict.ts";
-import { consensusScore, decide, prepare, type Precheck } from "../precheck.ts";
+import { consensusScore, decide, prepare, ALL_DEFENSES, type Defenses, type Precheck } from "../precheck.ts";
 import { PAYLOADS, hostileSet } from "./hostile.ts";
 import { auroc, clusterBootstrap } from "./score.ts";
 
@@ -19,13 +21,16 @@ interface Arm {
   verdict: string;
   agreement: string | null;
   score: number;
-  votes: { verdict: string; severity: string | null; requestId: string | null; caps: string[]; usd: number }[];
+  votes: { verdict: string; severity: string | null; requestId: string | null; caps: string[]; usd: number; reason?: string; missing?: string[] }[];
+  reason?: string;
+  missing?: string[];
 }
 
 export interface ConsensusRow {
   id: string;
   vetoed: string | null;
   frontDoorHeld?: boolean;
+  evidence?: unknown[];
   flags?: string[];
   evidenceUsd: number;
   serv: Arm;
@@ -37,18 +42,24 @@ function arm(p: Precheck): Arm {
     verdict: p.verdict,
     agreement: p.agreement,
     score: p.verdict === "GUARD_HELD" ? 1 : p.votes.length ? consensusScore(p.votes) : 0,
+    reason: p.reason,
+    missing: p.missing,
     votes: p.votes.map((v) => ({
       verdict: v.verdict,
       severity: v.severity,
       requestId: v.judgment?.requestId ?? null,
       caps: v.caps,
       usd: v.judgment?.usd ?? 0,
+      reason: v.reason,
+      missing: v.missing,
     })),
   };
 }
 
+let DEFENSES: Defenses = ALL_DEFENSES;
+
 async function evaluate(r: { id: string; title: string; body: string }): Promise<ConsensusRow> {
-  const prepared = await prepare(r, KARAK, KARAK_POLICY, K);
+  const prepared = await prepare(r, KARAK, KARAK_POLICY, K, DEFENSES);
   const [serv, dolphin] = await Promise.all([decide(prepared, DECIDERS.serv), decide(prepared, DECIDERS.dolphin)]);
   return {
     id: r.id,
@@ -56,6 +67,10 @@ async function evaluate(r: { id: string; title: string; body: string }): Promise
     frontDoorHeld: prepared.held !== null,
     flags: prepared.flags,
     evidenceUsd: prepared.usd,
+    evidence: prepared.evidence.map((e) => {
+      const v = e.value;
+      return { claim: v.claim, root: `${v.root_cause_file}:${v.root_cause_line}`, supports: v.code_supports_claim, poc: v.poc, known: v.known_issue_match, blocking: v.blocking_code, missing: v.missing_evidence, requestId: e.requestId };
+    }),
     serv: arm(serv),
     dolphin: arm(dolphin),
   };
@@ -79,6 +94,22 @@ async function run(name: string, items: { id: string; title: string; body: strin
     }
   };
   await Promise.all(Array.from({ length: 3 }, worker));
+}
+
+function writeManifest(name: string, ablation: string) {
+  const sha = (f: string) => createHash("sha256").update(readFileSync(f)).digest("hex").slice(0, 16);
+  const path = "data/runs/manifest.json";
+  const all = existsSync(path) ? JSON.parse(readFileSync(path, "utf8")) : {};
+  all[name] = {
+    started: new Date().toISOString(),
+    git: execFileSync("git", ["rev-parse", "HEAD"], { encoding: "utf8" }).trim(),
+    dirty: execFileSync("git", ["status", "--porcelain", "src"], { encoding: "utf8" }).trim().length > 0,
+    ablation,
+    passes: K,
+    models: { evidence: DOLPHIN_MODEL, deciders: [SERV_MODEL, DOLPHIN_MODEL] },
+    sources: Object.fromEntries(["src/evidence.ts", "src/verdict.ts", "src/caps.ts", "src/defenses.ts", "src/precheck.ts", "src/citations.ts"].map((f) => [f, sha(f)])),
+  };
+  writeFileSync(path, JSON.stringify(all, null, 2));
 }
 
 function pairedDiff(a: number[], b: number[], labels: boolean[], clusters: number[], iters = 2000): [number, number, number] {
@@ -127,12 +158,20 @@ function score(name: string) {
 }
 
 if (import.meta.url === `file://${process.argv[1]}`) {
-  const [cmd, name = "run3"] = process.argv.slice(2);
+  const [cmd, name = "run3", ablate] = process.argv.slice(2);
+  // Optional third argument switches one defense off: no-front-door, no-scan, no-proof-cap.
+  if (ablate) {
+    const key = { "no-front-door": "frontDoor", "no-scan": "scan", "no-proof-cap": "proofCap" }[ablate] as keyof Defenses | undefined;
+    if (!key) throw new Error(`unknown ablation ${ablate}`);
+    DEFENSES = { ...ALL_DEFENSES, [key]: false };
+  }
+  writeManifest(name, ablate ?? "none");
   const reports: Report[] = JSON.parse(readFileSync("data/karak/reports.json", "utf8"));
   if (cmd === "run") await run(name, reports);
-  else if (cmd === "hostile" || cmd === "hostile3") {
+  else if (cmd === "hostile" || cmd === "hostile3" || cmd === "frozen") {
     const payloads: Record<string, string> =
       cmd === "hostile" ? { ...PAYLOADS, evidence_target: EVIDENCE_PAYLOAD } : JSON.parse(readFileSync("data/karak/payloads_v3.json", "utf8"));
+    // "frozen" is the blind v3 set, rerun unchanged for every ablation arm.
     const base = hostileSet(reports).map((h) => reports.find((r) => r.id === h.source)!);
     const items = base.flatMap((r) => Object.entries(payloads).map(([p, text]) => ({ id: `${r.id}-${p}`, title: r.title, body: r.body + text })));
     await run(name, [...base, ...items]);

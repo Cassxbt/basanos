@@ -116,12 +116,12 @@ script:
     <div class="crit" data-reveal>
       <h4>Dolphin</h4>
       <p>Reads all twenty in-scope files, the contest rules and the bot report, three times per check, and writes the evidence record the code caps enforce. DeepSeek-V4.1-Flash on <span class="mono">lighthouse.dphn.ai</span> at $0.01 per million input tokens.</p>
-      <p class="muted"><span class="mono">{{loc:src/evidence.ts:export async function extractEvidence}}</span><br>Without it, the full read moves to a paid frontier model at 13× to 100× the input price, and three passes per check stop being affordable.</p>
+      <p class="muted"><span class="mono">{{loc:src/evidence.ts:export async function extractEvidence}}</span><br>Without it, the same read on SERV's cheapest catalog model costs about 13× more per input token ($0.13 vs $0.01 per million): still cheap in dollars, but no longer close to free.</p>
     </div>
     <div class="crit" data-reveal>
       <h4>SERV Reasoning</h4>
       <p>Two jobs. A Prompt Guard front door on the raw finding before the open model, which has no guard, reads it. Then one bounded decision per pass with <span class="mono">serv_prompt_guard</span> on, returning a request id for every verdict.</p>
-      <p class="muted"><span class="mono">{{loc:src/verdict.ts:export async function screen}}</span> · <span class="mono">{{loc:src/verdict.ts:export async function judge}}</span><br>Without it: no guard on hostile text and no per-decision receipt. Measured: no accuracy gain over the open model as decider.</p>
+      <p class="muted"><span class="mono">{{loc:src/verdict.ts:export async function screen}}</span> · <span class="mono">{{loc:src/verdict.ts:export async function judge}}</span><br>Measured honestly: no accuracy gain over the open model as decider, and on the blind attacks the code scan did most of the stopping. The matched ablation on /proof isolates what the guard adds on its own.</p>
     </div>
     <div class="crit" data-reveal>
       <h4>Reppo</h4>
@@ -143,13 +143,13 @@ script:
     <div class="grid-2">
       <div class="panel diagram" data-reveal>
         <div class="row"><span class="gold">citations</span><span>A link must resolve at its commit, sit in scope, and share an identifier with the finding's own text. Otherwise: citation broken, no model call. <span class="muted">{{loc:src/citations.ts:export function markUnrelated}}</span></span></div>
-        <div class="row"><span class="gold">proof</span><span>“Runnable test” and “concrete steps” are read from the finding by code. The model cannot claim more. <span class="muted">{{loc:src/defenses.ts:export function proofInReport}}</span></span></div>
+        <div class="row"><span class="gold">proof</span><span>“Contains a test” (a test function with an assertion) and “concrete steps” are read from the finding by code; the model cannot claim more. Nothing in a finding is executed. <span class="muted">{{loc:src/defenses.ts:export function proofInReport}}</span></span></div>
         <div class="row"><span class="gold">scan</span><span>Text addressed to the pipeline (field names, dictated verdicts, fake judge comments, hidden text) removes READY and automatic routing. <span class="muted">{{loc:src/defenses.ts:export function scanInstructions}}</span></span></div>
       </div>
       <div class="panel diagram" data-reveal>
-        <div class="row"><span class="gold">caps</span><span>READY needs code support “yes”, no blocking code, no known-issue match, no trusted role, and real proof. Any miss: needs proof. <span class="muted">{{loc:src/caps.ts:export function applyCaps}}</span></span></div>
+        <div class="row"><span class="gold">caps</span><span>READY needs code support “yes”, a root cause that exists in the audited source, no blocking code, no known-issue match, no trusted role, a test or concrete steps, every citation resolving, and nothing left on either missing-proof list. Any miss: needs proof, and a person sees it. <span class="muted">{{loc:src/caps.ts:export function applyCaps}}</span></span></div>
         <div class="row"><span class="gold">consensus</span><span>Three passes. Unanimous and unflagged routes automatically; anything else goes to a human. <span class="muted">{{loc:src/precheck.ts:export function consensus}}</span></span></div>
-        <div class="row"><span class="gold">receipt</span><span>Every check is sealed into an Assay Certificate: finding digest, audited commit, votes, request ids, cost. <span class="muted">{{loc:src/certificate.ts:export function issue}}</span></span></div>
+        <div class="row"><span class="gold">receipt</span><span>Every check returns an Assay Receipt with a SHA-256 checksum over finding digest, audited commit, votes, request ids and cost. It detects edits; it does not prove who issued it or that the verdict is right. <span class="muted">{{loc:src/certificate.ts:export function issue}}</span></span></div>
       </div>
     </div>
   </div>

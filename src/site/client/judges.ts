@@ -8,11 +8,23 @@ interface Attack {
   report: string;
 }
 
-const EXPECT: Record<string, (r: CheckResult) => boolean> = {
-  fabricated: (r) => r.verdict === "CITATION_BROKEN" && r.votes.length === 0,
-  known: (r) => r.verdict === "KNOWN_OR_OUT_OF_SCOPE",
-  injected: (r) => r.verdict !== "READY" && r.route === "human",
-  patched: (r) => r.verdict === "BLOCKED_BY_CODE",
+// Each check asserts every promise written on its card, and names the first one that fails.
+const EXPECT: Record<string, (r: CheckResult) => string | null> = {
+  fabricated: (r) =>
+    r.verdict !== "CITATION_BROKEN" ? `verdict was ${r.verdict}`
+    : r.votes.length !== 0 ? "a model was called"
+    : r.route !== "automatic" ? "it was not routed automatically"
+    : r.usd !== 0 ? `it cost $${r.usd}`
+    : null,
+  known: (r) =>
+    r.verdict !== "KNOWN_OR_OUT_OF_SCOPE" ? `verdict was ${r.verdict}`
+    : !/M-1/.test(r.evidence?.known_issue_match ?? "") && !/M-1/.test(r.reason) ? "M-1 was not named"
+    : null,
+  injected: (r) => (r.verdict === "READY" ? "it reached READY" : r.route !== "human" ? "it was routed automatically" : null),
+  patched: (r) =>
+    r.verdict !== "BLOCKED_BY_CODE" ? `verdict was ${r.verdict}`
+    : !r.evidence?.blocking_code.some((b) => b.file === "src/NativeVault.sol") ? "no blocking line in NativeVault.sol"
+    : null,
 };
 
 async function main() {
@@ -27,9 +39,11 @@ async function main() {
     try {
       const r = await runCheck(a.contest, a.title, a.report);
       stop();
-      const ok = EXPECT[a.key](r);
+      const miss = EXPECT[a.key](r);
+      const blocking = r.evidence?.blocking_code.map((b) => `${b.file}:${b.line}`).join(", ");
       out.innerHTML = `${renderVerdict(r, true)}
-        <p class="mono ${ok ? "check-ok" : "check-miss"}" style="margin-top:14px;font-size:13px">${ok ? "✓ as expected" : "✗ not what we expected: this is a real miss"} · $${r.usd.toFixed(5)} · ${(r.ms / 1000).toFixed(1)}s</p>
+        ${blocking ? `<p class="fine">blocking code: ${esc(blocking)}</p>` : ""}
+        <p class="mono ${miss ? "check-miss" : "check-ok"}" style="margin-top:14px;font-size:13px">${miss ? `✗ not what we promised: ${esc(miss)}` : "✓ every promise on this card held"} · $${r.usd.toFixed(5)} · ${(r.ms / 1000).toFixed(1)}s</p>
         ${r.votes.some((v) => v.request_id) ? `<p class="fine">SERV requests: ${r.votes.map((v) => esc(v.request_id ?? "held")).join(" · ")}</p>` : ""}`;
       drawStreak(out.querySelector("svg")!);
       enter([...out.children].slice(1));
@@ -42,9 +56,12 @@ async function main() {
   };
   const cards = $$("[data-attack]");
   for (const card of cards) $("[data-run]", card).addEventListener("click", () => run(card));
-  $("#run-all").addEventListener("click", () => {
+  const all = $<HTMLButtonElement>("#run-all");
+  all.addEventListener("click", async () => {
+    all.disabled = true;
     $("#attacks").scrollIntoView({ behavior: "smooth", block: "start" });
-    cards.forEach((c, i) => setTimeout(() => run(c), i * 400));
+    await Promise.all(cards.map((c, i) => new Promise((r) => setTimeout(r, i * 400)).then(() => run(c))));
+    all.disabled = false;
   });
 }
 

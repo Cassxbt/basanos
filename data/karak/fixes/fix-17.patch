@@ -1,0 +1,74 @@
+From d477404b2b760e637faef7e2a2bd88f2bcdbaa23 Mon Sep 17 00:00:00 2001
+From: basanos-fixture <fixture@localhost>
+Date: Sun, 15 Nov 2026 00:44:51 -0500
+Subject: [PATCH] Size slashing against assets at finalization
+
+---
+ src/entities/SlasherLib.sol | 18 +++++++++---------
+ 1 file changed, 9 insertions(+), 9 deletions(-)
+
+diff --git a/src/entities/SlasherLib.sol b/src/entities/SlasherLib.sol
+index dfd650a..e392b8e 100644
+--- a/src/entities/SlasherLib.sol
++++ b/src/entities/SlasherLib.sol
+@@ -31,7 +31,7 @@ library SlasherLib {
+         uint96 timestamp;
+         address operator;
+         address[] vaults;
+-        uint256[] earmarkedStakes;
++        uint96[] slashPercentagesWad;
+         uint256 nonce;
+     }
+ 
+@@ -76,16 +76,16 @@ library SlasherLib {
+         validateVaultsAndSlashPercentages(self, slashingRequest, dss);
+     }
+ 
+-    function fetchEarmarkedStakes(SlashRequest memory slashingMetadata)
++    function fetchEarmarkedStakes(QueuedSlashing memory queuedSlashing)
+         internal
+         view
+         returns (uint256[] memory earmarkedStakes)
+     {
+-        earmarkedStakes = new uint256[](slashingMetadata.vaults.length);
+-        for (uint256 i = 0; i < slashingMetadata.vaults.length; ++i) {
++        earmarkedStakes = new uint256[](queuedSlashing.vaults.length);
++        for (uint256 i = 0; i < queuedSlashing.vaults.length; ++i) {
+             earmarkedStakes[i] = Math.mulDiv(
+-                slashingMetadata.slashPercentagesWad[i],
+-                IKarakBaseVault(slashingMetadata.vaults[i]).totalAssets(),
++                queuedSlashing.slashPercentagesWad[i],
++                IKarakBaseVault(queuedSlashing.vaults[i]).totalAssets(),
+                 Constants.MAX_SLASHING_PERCENT_WAD
+             );
+         }
+@@ -98,13 +98,12 @@ library SlasherLib {
+         uint256 nonce
+     ) external returns (QueuedSlashing memory queuedSlashing) {
+         validateRequestSlashingParams(self, slashingMetadata, dss);
+-        uint256[] memory earmarkedStakes = fetchEarmarkedStakes(slashingMetadata);
+         queuedSlashing = QueuedSlashing({
+             dss: dss,
+             timestamp: uint96(block.timestamp),
+             operator: slashingMetadata.operator,
+             vaults: slashingMetadata.vaults,
+-            earmarkedStakes: earmarkedStakes,
++            slashPercentagesWad: slashingMetadata.slashPercentagesWad,
+             nonce: nonce
+         });
+         self.slashingRequests[calculateRoot(queuedSlashing)] = true;
+@@ -131,9 +130,10 @@ library SlasherLib {
+         }
+         delete self.slashingRequests[slashRoot];
+ 
++        uint256[] memory earmarkedStakes = fetchEarmarkedStakes(queuedSlashing);
+         for (uint256 i = 0; i < queuedSlashing.vaults.length; i++) {
+             IKarakBaseVault(queuedSlashing.vaults[i]).slashAssets(
+-                queuedSlashing.earmarkedStakes[i],
++                earmarkedStakes[i],
+                 self.assetSlashingHandlers[IKarakBaseVault(queuedSlashing.vaults[i]).asset()]
+             );
+         }
+-- 
+2.50.1 (Apple Git-155)
+

@@ -1,0 +1,24 @@
+From 27dc62a0ba1bd0a9d34f465ab7242d92b88c59f7 Mon Sep 17 00:00:00 2001
+From: basanos-fixture <fixture@localhost>
+Date: Sun, 15 Nov 2026 00:44:51 -0500
+Subject: [PATCH] Cap balance decrease to the owner's share value
+
+---
+ src/NativeVault.sol | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/src/NativeVault.sol b/src/NativeVault.sol
+index 5c87afa..9c93fcf 100644
+--- a/src/NativeVault.sol
++++ b/src/NativeVault.sol
+@@ -506,6 +506,7 @@ contract NativeVault is ERC4626, IBeacon, Pauser, INativeVault, OwnableRoles, Re
+ 
+     function _decreaseBalance(address _of, uint256 assets) internal {
+         NativeVaultLib.Storage storage self = _state();
++        assets = Math.min(assets, convertToAssets(balanceOf(_of)));
+         uint256 shares = previewWithdraw(assets);
+         _beforeWithdraw(assets, shares);
+         _burn(_of, shares);
+-- 
+2.50.1 (Apple Git-155)
+

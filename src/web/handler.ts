@@ -1,8 +1,7 @@
 import type { IncomingMessage, ServerResponse } from "node:http";
 import { CONTESTS, loadContest } from "../contests.ts";
 import { precheck } from "../precheck.ts";
-import { toJson, route } from "../format.ts";
-import { issue } from "../certificate.ts";
+import { toReport } from "../format.ts";
 import { configureClients } from "../llm.ts";
 
 const MAX_REPORT = 60_000;
@@ -73,7 +72,7 @@ export default async function handler(req: IncomingMessage & { body?: unknown },
     const { contest: c, policy } = loadContest(contest);
     const result = await precheck({ title, body: report }, c, policy);
     spent.push({ at: now, usd: result.usd });
-    return send(res, 200, { ...toJson(result), ...issue(result, contest, c.auditedCommit, title, report, route(result)), ms: Date.now() - now });
+    return send(res, 200, { ...toReport(result, contest, c.auditedCommit, title, report), ms: Date.now() - now });
   } catch (err) {
     console.error(err);
     return send(res, 502, { error: "The check failed upstream. Nothing was stored; try again." });

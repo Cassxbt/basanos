@@ -3,7 +3,13 @@ import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js"
 import { z } from "zod";
 import { loadContest, CONTESTS } from "./contests.ts";
 import { precheck } from "./precheck.ts";
-import { toJson, toText } from "./format.ts";
+import { toReport, toText } from "./format.ts";
+
+try {
+  process.loadEnvFile();
+} catch {
+  // Keys come from the MCP client's env block instead.
+}
 
 const server = new McpServer({ name: "basanos", version: "0.1.0" });
 
@@ -38,7 +44,7 @@ server.registerTool(
     return {
       content: [
         { type: "text", text: toText(result) },
-        { type: "text", text: JSON.stringify(toJson(result)) },
+        { type: "text", text: JSON.stringify(toReport(result, contest, c.auditedCommit, title, report)) },
       ],
     };
   },

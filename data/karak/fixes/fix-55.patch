@@ -1,0 +1,30 @@
+From bd6de6de5454149bb21c7273bb6668e638ba5a4d Mon Sep 17 00:00:00 2001
+From: basanos-fixture <fixture@localhost>
+Date: Sun, 15 Nov 2026 00:44:52 -0500
+Subject: [PATCH] Validate native vault slash store at deployment
+
+---
+ src/entities/CoreLib.sol | 7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
+
+diff --git a/src/entities/CoreLib.sol b/src/entities/CoreLib.sol
+index aa247f7..e35220c 100644
+--- a/src/entities/CoreLib.sol
++++ b/src/entities/CoreLib.sol
+@@ -82,7 +82,12 @@ library CoreLib {
+             revert VaultImplNotAllowlisted();
+         }
+         for (uint256 i = 0; i < vaultConfigs.length; i++) {
+-            if (self.assetSlashingHandlers[vaultConfigs[i].asset] == address(0)) revert AssetNotAllowlisted();
++            address slashingHandler = self.assetSlashingHandlers[vaultConfigs[i].asset];
++            if (slashingHandler == address(0)) revert AssetNotAllowlisted();
++            if (vaultConfigs[i].asset == Constants.DEAD_BEEF) {
++                (, address slashStore,) = abi.decode(vaultConfigs[i].extraData, (address, address, address));
++                if (slashStore != slashingHandler) revert NotSlashStore();
++            }
+         }
+     }
+ 
+-- 
+2.50.1 (Apple Git-155)
+

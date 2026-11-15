@@ -1,0 +1,25 @@
+From 9317b7527a7aa0f578999e0a25e6b8baab762590 Mon Sep 17 00:00:00 2001
+From: basanos-fixture <fixture@localhost>
+Date: Sun, 15 Nov 2026 00:44:52 -0500
+Subject: [PATCH] Sync native vault slash store with slashing handler
+
+---
+ src/NativeVault.sol | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/NativeVault.sol b/src/NativeVault.sol
+index 5c87afa..b2ae936 100644
+--- a/src/NativeVault.sol
++++ b/src/NativeVault.sol
+@@ -305,7 +305,7 @@ contract NativeVault is ERC4626, IBeacon, Pauser, INativeVault, OwnableRoles, Re
+     {
+         NativeVaultLib.Storage storage self = _state();
+ 
+-        if (slashingHandler != self.slashStore) revert NotSlashStore();
++        self.slashStore = slashingHandler;
+ 
+         // avoid negative totalAssets if slashing amount is greater than totalAssets
+         if (totalAssetsToSlash > self.totalAssets) {
+-- 
+2.50.1 (Apple Git-155)
+

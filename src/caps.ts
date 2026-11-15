@@ -1,26 +1,50 @@
 import type { Evidence } from "./evidence.ts";
 import type { Judgment, ModelVerdict } from "./verdict.ts";
+import type { ResolvedCitation } from "./citations.ts";
 
 export interface Capped {
   verdict: ModelVerdict;
   severity: Judgment["severity_supported"];
   caps: string[];
+  evidence: Evidence;
 }
 
-// Code has the last word over the decision model: a verdict may never be stronger than the evidence record allows.
-export function applyCaps(j: Judgment, e: Evidence, instructionHits: string[] = []): Capped {
+export interface CapContext {
+  flags: string[];
+  citations: ResolvedCitation[];
+  locationExists: (file: string, line: number) => boolean;
+}
+
+const USABLE = new Set(["OK", "MOVED"]);
+
+// Code has the last word over the decision model: a verdict may never be stronger than the evidence record allows,
+// and the evidence record may not point at code that does not exist.
+export function applyCaps(j: Judgment, e: Evidence, ctx: CapContext): Capped {
   const caps: string[] = [];
   let verdict = j.verdict;
   let severity = j.severity_supported;
 
+  const realBlocking = e.blocking_code.filter((b) => ctx.locationExists(b.file, b.line));
+  if (realBlocking.length < e.blocking_code.length) {
+    caps.push(`dropped ${e.blocking_code.length - realBlocking.length} blocking reference(s) to code that does not exist`);
+  }
+  const evidence = { ...e, blocking_code: realBlocking };
+  const rootExists = ctx.locationExists(e.root_cause_file, e.root_cause_line);
+
   if (verdict === "READY") {
+    const broken = ctx.citations.filter((c) => !USABLE.has(c.status) && c.status !== "OUT_OF_SCOPE");
     const reasons = [
       e.code_supports_claim !== "yes" && `code_supports_claim=${e.code_supports_claim}`,
-      e.blocking_code.length > 0 && `blocking code at ${e.blocking_code.map((b) => `${b.file}:${b.line}`).join(", ")}`,
+      !rootExists && `root cause ${e.root_cause_file}:${e.root_cause_line} is not in the audited source`,
+      realBlocking.length < e.blocking_code.length && "the evidence record cites code that does not exist",
+      realBlocking.length > 0 && `blocking code at ${realBlocking.map((b) => `${b.file}:${b.line}`).join(", ")}`,
       e.known_issue_match && `matches known issue ${e.known_issue_match}`,
       e.trusted_role_required && "requires a trusted role",
-      (e.poc === "none" || e.poc === "narrative_only") && "no runnable test or concrete steps in the finding",
-      instructionHits.length > 0 && `finding contains text addressed to the reviewer (${instructionHits.join(", ")})`,
+      (e.poc === "none" || e.poc === "narrative_only") && "no test or concrete steps in the finding",
+      e.missing_evidence.length > 0 && `evidence record still lists missing proof (${e.missing_evidence.length})`,
+      j.missing.length > 0 && `the decision itself lists missing proof (${j.missing.length})`,
+      broken.length > 0 && `${broken.length} citation(s) do not resolve (${broken.map((c) => c.status).join(", ")})`,
+      ctx.flags.length > 0 && `finding contains text addressed to the reviewer (${ctx.flags.join(", ")})`,
     ].filter((r): r is string => Boolean(r));
     if (reasons.length) {
       verdict = "NEEDS_PROOF";
@@ -33,5 +57,5 @@ export function applyCaps(j: Judgment, e: Evidence, instructionHits: string[] = 
     severity = "low_or_none";
   }
 
-  return { verdict, severity, caps };
+  return { verdict, severity, caps, evidence };
 }

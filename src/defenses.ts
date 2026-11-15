@@ -20,10 +20,18 @@ export function scanInstructions(text: string): string[] {
 export type Proof = Evidence["poc"];
 const PROOF_RANK: Proof[] = ["none", "narrative_only", "concrete_steps", "runnable_test"];
 
+// A test-shaped block with something that can fail: an assertion, a revert expectation or a cheatcode.
+// This is a shape check on text; nothing in the finding is executed.
+function isTest(block: string): boolean {
+  const fn = /function\s+test\w*\s*\([^)]*\)[^{]*\{([\s\S]*?)\n\s*\}/.exec(block);
+  const body = fn?.[1] ?? (/\b(it|test)\(\s*["'`][\s\S]*?=>\s*\{([\s\S]*)\}/.exec(block)?.[2] ?? "");
+  return /\b(assert\w*|require|expect|vm\.\w+)\s*[.(]/.test(body);
+}
+
 // What the finding itself shows, read by code. The evidence record may not claim more.
 export function proofInReport(body: string): Proof {
   const blocks = [...body.matchAll(/```[\w-]*\n([\s\S]*?)```/g)].map((m) => m[1]);
-  if (blocks.some((b) => /function\s+test\w*\s*\(|\bforge\s+test\b|\b(it|describe)\(\s*["'`]/.test(b))) return "runnable_test";
+  if (blocks.some(isTest)) return "runnable_test";
   const numbered = body.match(/^\s*\d+[.)]\s+\S/gm)?.length ?? 0;
   if (numbered >= 3) return "concrete_steps";
   return "narrative_only";

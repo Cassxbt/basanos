@@ -40,6 +40,7 @@ script: check
           <a class="btn" href="#check" data-magnetic>Try it now <span class="arrow">→</span></a>
           <a class="btn ghost" href="#how" data-magnetic>How it works <span class="arrow">↓</span></a>
         </div>
+        <p class="fine" data-reveal style="margin-top:18px">Live demo on a closed Code4rena contest (Karak, July 2024). Other contests need a snapshot.</p>
       </div>
       <aside class="hero-aside" data-stagger>
         <div class="fact"><b>≈20s</b><span>per check, about a third of a cent</span></div>
@@ -64,7 +65,7 @@ script: check
         <span class="eyebrow" data-reveal>In plain terms</span>
         <h2 class="display h2" data-split style="margin-top:22px">Three steps. One honest answer.</h2>
       </div>
-      <p class="lede" data-reveal>Audit contests pay bug hunters for findings a judge accepts. Most rejected findings fail for boring reasons: a wrong line, a known issue, no proof. Basanos catches those before you hit submit.</p>
+      <p class="lede" data-reveal>Audit contests pay bug hunters for findings a judge accepts. Many rejections are checkable before submission: a wrong line, a known issue, a missing proof. Basanos checks for those before you hit submit.</p>
     </div>
     <div class="grid-3">
       <article class="panel plain-step" data-reveal>
@@ -82,7 +83,7 @@ script: check
       <article class="panel plain-step" data-reveal>
         <span class="plain-num">3</span>
         <h3 class="display h3">Get a verdict</h3>
-        <p>One of six verdicts, the specific proof a judge would still ask for, and a sealed certificate you can verify.</p>
+        <p>One of six verdicts, the specific proof a judge would still ask for, and a checksummed receipt your browser can verify.</p>
         <div class="mini"><span class="c-ash">KNOWN OR OUT OF SCOPE</span><br><span class="muted">missing: a test showing loss beyond M-1</span></div>
       </article>
     </div>
@@ -114,7 +115,7 @@ script: check
           <textarea id="report" spellcheck="false" placeholder="# Lines of code&#10;https://github.com/code-423n4/2024-07-karak/blob/main/src/Vault.sol#L78-L88&#10;&#10;# Vulnerability details&#10;…"></textarea>
         </div>
         <button class="btn" id="run" type="submit" data-magnetic>3 · Check this finding <span class="arrow">→</span></button>
-        <p class="fine">Sent to Dolphin and SERV for this check only. Not stored. Basanos never submits anything.</p>
+        <p class="fine">Basanos does not store your finding. It is sent to Dolphin and to OpenServ's SERV, which has data collection enabled on this workspace and may retain it. Paste only public, closed-contest findings. Basanos never submits anything.</p>
       </form>
       <div class="check-output" id="result" aria-live="polite">
         <div class="result-empty">
@@ -140,7 +141,7 @@ script: check
         <span class="eyebrow" data-reveal>The verdicts</span>
         <h2 class="display h2" data-split style="margin-top:22px">Six answers, each with a next step.</h2>
       </div>
-      <p class="lede" data-reveal>Basanos asks three times and only acts on its own when all three agree. Anything uncertain goes to a person.</p>
+      <p class="lede" data-reveal>Basanos asks three times and only routes on its own when all three agree and no code rule had to overrule a model. Anything uncertain goes to a person. Every verdict is advice, not a guarantee.</p>
     </div>
     <div class="verdicts">
       <div class="verdict-row" data-reveal><span class="vdot" style="--c:var(--gold)"></span><b>Ready</b><p>The code supports the claim, the proof is in the finding, and it is not a known issue.</p><span class="mono muted">Submit it.</span></div>
@@ -157,15 +158,15 @@ script: check
   <div class="wrap">
     <div class="section-head">
       <div>
-        <span class="eyebrow" data-reveal>Does it actually read the code?</span>
-        <h2 class="display h2" data-split style="margin-top:22px">We fixed the bugs to find out.</h2>
+        <span class="eyebrow" data-reveal>Is it reading the code?</span>
+        <h2 class="display h2" data-split style="margin-top:22px">Fix the bug, and the verdict moves.</h2>
       </div>
-      <p class="lede" data-reveal>These 2024 findings could be in a model's training data. So we fixed each award-winning bug on a branch and ran the same finding again. A model remembering the old outcome would not change its answer. Basanos did.</p>
+      <p class="lede" data-reveal>These 2024 findings could be in a model's training data. So we fixed each award-winning bug on a branch and ran the same finding again. The verdict moved with the code, which shows it reads the source. It does not prove the models have never seen these contests.</p>
     </div>
     <div class="numbers">
       <div class="number" data-reveal><b><span data-claim="bug_fix_pairs.blocked_original.serv" data-count>1</span><small>/<span data-claim="bug_fix_pairs.blocked_original.of">18</span></small></b><p>runs said “blocked by code” on the original, buggy code</p></div>
       <div class="number" data-reveal><b><span data-claim="bug_fix_pairs.blocked_patched.serv" data-count>10</span><small>/<span data-claim="bug_fix_pairs.blocked_patched.of">18</span></small></b><p>said it once the bug was fixed: the answer moved with the code</p></div>
-      <div class="number" data-reveal><b><span data-claim="bug_fix_pairs.blocking_names_patched_file.hits" data-count>10</span><small>/<span data-claim="bug_fix_pairs.blocking_names_patched_file.of">10</span></small></b><p>times it pointed at blocking code, it was the file the fix changed</p></div>
+      <div class="number" data-reveal><b><span data-claim="bug_fix_pairs.blocking_names_patched_file.hits" data-count>10</span><small>/<span data-claim="bug_fix_pairs.blocking_names_patched_file.of">10</span></small></b><p>times it pointed at blocking code, it was in the file the fix changed</p></div>
       <div class="number" data-reveal><b><span data-claim="hostile_v3_defended_blind.ready_routed_automatically.serv" data-count>0</span><small>/<span data-claim="hostile_v3_defended_blind.injected">60</span></small></b><p>injection attacks written by an outsider got an automatic “ready”</p></div>
     </div>
   </div>
@@ -174,7 +175,7 @@ script: check
 <section class="section">
   <div class="wrap">
     <span class="eyebrow" data-reveal>Why it matters</span>
-    <p class="statement" data-scrub style="margin-top:28px">Contest judges read thousands of findings. Most cite a line that says something else, repeat what the bot report already caught, or claim a loss nobody <span class="accent">showed.</span> Each one costs a judge an hour and the hunter the payout. The fix is a <span class="accent">touchstone,</span> not another model.</p>
+    <p class="statement" data-scrub style="margin-top:28px">Contest judges triage thousands of findings. Some cite a line that says something else, repeat what the bot report already caught, or claim a loss nobody <span class="accent">showed.</span> Each of those costs a judge time and a hunter the payout. The fix is a <span class="accent">touchstone,</span> not another model.</p>
   </div>
 </section>
 
@@ -183,7 +184,7 @@ script: check
     <span class="eyebrow" data-reveal>Where to go next</span>
     <div class="directory">
       <a class="dir" href="/judges/" data-reveal><span class="mono gold">01 · Judges</span><b>Break it yourself</b><p>Four live attacks with the expected result written down first, and the rubric mapped to evidence.</p><span class="arrow">→</span></a>
-      <a class="dir" href="/proof/" data-reveal><span class="mono gold">02 · Proof</span><b>Every number, recomputed</b><p>Your browser recomputes each claim from the committed run data. Tamper with it and watch it turn red.</p><span class="arrow">→</span></a>
+      <a class="dir" href="/proof/" data-reveal><span class="mono gold">02 · Proof</span><b>Every number, recomputed</b><p>Your browser recomputes each claim from the committed run data, including the results that went against us.</p><span class="arrow">→</span></a>
       <a class="dir" href="/how/" data-reveal><span class="mono gold">03 · How it works</span><b>The Touchstone Pass</b><p>What code decides, what Dolphin reads, what SERV guards, and what a check costs.</p><span class="arrow">→</span></a>
       <a class="dir" href="/agents/" data-reveal><span class="mono gold">04 · For agents</span><b>MCP, CLI and API</b><p>Give a bug-hunting agent one tool to call before it submits anything.</p><span class="arrow">→</span></a>
     </div>

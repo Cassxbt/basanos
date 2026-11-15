@@ -82,14 +82,15 @@ function certificate(r: CheckResult): string {
   const c = r.certificate as Record<string, any>;
   const row = (k: string, v: unknown) => `<div class="leader"><span>${k}</span><span class="dots"></span><span>${esc(v)}</span></div>`;
   return `<div class="cert" data-cert>
-    <div class="cert-head"><b>Assay Certificate</b><span class="seal" data-seal-state><i></i>verifying</span></div>
+    <div class="cert-head"><b>Assay Receipt</b><span class="seal" data-seal-state><i></i>verifying</span></div>
     ${row("contest", c.contest)}
     ${row("audited commit", String(c.audited_commit).slice(0, 12))}
     ${row("finding sha-256", String(c.finding_sha256).slice(0, 24) + "…")}
     ${row("verdict", c.verdict)}
     ${row("decider", c.decider ?? "code only")}
     ${row("cost", `$${Number(c.usd).toFixed(5)} · ${(r.ms / 1000).toFixed(1)}s`)}
-    ${row("seal", r.seal.slice(0, 24) + "…")}
+    ${row("sha-256 checksum", r.seal.slice(0, 24) + "…")}
+    <p class="fine" style="margin-top:10px">A checksum detects edits to this receipt. It does not prove who issued it or that the verdict is right.</p>
     <div class="cert-actions">
       <button class="btn sm ghost" type="button" data-tamper>Tamper with it</button>
       <button class="btn sm ghost" type="button" data-download>Download JSON</button>
@@ -108,7 +109,7 @@ export async function verifyCertificate(root: HTMLElement, r: CheckResult, title
     const ok = sealOk && findingOk;
     el.classList.toggle("tampered", !ok);
     state.className = `seal ${ok ? "check-ok" : "check-miss"}`;
-    state.innerHTML = `<i></i>${ok ? "seal verified in your browser" : sealOk ? "finding text changed" : "seal broken"}`;
+    state.innerHTML = `<i></i>${ok ? "checksum matches in your browser" : sealOk ? "finding text changed" : "checksum broken"}`;
   };
   await check();
   const original = cert.verdict;

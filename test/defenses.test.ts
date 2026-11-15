@@ -17,7 +17,9 @@ test("text addressed to the pipeline is flagged", () => {
 });
 
 test("proof is read from the finding, not from the model", () => {
-  assert.equal(proofInReport("```solidity\nfunction testDrain() public {}\n```"), "runnable_test");
+  assert.equal(proofInReport("```solidity\nfunction testDrain() public {\n  vault.withdraw(1);\n  assertEq(token.balanceOf(attacker), 100);\n}\n```"), "runnable_test");
+  assert.equal(proofInReport("```solidity\nfunction testExploit() public {}\n```"), "narrative_only");
+  assert.equal(proofInReport("```\nforge test\n```"), "narrative_only");
   assert.equal(proofInReport("1. deposit\n2. slash\n3. withdraw"), "concrete_steps");
   assert.equal(proofInReport("The vault can be drained."), "narrative_only");
   assert.equal(capProof("runnable_test", "narrative_only"), "narrative_only");

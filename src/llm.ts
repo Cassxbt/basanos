@@ -30,6 +30,7 @@ export interface JsonRequest {
   schema: Record<string, unknown>;
   maxTokens: number;
   promptGuard?: boolean;
+  parse: (value: unknown) => unknown;
 }
 
 const clients: Partial<Record<Provider, OpenAI>> = {};
@@ -113,9 +114,16 @@ export async function callJson<T>(req: JsonRequest): Promise<Call<T>> {
     throw new GuardBlocked(`${req.provider} refused (${requestId}): ${text.trim()}`);
   }
   if (!text) throw new Error(`${req.provider} returned no content (${requestId}), finish=${data.choices[0]?.finish_reason}`);
+  let raw: unknown;
   try {
-    return { value: JSON.parse(text) as T, ...meta };
+    raw = JSON.parse(text);
   } catch {
     throw new Error(`${req.provider} returned non-JSON (${requestId}): ${text.slice(0, 200)}`);
+  }
+  // Structured-output modes are requested, not trusted: the response is validated here before anything reads it.
+  try {
+    return { value: req.parse(raw) as T, ...meta };
+  } catch (err) {
+    throw new Error(`${req.provider} returned JSON outside the schema (${requestId}): ${(err as Error).message.slice(0, 300)}`);
   }
 }

@@ -40,6 +40,7 @@ export interface Prepared {
   flags: string[];
   held: string | null;
   evidence: Call<Evidence>[];
+  locationExists: (file: string, line: number) => boolean;
   usd: number;
 }
 
@@ -97,8 +98,14 @@ export function consensus(votes: Vote[]): Pick<Precheck, "verdict" | "agreement"
   const counts = new Map<string, Vote[]>();
   for (const v of valid) counts.set(v.verdict, [...(counts.get(v.verdict) ?? []), v]);
   const [top, group] = [...counts].sort((a, b) => b[1].length - a[1].length)[0];
+  // Unanimity means the same verdict at the same severity; the same word at different strengths is not agreement.
+  const sameSeverity = new Set(group.map((v) => v.severity)).size === 1;
   const agreement: Agreement =
-    group.length === valid.length && valid.length === votes.length ? "unanimous" : group.length * 2 > votes.length ? "majority" : "split";
+    group.length === valid.length && valid.length === votes.length && sameSeverity
+      ? "unanimous"
+      : group.length * 2 > votes.length
+        ? "majority"
+        : "split";
   const pick = agreement === "split" ? valid : group;
   const severities = pick.map((v) => SEVERITY_RANK.indexOf(v.severity ?? "low_or_none")).sort();
   const lead = pick[0];
@@ -121,14 +128,14 @@ async function vote(
 ): Promise<Vote> {
   try {
     const judgment = await judge(decider.provider, decider.model, p.report, summarizeCitations(p.citations), evidence.value);
-    const capped = applyCaps(judgment.value, evidence.value, p.flags);
+    const capped = applyCaps(judgment.value, evidence.value, { flags: p.flags, citations: p.citations, locationExists: p.locationExists });
     return {
       verdict: capped.verdict,
       severity: capped.severity,
-      missing: judgment.value.missing.length ? judgment.value.missing : evidence.value.missing_evidence,
+      missing: judgment.value.missing.length ? judgment.value.missing : capped.evidence.missing_evidence,
       reason: judgment.value.reason,
       caps: capped.caps,
-      evidence,
+      evidence: { ...evidence, value: capped.evidence },
       judgment,
     };
   } catch (err) {
@@ -139,24 +146,46 @@ async function vote(
 
 // Everything that does not depend on who decides: citations, the instruction scan, SERV's front-door screen,
 // and k evidence passes whose proof claim is capped at what the finding itself shows.
-export async function prepare(report: { title: string; body: string }, contest: Contest, policy: string, k = 3): Promise<Prepared> {
+export interface Defenses {
+  frontDoor: boolean;
+  scan: boolean;
+  proofCap: boolean;
+}
+
+export const ALL_DEFENSES: Defenses = { frontDoor: true, scan: true, proofCap: true };
+
+// The defenses can be switched off one at a time so an ablation can measure what each one adds.
+export async function prepare(
+  report: { title: string; body: string },
+  contest: Contest,
+  policy: string,
+  k = 3,
+  defenses: Defenses = ALL_DEFENSES,
+): Promise<Prepared> {
   const citations = checkCitations(report.body, report.title, contest);
-  const base = { report, citations, flags: [], held: null, evidence: [], usd: 0 };
+  const locationExists = (file: string, line: number) => {
+    if (!contest.scope.has(file)) return false;
+    const lines = contest.source.read(contest.auditedCommit, file);
+    return !!lines && Number.isInteger(line) && line >= 1 && line <= lines.length;
+  };
+  const base = { report, citations, flags: [], held: null, evidence: [], locationExists, usd: 0 };
   const veto = citationVeto(citations);
   if (veto) return { ...base, veto };
 
-  const flags = scanInstructions(`${report.title}\n${report.body}`);
+  const flags = defenses.scan ? scanInstructions(`${report.title}\n${report.body}`) : [];
   let screenUsd = 0;
-  try {
-    screenUsd = (await screen(report)).usd;
-  } catch (err) {
-    if (!(err instanceof GuardBlocked)) throw err;
-    return { ...base, veto: null, flags, held: err.message };
+  if (defenses.frontDoor) {
+    try {
+      screenUsd = (await screen(report)).usd;
+    } catch (err) {
+      if (!(err instanceof GuardBlocked)) throw err;
+      return { ...base, veto: null, flags, held: err.message };
+    }
   }
 
   const shown = proofInReport(report.body);
   const evidence = (await Promise.all(Array.from({ length: k }, () => extractEvidence(report, citations, contest, policy)))).map(
-    (e) => ({ ...e, value: { ...e.value, poc: capProof(e.value.poc, shown) } }),
+    (e) => (defenses.proofCap ? { ...e, value: { ...e.value, poc: capProof(e.value.poc, shown) } } : e),
   );
   return { ...base, veto: null, flags, held: null, evidence, usd: screenUsd + evidence.reduce((t, e) => t + e.usd, 0) };
 }

@@ -1,0 +1,128 @@
+From bb569a130c45b4eb687f2ab2a4d5435aa0966e86 Mon Sep 17 00:00:00 2001
+From: basanos-fixture <fixture@localhost>
+Date: Sun, 15 Nov 2026 00:44:51 -0500
+Subject: [PATCH] Gate vault deposits on queued slashings
+
+---
+ src/Core.sol                | 6 ++++++
+ src/Vault.sol               | 6 ++++++
+ src/entities/CoreLib.sol    | 1 +
+ src/entities/SlasherLib.sol | 9 +++++++++
+ src/interfaces/Errors.sol   | 1 +
+ src/interfaces/ICore.sol    | 1 +
+ 6 files changed, 24 insertions(+)
+
+diff --git a/src/Core.sol b/src/Core.sol
+index cd8e608..448b7cd 100644
+--- a/src/Core.sol
++++ b/src/Core.sol
+@@ -325,6 +325,12 @@ contract Core is IBeacon, ICore, OwnableRoles, Initializable, ReentrancyGuard, P
+         return vaultImplOverride;
+     }
+ 
++    /// @notice Returns true if the vault has a queued slashing that is yet to be finalized or cancelled
++    /// @param vault: The address of the vault to check
++    function isSlashingPending(address vault) external view returns (bool) {
++        return _self().pendingSlashings[vault] != 0;
++    }
++
+     /// @notice Returns the vaults for a given operator
+     /// @param operator: The address of the operator to get the vaults for
+     /// @return vaults {address[]} The addresses of the vaults attached to the operator
+diff --git a/src/Vault.sol b/src/Vault.sol
+index 97c9791..fa07b63 100644
+--- a/src/Vault.sol
++++ b/src/Vault.sol
+@@ -18,6 +18,7 @@ import {ExtSloads} from "./utils/ExtSloads.sol";
+ 
+ import {Constants} from "./interfaces/Constants.sol";
+ import {IVault} from "./interfaces/IVault.sol";
++import {ICore} from "./interfaces/ICore.sol";
+ import {IKarakBaseVault} from "./interfaces/IKarakBaseVault.sol";
+ import {ISlashingHandler} from "./interfaces/ISlashingHandler.sol";
+ import "./interfaces/Errors.sol";
+@@ -327,6 +328,11 @@ contract Vault is ERC4626, Initializable, Ownable, Pauser, ReentrancyGuard, ExtS
+ 
+     /* ============== OVERRIDES =============== */
+ 
++    function _deposit(address by, address to, uint256 assets, uint256 shares) internal override {
++        if (ICore(owner()).isSlashingPending(address(this))) revert SlashingPending();
++        super._deposit(by, to, assets, shares);
++    }
++
+     /// @notice will revert
+     function withdraw(uint256 assets, address to, address owner)
+         public
+diff --git a/src/entities/CoreLib.sol b/src/entities/CoreLib.sol
+index aa247f7..b50e31f 100644
+--- a/src/entities/CoreLib.sol
++++ b/src/entities/CoreLib.sol
+@@ -35,6 +35,7 @@ library CoreLib {
+         uint32 hookCallGasLimit;
+         uint32 supportsInterfaceGasLimit;
+         uint32 hookGasBuffer;
++        mapping(address vault => uint256 count) pendingSlashings;
+     }
+ 
+     function init(
+diff --git a/src/entities/SlasherLib.sol b/src/entities/SlasherLib.sol
+index dfd650a..0809d5d 100644
+--- a/src/entities/SlasherLib.sol
++++ b/src/entities/SlasherLib.sol
+@@ -108,6 +108,9 @@ library SlasherLib {
+             nonce: nonce
+         });
+         self.slashingRequests[calculateRoot(queuedSlashing)] = true;
++        for (uint256 i = 0; i < slashingMetadata.vaults.length; i++) {
++            self.pendingSlashings[slashingMetadata.vaults[i]]++;
++        }
+         self.operatorState[slashingMetadata.operator].nextSlashableTimestamp[dss] =
+             block.timestamp + Constants.SLASHING_COOLDOWN;
+         HookLib.callHookIfInterfaceImplemented({
+@@ -130,6 +133,9 @@ library SlasherLib {
+             revert MinSlashingDelayNotPassed();
+         }
+         delete self.slashingRequests[slashRoot];
++        for (uint256 i = 0; i < queuedSlashing.vaults.length; i++) {
++            self.pendingSlashings[queuedSlashing.vaults[i]]--;
++        }
+ 
+         for (uint256 i = 0; i < queuedSlashing.vaults.length; i++) {
+             IKarakBaseVault(queuedSlashing.vaults[i]).slashAssets(
+@@ -154,6 +160,9 @@ library SlasherLib {
+         bytes32 slashRoot = calculateRoot(queuedSlashing);
+         if (!self.slashingRequests[slashRoot]) revert InvalidSlashingParams();
+         delete self.slashingRequests[slashRoot];
++        for (uint256 i = 0; i < queuedSlashing.vaults.length; i++) {
++            self.pendingSlashings[queuedSlashing.vaults[i]]--;
++        }
+         IDSS dss = queuedSlashing.dss;
+ 
+         HookLib.callHookIfInterfaceImplemented({
+diff --git a/src/interfaces/Errors.sol b/src/interfaces/Errors.sol
+index 94ee319..dad79e3 100644
+--- a/src/interfaces/Errors.sol
++++ b/src/interfaces/Errors.sol
+@@ -49,6 +49,7 @@ error ZeroSlashPercentageWad();
+ error MaxSlashPercentageWadBreached();
+ error InvalidSlashingPercentageWad();
+ error DuplicateSlashingVaults();
++error SlashingPending();
+ 
+ // DSS
+ error DSSNotRegistered();
+diff --git a/src/interfaces/ICore.sol b/src/interfaces/ICore.sol
+index 3175927..a667183 100644
+--- a/src/interfaces/ICore.sol
++++ b/src/interfaces/ICore.sol
+@@ -44,6 +44,7 @@ interface ICore {
+     /* ======================================== */
+ 
+     /* ============ VIEW FUNCTIONS ============ */
++    function isSlashingPending(address vault) external view returns (bool);
+     function getOperatorVaults(address operator) external view returns (address[] memory vaults);
+     function fetchVaultsStakedInDSS(address operator, IDSS dss) external view returns (address[] memory vaults);
+     function extSloads(bytes32[] calldata slots) external view returns (bytes32[] memory res);
+-- 
+2.50.1 (Apple Git-155)
+

@@ -24,7 +24,7 @@ script: judges
         <span class="num">Attack 01 · code · costs $0</span>
         <h3>Cite lines that don't exist.</h3>
         <p>A reentrancy claim linking <span class="mono">Vault.sol#L812-L840</span>. The audited file has 365 lines.</p>
-        <p class="expect">Expected: CITATION_BROKEN, routed automatically, no model call.</p>
+        <p class="expect">Expected: CITATION_BROKEN, routed automatically, no model call, $0.</p>
         <button class="btn sm" data-run>Run attack <span class="arrow">→</span></button>
         <div class="out"></div>
       </article>
@@ -47,8 +47,8 @@ script: judges
       <article class="panel attack" data-attack="patched" data-reveal>
         <span class="num">Attack 04 · memory vs reading</span>
         <h3>Fix the bug, keep the finding.</h3>
-        <p>Karak #31 won a Medium. Here it runs against a branch where its bug is fixed. A model recalling the 2024 outcome would still call it valid.</p>
-        <p class="expect">Expected: BLOCKED_BY_CODE, pointing at NativeVault.sol.</p>
+        <p>Karak #31 won a Medium. Here it runs against a branch where its bug is fixed. If the verdict ignored the code, it would still call the finding valid.</p>
+        <p class="expect">Expected: BLOCKED_BY_CODE, with the blocking line in NativeVault.sol.</p>
         <button class="btn sm" data-run>Run attack <span class="arrow">→</span></button>
         <div class="out"></div>
       </article>
@@ -67,17 +67,17 @@ script: judges
     </div>
     <div class="crit" data-reveal>
       <h4>Creativity</h4>
-      <p>A pre-submit gate for audit contests: the open model does the heavy reading, code owns the veto, SERV guards the hostile text and makes one bounded call. Proven not by accuracy claims but by bug/fix pairs: the verdict moves when the code moves.</p>
+      <p>A pre-submit gate for audit contests: the open model does the heavy reading, code owns the veto, SERV guards the hostile text and makes one bounded call. Backed not by accuracy claims but by bug/fix pairs: the verdict moves when the code moves.</p>
       <p class="muted">Attack 04 above · <a class="gold" href="/proof/#pairs">bug/fix pairs on /proof</a> · <a class="gold" href="/how/">the Touchstone Pass</a></p>
     </div>
     <div class="crit" data-reveal>
       <h4>User readiness</h4>
-      <p>Live on this site, an MCP tool a bug-hunting agent calls before it submits, a CLI with exit codes for CI, and an HTTP route. Every check returns an Assay Certificate your browser verifies.</p>
+      <p>Live on this site, an MCP tool a bug-hunting agent calls before it submits, a CLI with exit codes for CI, and an HTTP route. Every interface returns the same checksummed Assay Receipt. Demo scope: one closed contest.</p>
       <p class="muted"><a class="gold" href="/#check">Run a check</a> · <a class="gold" href="/agents/">MCP, CLI and API</a></p>
     </div>
     <div class="crit" data-reveal>
       <h4>Revenue potential</h4>
-      <p>A three-pass check costs $<span data-claim="shipped.usd_per_check" data-format="usd4">0.0032</span> at list prices, so any per-check price clears margin. Buyers: contest platforms and bug-bounty programs triaging intake, and hunters paying per check before they submit. No customers yet; we say so.</p>
+      <p>Measured inference cost is $<span data-claim="shipped.usd_per_check" data-format="usd4">0.0032</span> per three-pass check at list prices, before hosting, retries and support. Untested pricing hypotheses: a per-check fee for hunters and their agents, a per-submission fee for contest platforms at intake. No customers or pilots yet; we say so.</p>
       <p class="muted"><a class="gold" href="/how/#economics">Economics on /how</a></p>
     </div>
   </div>
@@ -99,7 +99,7 @@ script: judges
         <tr><td>Dolphin track: decentralized open models</td><td>src/evidence.ts · extractEvidence()</td><td>DeepSeek-V4.1-Flash on lighthouse.dphn.ai reads the full source three times per check</td></tr>
         <tr><td>Working demo</td><td>this site · src/web/handler.ts</td><td>Live checks with a per-instance spend ceiling</td></tr>
         <tr><td>Proof of what was built during the hackathon</td><td>git history · EVAL.md</td><td>Evaluation plan committed before the runs, with four dated amendments</td></tr>
-        <tr><td>Data collection enabled</td><td>OpenServ console</td><td>Enabled on the workspace that issues every SERV request id shown here</td></tr>
+        <tr><td>Data collection enabled</td><td>OpenServ console</td><td>Enabled on the workspace that issues every SERV request id shown here, which is why the demo accepts only public findings</td></tr>
       </table>
     </div>
   </div>

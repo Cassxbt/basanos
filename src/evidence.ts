@@ -1,3 +1,4 @@
+import { z } from "zod";
 import { callJson, type Call } from "./llm.ts";
 import { auditedSnippet, type Contest, type ResolvedCitation } from "./citations.ts";
 
@@ -17,6 +18,21 @@ export interface Evidence {
   known_issue_match: string;
   missing_evidence: string[];
 }
+
+export const EvidenceZ = z.object({
+  claim: z.string(),
+  root_cause_file: z.string(),
+  root_cause_line: z.number().int(),
+  code_supports_claim: z.enum(["yes", "partly", "no", "cannot_tell"]),
+  support_reason: z.string(),
+  blocking_code: z.array(z.object({ file: z.string(), line: z.number().int(), why: z.string() })),
+  poc: z.enum(["runnable_test", "concrete_steps", "narrative_only", "none"]),
+  impact: z.enum(["funds_loss", "funds_frozen", "protocol_dos", "accounting_error", "admin_misuse", "informational", "unclear"]),
+  preconditions: z.array(z.string()),
+  trusted_role_required: z.boolean(),
+  known_issue_match: z.string(),
+  missing_evidence: z.array(z.string()),
+});
 
 const str = { type: "string" };
 export const EVIDENCE_SCHEMA = {
@@ -110,6 +126,7 @@ export async function extractEvidence(
     user,
     schemaName: "evidence",
     schema: EVIDENCE_SCHEMA,
+    parse: (v) => EvidenceZ.parse(v),
     maxTokens: 2000,
   });
 }

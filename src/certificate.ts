@@ -3,6 +3,7 @@ import type { Precheck } from "./precheck.ts";
 
 export interface Certificate {
   version: 1;
+  seal_type: "sha256-checksum";
   contest: string;
   audited_commit: string;
   finding_sha256: string;
@@ -19,7 +20,8 @@ export interface Certificate {
 
 const sha256 = (s: string) => createHash("sha256").update(s, "utf8").digest("hex");
 
-// Key order is fixed by construction so any client can rebuild the exact bytes and recompute the seal.
+// An integrity checksum, not a signature: it detects edits to the record, but cannot prove who issued it
+// or that the verdict is correct. Key order is fixed so any client can rebuild the exact bytes.
 export const canonical = (c: Certificate) => JSON.stringify(c);
 
 export function findingDigest(title: string, body: string): string {
@@ -29,6 +31,7 @@ export function findingDigest(title: string, body: string): string {
 export function issue(p: Precheck, contest: string, auditedCommit: string, title: string, body: string, route: Certificate["route"]) {
   const certificate: Certificate = {
     version: 1,
+    seal_type: "sha256-checksum",
     contest,
     audited_commit: auditedCommit,
     finding_sha256: findingDigest(title, body),

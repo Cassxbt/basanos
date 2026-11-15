@@ -1,8 +1,12 @@
 import type { Precheck } from "./precheck.ts";
+import { issue } from "./certificate.ts";
 
 // Only a unanimous verdict on text that addresses no one but the reader is routed without a human.
+// A decider that claimed READY and was overruled by code is exactly the case a person should see.
+const overruled = (p: Precheck) => p.votes.some((v) => v.caps.some((c) => c.startsWith("READY capped")));
+
 export const route = (p: Precheck): "automatic" | "human" =>
-  p.verdict === "CITATION_BROKEN" || (p.agreement === "unanimous" && p.flags.length === 0) ? "automatic" : "human";
+  p.verdict === "CITATION_BROKEN" || (p.agreement === "unanimous" && p.flags.length === 0 && !overruled(p)) ? "automatic" : "human";
 
 export function toJson(p: Precheck) {
   const lead = p.votes.find((v) => v.verdict === p.verdict) ?? p.votes[0];
@@ -38,6 +42,11 @@ export function toJson(p: Precheck) {
     },
     usd: Number(p.usd.toFixed(6)),
   };
+}
+
+// The same record every interface returns: verdict, evidence, and the checksummed receipt.
+export function toReport(p: Precheck, contest: string, auditedCommit: string, title: string, body: string) {
+  return { ...toJson(p), ...issue(p, contest, auditedCommit, title, body, route(p)) };
 }
 
 export function toText(p: Precheck): string {

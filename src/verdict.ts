@@ -1,3 +1,4 @@
+import { z } from "zod";
 import { callJson, type Call, type Provider } from "./llm.ts";
 import type { Evidence } from "./evidence.ts";
 
@@ -9,6 +10,13 @@ export interface Judgment {
   missing: string[];
   reason: string;
 }
+
+export const JudgmentZ = z.object({
+  verdict: z.enum(["READY", "NEEDS_PROOF", "BLOCKED_BY_CODE", "KNOWN_OR_OUT_OF_SCOPE"]),
+  severity_supported: z.enum(["high", "medium", "low_or_none"]),
+  missing: z.array(z.string()),
+  reason: z.string(),
+});
 
 export const JUDGMENT_SCHEMA = {
   type: "object",
@@ -56,6 +64,7 @@ export async function judge(
     user,
     schemaName: "judgment",
     schema: JUDGMENT_SCHEMA,
+    parse: (v) => JudgmentZ.parse(v),
     maxTokens: provider === "serv" ? 4000 : 800,
     promptGuard: provider === "serv",
   });
@@ -77,6 +86,7 @@ export async function screen(report: { title: string; body: string }): Promise<C
       required: ["files"],
       properties: { files: { type: "array", items: { type: "string" } } },
     },
+    parse: (v) => z.object({ files: z.array(z.string()) }).parse(v),
     maxTokens: 2000,
     promptGuard: true,
   });

@@ -1,7 +1,7 @@
 <!--
 slug: agents
 title: Basanos for agents — MCP, CLI and API
-description: Give a bug-hunting agent a pre-submit check: MCP config for Claude Code and Cursor, a CLI with CI exit codes, and an HTTP route that returns a sealed Assay Certificate.
+description: Give a bug-hunting agent a pre-submit check: MCP config for Claude Code and Cursor, a CLI with CI exit codes, and an HTTP route, all returning the same checksummed Assay Receipt.
 nav: agents
 script: agents
 -->
@@ -27,7 +27,7 @@ script: agents
         <div class="code" id="c-claude">git clone https://github.com/Cassxbt/basanos && cd basanos && npm ci
 claude mcp add basanos \
   --env SERV_API_KEY=… --env DOLPHIN_API_KEY=… \
-  -- npx tsx src/mcp.ts</div>
+  -- npx tsx "$PWD/src/mcp.ts"</div>
         <button class="copy" data-copy="c-claude" style="position:relative;top:0;right:0;margin-top:10px">Copy</button>
       </div>
       <div data-panel="cursor" hidden>
@@ -44,7 +44,7 @@ claude mcp add basanos \
       </div>
       <div data-panel="cli" hidden>
         <div class="code" id="c-cli">npx tsx src/cli.ts finding.md --contest karak
-<span class="c"># exit 0 READY · 1 any other verdict · 2 usage · 3 the check failed</span>
+<span class="c"># reads keys from .env · exit 0 only for READY that routes automatically · 1 anything else · 2 usage · 3 failed</span>
 npx tsx src/cli.ts finding.md --json | jq .route</div>
         <button class="copy" data-copy="c-cli" style="position:relative;top:0;right:0;margin-top:10px">Copy</button>
       </div>
@@ -59,7 +59,7 @@ npx tsx src/cli.ts finding.md --json | jq .route</div>
         <div class="row"><span class="gold">verdict</span><span>READY · NEEDS_PROOF · BLOCKED_BY_CODE · KNOWN_OR_OUT_OF_SCOPE · CITATION_BROKEN · GUARD_HELD</span></div>
         <div class="row"><span class="gold">route</span><span>automatic only when three passes agree and no instruction-like text was found</span></div>
         <div class="row"><span class="gold">missing</span><span>the specific evidence a judge would still need, ready to act on</span></div>
-        <div class="row"><span class="gold">certificate</span><span>sealed JSON: finding digest, audited commit, votes, SERV request ids, cost</span></div>
+        <div class="row"><span class="gold">receipt</span><span>checksummed JSON from every interface: finding digest, audited commit, votes, SERV request ids, cost</span></div>
       </div>
     </div>
     <div data-reveal>

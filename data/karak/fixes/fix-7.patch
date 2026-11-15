@@ -1,0 +1,24 @@
+From 81cc02face47b20110435389439d4b104f116cff Mon Sep 17 00:00:00 2001
+From: basanos-fixture <fixture@localhost>
+Date: Sun, 15 Nov 2026 00:44:51 -0500
+Subject: [PATCH] Skip transfer when vault has nothing to slash
+
+---
+ src/Vault.sol | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/src/Vault.sol b/src/Vault.sol
+index 97c9791..4892143 100644
+--- a/src/Vault.sol
++++ b/src/Vault.sol
+@@ -196,6 +196,7 @@ contract Vault is ERC4626, Initializable, Ownable, Pauser, ReentrancyGuard, ExtS
+         returns (uint256 transferAmount)
+     {
+         transferAmount = Math.min(totalAssets(), totalAssetsToSlash);
++        if (transferAmount == 0) return 0;
+ 
+         // Approve to the handler and then call the handler which will draw the funds
+         SafeTransferLib.safeApproveWithRetry(asset(), slashingHandler, transferAmount);
+-- 
+2.50.1 (Apple Git-155)
+

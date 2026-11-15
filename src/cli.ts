@@ -3,7 +3,13 @@ import { readFileSync } from "node:fs";
 import { parseArgs } from "node:util";
 import { loadContest, CONTESTS } from "./contests.ts";
 import { precheck } from "./precheck.ts";
-import { toJson, toText } from "./format.ts";
+import { toReport, toText, route } from "./format.ts";
+
+try {
+  process.loadEnvFile();
+} catch {
+  // No .env in the working directory; keys may already be in the environment.
+}
 
 const { values, positionals } = parseArgs({
   allowPositionals: true,
@@ -28,12 +34,12 @@ if (!file) {
 const body = readFileSync(file === "-" ? 0 : file, "utf8");
 const C4_HEADINGS = /^(lines of code|vulnerability details|impact|proof of concept|tools used|recommended mitigation steps?)$/i;
 const title = values.title || [...body.matchAll(/^#\s+(.+)$/gm)].map((m) => m[1].trim()).find((h) => !C4_HEADINGS.test(h)) || "";
-// Exit codes: 0 READY, 1 any other verdict, 2 usage, 3 the check itself failed.
+// Exit codes: 0 READY and safe to route automatically, 1 anything else, 2 usage, 3 the check itself failed.
 try {
   const { contest, policy } = loadContest(values.contest!);
   const result = await precheck({ title, body }, contest, policy);
-  console.log(values.json ? JSON.stringify(toJson(result), null, 2) : toText(result));
-  process.exit(result.verdict === "READY" ? 0 : 1);
+  console.log(values.json ? JSON.stringify(toReport(result, values.contest!, contest.auditedCommit, title, body), null, 2) : toText(result));
+  process.exit(result.verdict === "READY" && route(result) === "automatic" ? 0 : 1);
 } catch (err) {
   console.error(`basanos: ${(err as Error).message}`);
   process.exit(3);
