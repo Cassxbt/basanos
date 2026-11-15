@@ -18,3 +18,8 @@ const snapshot = {
 };
 writeFileSync("data/karak/snapshot.json", JSON.stringify(snapshot));
 console.log(`snapshot: ${Object.keys(snapshot).length} commits, ${scope.length} scope files`);
+
+// The patched-code attack on /judges runs a finding against a branch where its bug is fixed.
+const FIX_31 = "27dc62a0ba1bd0a9d34f465ab7242d92b88c59f7";
+writeFileSync("data/karak/snapshot-fix31.json", JSON.stringify(takeSnapshot(git, [FIX_31], [...scope, ...POLICY_FILES])));
+console.log("snapshot-fix31 written");

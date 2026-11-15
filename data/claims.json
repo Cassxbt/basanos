@@ -1,0 +1,199 @@
+{
+  "dataset": {
+    "reports": 94,
+    "awarded": 32,
+    "families": 47
+  },
+  "baseline_body_length": {
+    "auroc": 0.661,
+    "ci95": [
+      0.527,
+      0.786
+    ]
+  },
+  "shipped": {
+    "serv": {
+      "auroc": 0.711,
+      "ci95": [
+        0.607,
+        0.829
+      ],
+      "unanimous": 67,
+      "automatic_rejects": 17,
+      "automatic_rejects_not_awarded": 15,
+      "ready": 0,
+      "decision_usd": 0.15246
+    },
+    "dolphin": {
+      "auroc": 0.757,
+      "ci95": [
+        0.598,
+        0.871
+      ],
+      "unanimous": 73,
+      "automatic_rejects": 25,
+      "automatic_rejects_not_awarded": 22,
+      "ready": 0,
+      "decision_usd": 0.00806
+    },
+    "front_door_held": 0,
+    "flagged": 0,
+    "usd_per_check": 0.00321
+  },
+  "undefended_three_pass": {
+    "serv": {
+      "auroc": 0.672,
+      "ci95": [
+        0.55,
+        0.817
+      ],
+      "unanimous": 68,
+      "automatic_rejects": 19,
+      "automatic_rejects_not_awarded": 16,
+      "ready": 0,
+      "decision_usd": 0.15716
+    },
+    "dolphin": {
+      "auroc": 0.774,
+      "ci95": [
+        0.639,
+        0.935
+      ],
+      "unanimous": 72,
+      "automatic_rejects": 24,
+      "automatic_rejects_not_awarded": 20,
+      "ready": 0,
+      "decision_usd": 0.00812
+    },
+    "front_door_held": 0,
+    "flagged": 0,
+    "usd_per_check": 0.00303
+  },
+  "single_pass": {
+    "run1": {
+      "dolphin": {
+        "auroc": 0.678,
+        "ci95": [
+          0.547,
+          0.815
+        ]
+      },
+      "serv": {
+        "auroc": 0.641,
+        "ci95": [
+          0.505,
+          0.782
+        ]
+      },
+      "guard_held": 5,
+      "guard_calls": 93
+    },
+    "run2": {
+      "dolphin": {
+        "auroc": 0.66,
+        "ci95": [
+          0.519,
+          0.775
+        ]
+      },
+      "serv": {
+        "auroc": 0.658,
+        "ci95": [
+          0.565,
+          0.792
+        ]
+      },
+      "guard_held": 4,
+      "guard_calls": 93
+    }
+  },
+  "guard_on_clean": {
+    "held": 9,
+    "calls": 186
+  },
+  "bug_fix_pairs": {
+    "findings": 9,
+    "runs": 2,
+    "blocked_original": {
+      "dolphin": 2,
+      "serv": 1,
+      "of": 18
+    },
+    "blocked_patched": {
+      "dolphin": 10,
+      "serv": 10,
+      "of": 18
+    },
+    "blocking_names_patched_file": {
+      "hits": 10,
+      "of": 10
+    }
+  },
+  "hostile_v2_undefended": {
+    "injected": 60,
+    "clean_ready": {
+      "serv": 0,
+      "dolphin": 0,
+      "of": 10
+    },
+    "ready": {
+      "serv": 7,
+      "dolphin": 11
+    },
+    "ready_routed_automatically": {
+      "serv": 3,
+      "dolphin": 7
+    },
+    "front_door_held": 0,
+    "flagged": 0
+  },
+  "hostile_v3_defended_blind": {
+    "injected": 60,
+    "clean_ready": {
+      "serv": 0,
+      "dolphin": 0,
+      "of": 10
+    },
+    "ready": {
+      "serv": 0,
+      "dolphin": 1
+    },
+    "ready_routed_automatically": {
+      "serv": 0,
+      "dolphin": 0
+    },
+    "front_door_held": 1,
+    "flagged": 30
+  },
+  "reppo_audit": {
+    "completed": 20,
+    "accepted": 20,
+    "routes": {
+      "ship": 14,
+      "review": 6,
+      "block": 0
+    },
+    "ids": [
+      "cmwhek2sn000008l0utvwwnas",
+      "cmwhek37o000a08l0hkgebr3a",
+      "cmwhek2t5000108l0ieuw8rls",
+      "cmwhek33k000608l0jq8r8em7",
+      "cmwhek36e000708l0ihoc2o70",
+      "cmwhek32i000408l0fatj8onn",
+      "cmwhek322000308l06t4jd656",
+      "cmwhek374000808l09l54v7h7",
+      "cmwhek31m000208l00a79zg7r",
+      "cmwhek331000508l0ab44mnst",
+      "cmwhek4kf000008l89qql3hbn",
+      "cmwhek4mf000008lad0kx2syy",
+      "cmwhek3bq000c08l0ln5q6jbs",
+      "cmwhek4ha000007ii2knucald",
+      "cmwhek391000b08l0klm1jesh",
+      "cmwhek37a000908l0d5kyprqj",
+      "cmwhek4ma000008jtvlxdrnvh",
+      "cmwhek4lb000008l7f61rjemp",
+      "cmwhek4gn000008jm7j9mag5d",
+      "cmwhek4r9000008kz0ihxbyw3"
+    ]
+  }
+}

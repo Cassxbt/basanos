@@ -1,7 +1,7 @@
 import type { Precheck } from "./precheck.ts";
 
 // Only a unanimous verdict on text that addresses no one but the reader is routed without a human.
-const route = (p: Precheck) =>
+export const route = (p: Precheck): "automatic" | "human" =>
   p.verdict === "CITATION_BROKEN" || (p.agreement === "unanimous" && p.flags.length === 0) ? "automatic" : "human";
 
 export function toJson(p: Precheck) {

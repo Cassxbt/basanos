@@ -1,8 +1,9 @@
 import karakSnapshot from "../data/karak/snapshot.json" with { type: "json" };
+import karakFix31Snapshot from "../data/karak/snapshot-fix31.json" with { type: "json" };
 import { loadScope, type Contest } from "./citations.ts";
 import { loadPolicy, renderPolicy } from "./policy.ts";
 import { SnapshotSource, type Snapshot } from "./source.ts";
-import { KARAK_AUDITED, KARAK_REPO } from "./data/constants.ts";
+import { KARAK_AUDITED, KARAK_FIX_31, KARAK_REPO } from "./data/constants.ts";
 
 interface ContestEntry {
   id: string;
@@ -19,6 +20,13 @@ export const CONTESTS: ContestEntry[] = [
     githubRepo: KARAK_REPO,
     auditedCommit: KARAK_AUDITED,
     snapshot: karakSnapshot as Snapshot,
+  },
+  {
+    id: "karak-fix31",
+    name: "Karak with the bug from finding #31 fixed (test fixture)",
+    githubRepo: KARAK_REPO,
+    auditedCommit: KARAK_FIX_31,
+    snapshot: karakFix31Snapshot as Snapshot,
   },
 ];
 
