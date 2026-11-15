@@ -308,6 +308,7 @@ export function compute() {
     baseline_body_length: auc(reports.map((r) => r.body.length)),
     release,
     shipped: shipped.rows,
+    serv_to_dolphin_decision_cost: shipped.rows && Math.round((shipped.rows.serv.decision_usd / shipped.rows.dolphin.decision_usd) * 10) / 10,
     // Paired, family-clustered bootstrap of the AUROC difference against report length on the same Karak findings.
     shipped_vs_length: shipped.rows && (() => {
       const byId = new Map(jsonl<ConsensusRow>(`data/runs/${release.development_run}.jsonl`).map((r) => [r.id, r]));

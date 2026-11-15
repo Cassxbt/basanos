@@ -46,6 +46,7 @@
     "flagged": 0,
     "usd_per_check": 0.00442
   },
+  "serv_to_dolphin_decision_cost": 6.2,
   "shipped_vs_length": {
     "serv": [
       0.022,
