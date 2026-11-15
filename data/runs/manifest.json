@@ -208,5 +208,140 @@
       "src/citations.ts": "1fdec5a4b12e2d63",
       "src/obligations.ts": "4284e598368f0d03"
     }
+  },
+  "wildcat-v3": {
+    "started": "2026-11-15T14:03:39.420Z",
+    "git": "4c845ae698ef06cd184cd13671d1d1d78eaf7a78",
+    "dirty": false,
+    "ablation": "none",
+    "contest": "wildcat",
+    "pipeline": "obligations-v3",
+    "passes": 3,
+    "models": {
+      "evidence": "deepseek-ai/DeepSeek-V4.1-Flash",
+      "deciders": [
+        "gpt-6-luna",
+        "deepseek-ai/DeepSeek-V4.1-Flash"
+      ]
+    },
+    "sources": {
+      "src/evidence.ts": "6fb5987296894eac",
+      "src/verdict.ts": "3d608ac572fd06ca",
+      "src/caps.ts": "bc5936029879e639",
+      "src/defenses.ts": "1a4ae0c8ce4d675c",
+      "src/precheck.ts": "82f68d1af242430b",
+      "src/citations.ts": "1fdec5a4b12e2d63",
+      "src/obligations.ts": "ac3f663fa5147900",
+      "src/policy.ts": "fac952573484e7b0",
+      "src/llm.ts": "54fb2bbc32a4eef5",
+      "src/route.ts": "fdf19d5edbdf2a3c",
+      "src/format.ts": "7766abf2a25511bf",
+      "src/contests.ts": "6805d3f7b0f0aa66"
+    },
+    "data": {
+      "data/wildcat/snapshot.json": "61defff9aaec5ec3",
+      "data/wildcat/reports.json": "ce11181fbf701eca"
+    },
+    "resumes": [
+      {
+        "at": "2026-11-15T14:46:55.913Z",
+        "git": "f66efc34f52201f97664b43e5d8a2c2349262d40",
+        "dirty": true
+      }
+    ]
+  },
+  "kleidi-v3": {
+    "started": "2026-11-15T14:05:03.908Z",
+    "git": "47c5f10b0c85c02513da1168ec189900e8300b57",
+    "dirty": true,
+    "ablation": "none",
+    "contest": "kleidi",
+    "pipeline": "obligations-v3",
+    "passes": 3,
+    "models": {
+      "evidence": "deepseek-ai/DeepSeek-V4.1-Flash",
+      "deciders": [
+        "gpt-6-luna",
+        "deepseek-ai/DeepSeek-V4.1-Flash"
+      ]
+    },
+    "sources": {
+      "src/evidence.ts": "6fb5987296894eac",
+      "src/verdict.ts": "3d608ac572fd06ca",
+      "src/caps.ts": "bc5936029879e639",
+      "src/defenses.ts": "1a4ae0c8ce4d675c",
+      "src/precheck.ts": "82f68d1af242430b",
+      "src/citations.ts": "1fdec5a4b12e2d63",
+      "src/obligations.ts": "ac3f663fa5147900",
+      "src/policy.ts": "fac952573484e7b0",
+      "src/llm.ts": "54fb2bbc32a4eef5",
+      "src/route.ts": "fdf19d5edbdf2a3c",
+      "src/format.ts": "7766abf2a25511bf",
+      "src/contests.ts": "6805d3f7b0f0aa66"
+    },
+    "data": {
+      "data/kleidi/snapshot.json": "0baa074587ce81aa",
+      "data/kleidi/reports.json": "c16ce73cd2b9f084"
+    }
+  },
+  "wildcat-v2": {
+    "started": "2026-11-15T14:15:08.544Z",
+    "git": "9353dc621e9a55a2ab9ccd9b78837c03a1227487",
+    "dirty": false,
+    "ablation": "none",
+    "contest": "wildcat",
+    "pipeline": "obligations-v2",
+    "passes": 3,
+    "models": {
+      "evidence": "deepseek-ai/DeepSeek-V4.1-Flash",
+      "deciders": [
+        "gpt-6-luna",
+        "deepseek-ai/DeepSeek-V4.1-Flash"
+      ]
+    },
+    "sources": {
+      "src/evidence.ts": "8dd3c94bf49351d9",
+      "src/verdict.ts": "30bdd454b17688de",
+      "src/caps.ts": "1d4db18b7b533ed5",
+      "src/defenses.ts": "1a4ae0c8ce4d675c",
+      "src/precheck.ts": "ffd8dd367d2ca73e",
+      "src/citations.ts": "1fdec5a4b12e2d63",
+      "src/obligations.ts": "4284e598368f0d03"
+    },
+    "note": "Run in a separate worktree at the frozen obligations-v2 commit; resumed after connection errors (the v2 manifest writer records only the last start). Pipeline hashes equal holdout-kleidi."
+  },
+  "karak-v3": {
+    "started": "2026-11-15T14:28:16.084Z",
+    "git": "f66efc34f52201f97664b43e5d8a2c2349262d40",
+    "dirty": true,
+    "ablation": "none",
+    "contest": "karak",
+    "pipeline": "obligations-v3",
+    "passes": 3,
+    "models": {
+      "evidence": "deepseek-ai/DeepSeek-V4.1-Flash",
+      "deciders": [
+        "gpt-6-luna",
+        "deepseek-ai/DeepSeek-V4.1-Flash"
+      ]
+    },
+    "sources": {
+      "src/evidence.ts": "6fb5987296894eac",
+      "src/verdict.ts": "3d608ac572fd06ca",
+      "src/caps.ts": "bc5936029879e639",
+      "src/defenses.ts": "1a4ae0c8ce4d675c",
+      "src/precheck.ts": "82f68d1af242430b",
+      "src/citations.ts": "1fdec5a4b12e2d63",
+      "src/obligations.ts": "ac3f663fa5147900",
+      "src/policy.ts": "fac952573484e7b0",
+      "src/llm.ts": "54fb2bbc32a4eef5",
+      "src/route.ts": "fdf19d5edbdf2a3c",
+      "src/format.ts": "7766abf2a25511bf",
+      "src/contests.ts": "6805d3f7b0f0aa66"
+    },
+    "data": {
+      "data/karak/snapshot.json": "21c97c0d271d9662",
+      "data/karak/reports.json": "f0ef71b6c64c7c2c"
+    }
   }
 }
