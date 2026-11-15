@@ -6,7 +6,7 @@ Audit contests reject many findings for reasons that can be checked before submi
 
 > *βάσανος*: the touchstone. Assayers rubbed gold on a black stone and read the streak.
 
-Live: **[basanos-nu.vercel.app](https://basanos-nu.vercel.app)** · Judge path: [`/judges`](https://basanos-nu.vercel.app/judges/) · Evidence: [`/proof`](https://basanos-nu.vercel.app/proof/) · SERV Hackathon 02, **Dolphin track** · Release `obligations-v3.1`
+Live: **[basanos-nu.vercel.app](https://basanos-nu.vercel.app)** · Demo: **[2-minute video](https://youtu.be/ncvEEDBiKAs)** · Judge path: [`/judges`](https://basanos-nu.vercel.app/judges/) · Evidence: [`/proof`](https://basanos-nu.vercel.app/proof/) · SERV Hackathon 02, **Dolphin track** · Release `obligations-v3.1`
 
 | Status | |
 |---|---|
@@ -15,6 +15,15 @@ Live: **[basanos-nu.vercel.app](https://basanos-nu.vercel.app)** · Judge path: 
 | Models | Dolphin `DeepSeek-V4.1-Flash` reads the source; SERV `gpt-6-luna` with `serv_prompt_guard` screens and decides. |
 | Users | None yet. No independent auditor has rated the checklists. |
 | Cost | About $0.0044 (Karak) to $0.0049 (Wildcat) per check: list prices from token counts, not an invoice. |
+
+## Demo
+
+[Watch the 2-minute demo](https://youtu.be/ncvEEDBiKAs). Everything in it is real:
+- the live check runs on the production site;
+- the checklist and test result are quoted from `data/repair-wildcat/11/`;
+- every number comes from `data/claims.json`.
+
+The voice is synthetic.
 
 ## What a useful answer looks like
 
