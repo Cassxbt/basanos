@@ -6,6 +6,7 @@ import { extractEvidence, DOLPHIN_MODEL } from "../evidence.ts";
 import { judge, SERV_MODEL } from "../verdict.ts";
 import { citationVeto, summarizeCitations } from "../precheck.ts";
 import { GuardBlocked, type Provider } from "../llm.ts";
+import { KARAK_AUDITED } from "../data/constants.ts";
 
 interface Fix {
   number: number;
@@ -27,7 +28,7 @@ async function decide(provider: Provider, model: string, r: Report, citationText
 
 // In model_only mode the citation statuses are withheld, so only a read of the patched source can reveal the fix.
 async function check(r: Report, contest: Contest, mode: Mode) {
-  const citations = parseCitations(r.body, contest.githubRepo, "f5e52fdcb4c20c4318d532a9f08f7876e9afb321").map((c) =>
+  const citations = parseCitations(r.body, contest.githubRepo, KARAK_AUDITED).map((c) =>
     resolveCitation(c, contest),
   );
   if (mode === "full") {

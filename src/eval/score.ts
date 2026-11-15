@@ -1,15 +1,9 @@
 import { readFileSync, writeFileSync } from "node:fs";
 import type { Report } from "../data/karak.ts";
 import type { Row, ArmResult } from "./run.ts";
+import { ordinal } from "../precheck.ts";
 
-const ZERO = new Set(["BLOCKED_BY_CODE", "KNOWN_OR_OUT_OF_SCOPE", "CITATION_BROKEN", "INJECTION_BLOCKED", "GUARD_HELD"]);
-
-export function ordinal(verdict: string, severity: string | null): number {
-  if (ZERO.has(verdict)) return 0;
-  if (verdict === "READY") return 3;
-  if (verdict === "NEEDS_PROOF") return severity === "high" || severity === "medium" ? 2 : 1;
-  throw new Error(`unknown verdict ${verdict}`);
-}
+export { ordinal };
 
 // Mann-Whitney AUROC; ties count half.
 export function auroc(scores: number[], labels: boolean[]): number {

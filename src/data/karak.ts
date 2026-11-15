@@ -2,11 +2,10 @@ import { readFileSync, writeFileSync } from "node:fs";
 import { parseCitations, resolveCitation, loadScope, type Contest, type ResolvedCitation } from "../citations.ts";
 import { GitSource, type CodeSource } from "../source.ts";
 import { loadPolicy, renderPolicy } from "../policy.ts";
-
-const AUDITED = "f5e52fdcb4c20c4318d532a9f08f7876e9afb321";
+import { KARAK_AUDITED as AUDITED, KARAK_REPO } from "./constants.ts";
 
 export function karak(source: CodeSource = new GitSource("data/karak/repo"), auditedCommit = AUDITED): Contest {
-  return { source, githubRepo: "code-423n4/2024-07-karak", auditedCommit, scope: loadScope(source, auditedCommit) };
+  return { source, githubRepo: KARAK_REPO, auditedCommit, scope: loadScope(source, auditedCommit) };
 }
 
 export const KARAK = karak();

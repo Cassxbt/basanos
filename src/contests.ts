@@ -2,6 +2,7 @@ import karakSnapshot from "../data/karak/snapshot.json" with { type: "json" };
 import { loadScope, type Contest } from "./citations.ts";
 import { loadPolicy, renderPolicy } from "./policy.ts";
 import { SnapshotSource, type Snapshot } from "./source.ts";
+import { KARAK_AUDITED, KARAK_REPO } from "./data/constants.ts";
 
 interface ContestEntry {
   id: string;
@@ -15,8 +16,8 @@ export const CONTESTS: ContestEntry[] = [
   {
     id: "karak",
     name: "Code4rena 2024-07 Karak Restaking (closed)",
-    githubRepo: "code-423n4/2024-07-karak",
-    auditedCommit: "f5e52fdcb4c20c4318d532a9f08f7876e9afb321",
+    githubRepo: KARAK_REPO,
+    auditedCommit: KARAK_AUDITED,
     snapshot: karakSnapshot as Snapshot,
   },
 ];

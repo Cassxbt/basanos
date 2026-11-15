@@ -28,7 +28,7 @@ server.registerTool(
       "with the specific evidence a judge would still need. It does not submit anything.",
     inputSchema: {
       contest: z.string().describe("Contest id from basanos_contests, e.g. karak"),
-      title: z.string().describe("Finding title"),
+      title: z.string().max(300).describe("Finding title"),
       report: z.string().max(60_000).describe("Full finding body in markdown, including GitHub code links"),
     },
   },

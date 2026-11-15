@@ -1,3 +1,4 @@
+#!/usr/bin/env -S npx tsx
 import { readFileSync } from "node:fs";
 import { parseArgs } from "node:util";
 import { loadContest, CONTESTS } from "./contests.ts";
@@ -25,8 +26,15 @@ if (!file) {
   process.exit(2);
 }
 const body = readFileSync(file === "-" ? 0 : file, "utf8");
-const title = values.title || /^#\s+(.+)$/m.exec(body)?.[1] || "";
-const { contest, policy } = loadContest(values.contest!);
-const result = await precheck({ title, body }, contest, policy);
-console.log(values.json ? JSON.stringify(toJson(result), null, 2) : toText(result));
-process.exit(result.verdict === "READY" ? 0 : 1);
+const C4_HEADINGS = /^(lines of code|vulnerability details|impact|proof of concept|tools used|recommended mitigation steps?)$/i;
+const title = values.title || [...body.matchAll(/^#\s+(.+)$/gm)].map((m) => m[1].trim()).find((h) => !C4_HEADINGS.test(h)) || "";
+// Exit codes: 0 READY, 1 any other verdict, 2 usage, 3 the check itself failed.
+try {
+  const { contest, policy } = loadContest(values.contest!);
+  const result = await precheck({ title, body }, contest, policy);
+  console.log(values.json ? JSON.stringify(toJson(result), null, 2) : toText(result));
+  process.exit(result.verdict === "READY" ? 0 : 1);
+} catch (err) {
+  console.error(`basanos: ${(err as Error).message}`);
+  process.exit(3);
+}

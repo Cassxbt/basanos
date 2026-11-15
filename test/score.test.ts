@@ -1,6 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { auroc, ordinal } from "../src/eval/score.ts";
+import { auroc } from "../src/eval/score.ts";
+import { ordinal } from "../src/precheck.ts";
 
 test("auroc: perfect, inverted, all-tied", () => {
   assert.equal(auroc([3, 2, 1, 0], [true, true, false, false]), 1);

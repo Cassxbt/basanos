@@ -1,7 +1,11 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { parseCitations, resolveCitation } from "../src/citations.ts";
-import { KARAK } from "../src/data/karak.ts";
+import { parseCitations, resolveCitation, markUnrelated } from "../src/citations.ts";
+import { loadContest } from "../src/contests.ts";
+import { citationVeto } from "../src/precheck.ts";
+
+// Runs from the committed snapshot, so a fresh clone needs no contest checkout.
+const KARAK = loadContest("karak").contest;
 
 const base = "https://github.com/code-423n4/2024-07-karak/blob";
 const INIT = "d19a4de35bcaf31ccec8bccd36e2d26594d05aad";
@@ -67,4 +71,18 @@ test("?plain=1 permalinks and uppercase SHAs parse", () => {
   assert.equal(a.path, "src/Vault.sol");
   const [b] = parseCitations(`${base}/F5E52FDCB4C20C4318D532A9F08F7876E9AFB321/src/Vault.sol#L78`, KARAK.githubRepo, KARAK.auditedCommit);
   assert.equal(b.commit, KARAK.auditedCommit);
+});
+
+test("in-range lines the prose never discusses are UNRELATED and vetoed", () => {
+  const body = `Reentrancy in Vault.withdraw drains all depositors.\n${base}/main/src/Core.sol#L200-L210`;
+  const cs = markUnrelated(parseCitations(body, KARAK.githubRepo, KARAK.auditedCommit).map((c) => resolveCitation(c, KARAK)), body, KARAK);
+  assert.equal(cs[0].status, "UNRELATED");
+  assert.equal(citationVeto(cs)?.verdict, "CITATION_BROKEN");
+});
+
+test("a citation whose code the prose names stays OK", () => {
+  const body = `Vault.deposit forwards assets before checking balances.\n${base}/main/src/Vault.sol#L78-L88`;
+  const cs = markUnrelated(parseCitations(body, KARAK.githubRepo, KARAK.auditedCommit).map((c) => resolveCitation(c, KARAK)), body, KARAK);
+  assert.equal(cs[0].status, "OK");
+  assert.equal(citationVeto(cs), null);
 });

@@ -2,8 +2,7 @@ import { readFileSync, writeFileSync } from "node:fs";
 import { GitSource, takeSnapshot } from "../source.ts";
 import { loadScope } from "../citations.ts";
 import type { Report } from "./karak.ts";
-
-const AUDITED = "f5e52fdcb4c20c4318d532a9f08f7876e9afb321";
+import { KARAK_AUDITED as AUDITED } from "./constants.ts";
 const POLICY_FILES = ["README.md", "4naly3er-report.md", "scope.txt"];
 
 const git = new GitSource("data/karak/repo");

@@ -1,5 +1,5 @@
 {
-  "buildCommand": "",
+  "buildCommand": "npm run build:web",
   "outputDirectory": "public",
   "functions": { "api/precheck.mjs": { "maxDuration": 60 } }
 }

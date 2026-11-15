@@ -7,7 +7,8 @@ export type CitationStatus =
   | "BAD_LINES"
   | "NO_FILE"
   | "NO_COMMIT"
-  | "OUT_OF_SCOPE";
+  | "OUT_OF_SCOPE"
+  | "UNRELATED";
 
 export interface Citation {
   url: string;
@@ -106,4 +107,31 @@ export function auditedSnippet(c: ResolvedCitation, contest: Contest, context = 
     .slice(from - 1, to)
     .map((l, i) => `${String(from + i).padStart(4)}  ${l}`)
     .join("\n");
+}
+
+const KEYWORDS = new Set(
+  "function return returns uint256 address memory storage external internal public private override require revert modifier calldata payable constant immutable unchecked assembly library contract interface import pragma solidity bytes32 string mapping struct event error while false super delete".split(" "),
+);
+
+const plainWords = (s: string) =>
+  new Set([...s.matchAll(/[A-Za-z_][A-Za-z0-9_]{4,}/g)].map((m) => m[0]).filter((w) => !KEYWORDS.has(w)).map((w) => w.toLowerCase()));
+
+const distinctive = (s: string) =>
+  new Set([...s.matchAll(/[A-Za-z_][A-Za-z0-9_]{2,}/g)].map((m) => m[0]).filter((w) => /[a-z][A-Z]|_|\d/.test(w)));
+
+const overlap = (a: Set<string>, b: Set<string>) => [...a].filter((x) => b.has(x)).length;
+
+// A real line range that the prose never talks about is as useless to a judge as a missing one.
+// Related means one shared camelCase/snake_case identifier, or two shared ordinary words.
+export function markUnrelated(citations: ResolvedCitation[], prose: string, contest: Contest): ResolvedCitation[] {
+  const text = prose.replace(/https?:\/\/\S+/g, "");
+  const proseDistinct = distinctive(text);
+  const proseWords = plainWords(text);
+  return citations.map((c) => {
+    if (c.status !== "OK" && c.status !== "MOVED") return c;
+    const lines = contest.source.read(contest.auditedCommit, c.path)?.slice(c.auditedStart! - 1, c.auditedEnd) ?? [];
+    const code = lines.join("\n");
+    const related = overlap(distinctive(code), proseDistinct) >= 1 || overlap(plainWords(code), proseWords) >= 2;
+    return related ? c : { ...c, status: "UNRELATED" as const };
+  });
 }

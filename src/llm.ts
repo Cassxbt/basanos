@@ -11,6 +11,7 @@ const PRICES: Record<string, { input: number; output: number }> = {
 
 export interface Call<T> {
   value: T;
+  finishReason: string | null;
   provider: Provider;
   model: string;
   requestId: string | null;
@@ -31,7 +32,14 @@ export interface JsonRequest {
   promptGuard?: boolean;
 }
 
-let clients: Partial<Record<Provider, OpenAI>> = {};
+const clients: Partial<Record<Provider, OpenAI>> = {};
+let options = { timeout: 180_000, maxRetries: 3 };
+
+// Serverless callers must finish inside the function limit, so they shorten both.
+export function configureClients(next: { timeout: number; maxRetries: number }) {
+  options = next;
+  for (const k of Object.keys(clients) as Provider[]) delete clients[k];
+}
 
 function client(provider: Provider): OpenAI {
   if (!clients[provider]) {
@@ -40,8 +48,7 @@ function client(provider: Provider): OpenAI {
     clients[provider] = new OpenAI({
       apiKey,
       baseURL: provider === "serv" ? "https://inference-api.openserv.ai/v1" : "https://lighthouse.dphn.ai/run/text-v/v1",
-      maxRetries: 3,
-      timeout: 180_000,
+      ...options,
     });
   }
   return clients[provider]!;
@@ -54,6 +61,9 @@ export function cost(model: string, inputTokens: number, outputTokens: number): 
 }
 
 export class GuardBlocked extends Error {}
+
+// Prompt Guard answers with an endpoint-shaped refusal; observed as `refusal`, but accept it as plain content too.
+const GUARD_REPLY = /^\s*I can['’]t share that\.?\s*$/i;
 
 export async function callJson<T>(req: JsonRequest): Promise<Call<T>> {
   const started = Date.now();
@@ -73,6 +83,7 @@ export async function callJson<T>(req: JsonRequest): Promise<Call<T>> {
     if (req.promptGuard) body.tools = [{ type: "function", function: { name: "serv_prompt_guard" } }];
   } else {
     body.max_tokens = req.maxTokens;
+    body.temperature = 0;
     body.chat_template_kwargs = { thinking: false };
   }
 
@@ -84,7 +95,9 @@ export async function callJson<T>(req: JsonRequest): Promise<Call<T>> {
   const requestId = response.headers.get("x-openserv-request-id") ?? data.id ?? null;
   const inputTokens = data.usage?.prompt_tokens ?? 0;
   const outputTokens = data.usage?.completion_tokens ?? 0;
+  const finishReason = data.choices[0]?.finish_reason ?? null;
   const meta = {
+    finishReason,
     provider: req.provider,
     model: req.model,
     requestId,
@@ -96,6 +109,9 @@ export async function callJson<T>(req: JsonRequest): Promise<Call<T>> {
 
   if (message?.refusal) throw new GuardBlocked(`${req.provider} refused (${requestId}): ${message.refusal}`);
   const text = message?.content;
+  if (req.provider === "serv" && req.promptGuard && text && GUARD_REPLY.test(text)) {
+    throw new GuardBlocked(`${req.provider} refused (${requestId}): ${text.trim()}`);
+  }
   if (!text) throw new Error(`${req.provider} returned no content (${requestId}), finish=${data.choices[0]?.finish_reason}`);
   try {
     return { value: JSON.parse(text) as T, ...meta };

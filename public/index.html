@@ -250,7 +250,7 @@ function render(r) {
       <dt>proof offered</dt><dd>${esc(e.poc.replaceAll("_", " "))}</dd>
       <dt>known issue</dt><dd>${esc(e.known_issue_match || "none found")}</dd>
       <dt>trusted role needed</dt><dd>${e.trusted_role_required ? "yes" : "no"}</dd>
-      ${e.blocking_code.map((b) => `<dt>blocked at</dt><dd><code>${esc(b.file)}:${b.line}</code> ${esc(b.why)}</dd>`).join("")}
+      ${e.blocking_code.map((b) => `<dt>blocked at</dt><dd><code>${esc(b.file)}:${esc(b.line)}</code> ${esc(b.why)}</dd>`).join("")}
     </dl></section>` : "";
   const d = r.decision;
   $("result").innerHTML = `
