@@ -126,7 +126,11 @@ script: proof
       </div>
       <p class="lede" data-reveal>An agent, not told which findings were awarded, took each checklist, wrote a Foundry test against the unmodified audited code and ran it. Only a passing test went into the revised finding, which Basanos then checked again. Agent-in-the-loop, not a human practitioner.</p>
     </div>
+    <span class="eyebrow" style="display:block;margin:6px 0 14px" data-reveal>Karak · development set · strict v1</span>
     <div class="panel" style="padding:8px 28px" data-reveal><table class="data" id="repair-table"></table></div>
+    <span class="eyebrow" style="display:block;margin:34px 0 14px" data-reveal>Wildcat · set fixed by rule before any check · obligations-v3</span>
+    <div class="panel" style="padding:8px 28px" data-reveal><table class="data" id="repair-wildcat-table"></table></div>
+    <p class="fine" style="margin-top:16px" data-reveal>Every final test was re-run by us against the unmodified audited code. A revision was written only when the test supported the finding's claim; four tests showed the claim did not hold, which is a result too. No revised finding reached READY: after the proof, the checklist moved to severity, policy intent and actor questions, and once asked again for a test run the revision already contained, because Basanos reads tests but does not execute them. This is the clearest limit we found.</p>
   </div>
 </section>
 

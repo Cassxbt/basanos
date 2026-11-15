@@ -149,25 +149,29 @@ export function compute() {
     };
   })();
 
-  const repair = (() => {
-    const set = [7, 49, 28, 41, 55, 4, 26];
-    const reports = new Map(JSON.parse(readFileSync("data/karak/reports.json", "utf8")).map((r: Report) => [r.number, r]));
-    const rows = set.filter((n) => existsSync(`data/repair/${n}/before.json`)).map((n) => {
-      const read = (f: string) => (existsSync(`data/repair/${n}/${f}`) ? JSON.parse(readFileSync(`data/repair/${n}/${f}`, "utf8")) : null);
-      const before = read("before.json"), after = read("after.json"), status = read("status.json");
+  // A repair loop: the fixed set, each finding's check before and after an agent's executed proof.
+  const repairLoop = (contest: string, set: number[], dir: string, tag: string) => {
+    const reports = new Map(JSON.parse(readFileSync(`data/${contest}/reports.json`, "utf8")).map((r: Report) => [r.number, r]));
+    const rows = set.filter((n) => existsSync(`${dir}/${n}/before${tag}.json`)).map((n) => {
+      const read = (f: string) => (existsSync(`${dir}/${n}/${f}`) ? JSON.parse(readFileSync(`${dir}/${n}/${f}`, "utf8")) : null);
+      const before = read(`before${tag}.json`), after = read(`after${tag}.json`), status = read("status.json");
       return {
         number: n,
         awarded: (reports.get(n) as Report).awarded,
         before: before.verdict,
         before_route: before.route,
         poc_passed: status?.poc_passed ?? null,
+        // A revision exists only when the executed test supports the finding's claim.
+        supports_claim: status ? existsSync(`${dir}/${n}/revised.md`) : null,
         after: after?.verdict ?? null,
         after_route: after?.route ?? null,
+        after_required: after ? (after.missing ?? []).filter((m: { category?: string }) => m.category === "required").length : null,
         summary: status?.summary ?? null,
       };
     });
     return rows.length ? rows : null;
-  })();
+  };
+  const repair = repairLoop("karak", [7, 49, 28, 41, 55, 4, 26], "data/repair", "");
 
   // Obligation-based pipelines (amendments 6 and 7), each reported under its own version.
   const v2Run = (file: string, reportsFile: string) => {
@@ -268,6 +272,7 @@ export function compute() {
     // Stopped when amendment 8 superseded v3; reported as not run.
     not_run: ["karak regression (stopped at 19 of 94)", "v5 attacks", "frozen v3 attacks"],
     policy_coverage_wildcat: policyCoverage("wildcat", 40_000),
+    repair_wildcat: repairLoop("wildcat", [11, 49, 52, 57, 60, 62, 64, 77, 121, 3, 4, 5], "data/repair-wildcat", ".v3"),
   };
   const amendment8 = {
     pipeline: "obligations-v3.1",

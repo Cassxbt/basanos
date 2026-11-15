@@ -291,12 +291,16 @@ async function main() {
     $("#ablation-note").textContent = `Unique saves — ${saves.join(" · ")}.`;
   } else $("#ablation").hidden = true;
 
-  const rl = claims.repair_loop;
-  if (rl) {
-    const vl = (v: string | null) => (v ? (VERDICT[v] ?? { label: v }).label : "—");
-    $("#repair-table").innerHTML = `<tr><th>Finding</th><th>Judge</th><th>Before</th><th>Executed test</th><th>After</th></tr>` +
-      rl.map((r: any) => `<tr><td>#${r.number}</td><td>${r.awarded ? "awarded" : "not awarded"}</td><td>${esc(vl(r.before))}</td><td>${r.poc_passed === null ? "not attempted" : r.poc_passed ? "passed" : "no passing test"}${r.summary ? `<br><span class="muted">${esc(r.summary)}</span>` : ""}</td><td>${esc(vl(r.after))}${r.after_route ? ` · ${esc(r.after_route)}` : ""}</td></tr>`).join("");
-  } else $("#repair").hidden = true;
+  const vl = (v: string | null) => (v ? (VERDICT[v] ?? { label: v }).label : "—");
+  const routeLabel = (r: string | null) => (r === "automatic" ? "automatic advice" : r ? "needs review" : "");
+  const test = (r: any) => (r.poc_passed === null ? "not attempted" : !r.poc_passed ? "no passing test" : r.supports_claim === false ? "passes, but shows the claim does not hold" : "passes and supports the claim");
+  const repairRows = (rl: any[]) => `<tr><th>Finding</th><th>Judge</th><th>Before</th><th>Executed test</th><th>After</th></tr>` +
+    rl.map((r: any) => `<tr><td>#${r.number}</td><td>${r.awarded ? "awarded" : "not awarded"}</td><td>${esc(vl(r.before))}</td><td>${test(r)}${r.summary ? `<br><span class="muted">${esc(r.summary)}</span>` : ""}</td><td>${esc(vl(r.after))}${r.after_route ? ` · ${routeLabel(r.after_route)}` : ""}</td></tr>`).join("");
+  if (claims.repair_loop) $("#repair-table").innerHTML = repairRows(claims.repair_loop);
+  const rw = claims.amendment7?.repair_wildcat;
+  if (rw) $("#repair-wildcat-table").innerHTML = repairRows(rw);
+  else $("#repair-wildcat-table").closest(".panel")!.remove();
+  if (!claims.repair_loop && !rw) $("#repair").hidden = true;
 
   renderHoldout(claims);
 
