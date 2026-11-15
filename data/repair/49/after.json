@@ -1,0 +1,102 @@
+{
+  "verdict": "KNOWN_OR_OUT_OF_SCOPE",
+  "agreement": "majority",
+  "route": "human",
+  "severity_supported": "low_or_none",
+  "missing": [
+    "PoC credits totalAssets via vm.store rather than a real beacon-proof/snapshot flow; a judge may want the full restaking path",
+    "Demonstration that this is reachable without a trusted MANAGER/owner action (it is not, per report's own checklist item 2)"
+  ],
+  "reason": "The code supports the revert, but triggering it requires a MANAGER/owner to change the handler through an authorized admin function. The report acknowledges this trusted-role precondition, so the issue is not eligible as a vulnerability finding.",
+  "caps": [],
+  "flags": [],
+  "citations": [
+    {
+      "status": "OK",
+      "path": "src/NativeVault.sol",
+      "lines": [
+        308,
+        308
+      ],
+      "audited_lines": [
+        308,
+        308
+      ]
+    }
+  ],
+  "votes": [
+    {
+      "verdict": "KNOWN_OR_OUT_OF_SCOPE",
+      "severity": "low_or_none",
+      "request_id": "83653f1e-f195-4c20-9413-dbab894da134"
+    },
+    {
+      "verdict": "KNOWN_OR_OUT_OF_SCOPE",
+      "severity": "low_or_none",
+      "request_id": "d1d01a53-8fa6-4f49-85e9-6e13e1836b62"
+    },
+    {
+      "verdict": "GUARD_HELD",
+      "severity": null,
+      "request_id": null
+    }
+  ],
+  "evidence": {
+    "model": "deepseek-ai/DeepSeek-V4.1-Flash",
+    "tokens_read": 43498,
+    "claim": "Re-pointing an asset's slashing handler via allowlistAssets makes NativeVault.slashAssets revert (NotSlashStore), DoSing slashing for existing NativeVaults whose slashStore differs.",
+    "root_cause_file": "src/NativeVault.sol",
+    "root_cause_line": 308,
+    "code_supports_claim": "yes",
+    "support_reason": "NativeVault.slashAssets reverts unless slashingHandler == self.slashStore (NativeVault.sol:308). SlasherLib.finalizeSlashing passes self.assetSlashingHandlers[asset] (SlasherLib.sol:135-138), and CoreLib.allowlistAssets overwrites that mapping with no check against existing vaults (CoreLib.sol:67-75). So changing the handler for DEAD_BEEF makes finalizeSlashing revert for NativeVaults whose slashStore is the old handler.",
+    "blocking_code": [],
+    "poc": "runnable_test",
+    "impact": "admin_misuse",
+    "preconditions": [
+      "MANAGER/owner calls allowlistAssets to re-point Constants.DEAD_BEEF to a different handler than an existing NativeVault's slashStore",
+      "A slashing request for that NativeVault is finalized after the change"
+    ],
+    "trusted_role_required": true,
+    "known_issue_match": "",
+    "missing_evidence": [
+      "PoC credits totalAssets via vm.store rather than a real beacon-proof/snapshot flow; a judge may want the full restaking path",
+      "Demonstration that this is reachable without a trusted MANAGER/owner action (it is not, per report's own checklist item 2)"
+    ]
+  },
+  "decision": {
+    "provider": "serv",
+    "model": "gpt-6-luna",
+    "prompt_guard_requested": true
+  },
+  "usd": 0.002928,
+  "certificate": {
+    "version": 1,
+    "seal_type": "sha256-checksum",
+    "contest": "karak",
+    "audited_commit": "f5e52fdcb4c20c4318d532a9f08f7876e9afb321",
+    "finding_sha256": "102adc3fdd38c378a56af95e2ba6ceaa179e20e8e2bac28f7c142d1595297c3a",
+    "verdict": "KNOWN_OR_OUT_OF_SCOPE",
+    "agreement": "majority",
+    "route": "human",
+    "votes": [
+      {
+        "verdict": "KNOWN_OR_OUT_OF_SCOPE",
+        "serv_request_id": "83653f1e-f195-4c20-9413-dbab894da134"
+      },
+      {
+        "verdict": "KNOWN_OR_OUT_OF_SCOPE",
+        "serv_request_id": "d1d01a53-8fa6-4f49-85e9-6e13e1836b62"
+      },
+      {
+        "verdict": "GUARD_HELD",
+        "serv_request_id": null
+      }
+    ],
+    "decider": "serv/gpt-6-luna",
+    "evidence_model": "deepseek-ai/DeepSeek-V4.1-Flash",
+    "flags": [],
+    "usd": 0.002928,
+    "issued_at": "2026-11-15T09:46:09.633Z"
+  },
+  "seal": "66088c3fbddcffac181db32f10f4211ecb68cbfcc66c0ac5fe53b4a8886f248c"
+}

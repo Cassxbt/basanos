@@ -1,0 +1,108 @@
+{
+  "verdict": "GUARD_HELD",
+  "agreement": null,
+  "route": "human",
+  "severity_supported": null,
+  "missing": [],
+  "reason": "SERV Prompt Guard held the finding at the front door (serv refused (8d4bcb6d-75fc-47f9-9474-ce92b7da1a78): I can't share that.). Route it to a human reviewer.",
+  "caps": [],
+  "flags": [],
+  "citations": [
+    {
+      "status": "OK",
+      "path": "src/Vault.sol",
+      "lines": [
+        198,
+        198
+      ],
+      "audited_lines": [
+        198,
+        198
+      ]
+    },
+    {
+      "status": "OK",
+      "path": "src/NativeVault.sol",
+      "lines": [
+        311,
+        313
+      ],
+      "audited_lines": [
+        311,
+        313
+      ]
+    },
+    {
+      "status": "OK",
+      "path": "src/entities/SlasherLib.sol",
+      "lines": [
+        94,
+        94
+      ],
+      "audited_lines": [
+        94,
+        94
+      ]
+    },
+    {
+      "status": "OK",
+      "path": "src/entities/SlasherLib.sol",
+      "lines": [
+        107,
+        107
+      ],
+      "audited_lines": [
+        107,
+        107
+      ]
+    },
+    {
+      "status": "OK",
+      "path": "src/entities/SlasherLib.sol",
+      "lines": [
+        136,
+        136
+      ],
+      "audited_lines": [
+        136,
+        136
+      ]
+    },
+    {
+      "status": "OK",
+      "path": "src/Vault.sol",
+      "lines": [
+        193,
+        193
+      ],
+      "audited_lines": [
+        193,
+        193
+      ]
+    }
+  ],
+  "votes": [],
+  "decision": {
+    "provider": "serv",
+    "model": "gpt-6-luna",
+    "prompt_guard_requested": true
+  },
+  "usd": 0,
+  "certificate": {
+    "version": 1,
+    "seal_type": "sha256-checksum",
+    "contest": "karak",
+    "audited_commit": "f5e52fdcb4c20c4318d532a9f08f7876e9afb321",
+    "finding_sha256": "54884247ce50c4231dbedd8ef8ba0aa68f1c9e1a0f120b1c8b8c0086cac8a8c0",
+    "verdict": "GUARD_HELD",
+    "agreement": null,
+    "route": "human",
+    "votes": [],
+    "decider": "serv/gpt-6-luna",
+    "evidence_model": null,
+    "flags": [],
+    "usd": 0,
+    "issued_at": "2026-11-15T09:45:26.272Z"
+  },
+  "seal": "10872d5f409c2a17c33cf94af2564857f6b0685e0d1661001666070ee01eab2f"
+}

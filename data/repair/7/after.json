@@ -1,0 +1,126 @@
+{
+  "verdict": "NEEDS_PROOF",
+  "agreement": "unanimous",
+  "route": "automatic",
+  "severity_supported": "medium",
+  "missing": [
+    "Show whether the failed request can be canceled or replaced, and the minimum delay before the affected vault can be unstaked or an equivalent slash request can proceed; this determines how long other included vaults remain unslashable."
+  ],
+  "reason": "The cited code and PoC support a reachable zero-amount revert that blocks finalizing the entire request, including slashing healthy vaults. Medium is justified as conditional disruption of core slashing functionality. The report does not establish how long that disruption lasts or how it can be cleared.",
+  "caps": [],
+  "flags": [],
+  "citations": [
+    {
+      "status": "OK",
+      "path": "src/Core.sol",
+      "lines": [
+        220,
+        220
+      ],
+      "audited_lines": [
+        220,
+        220
+      ]
+    },
+    {
+      "status": "OK",
+      "path": "src/Vault.sol",
+      "lines": [
+        193,
+        193
+      ],
+      "audited_lines": [
+        193,
+        193
+      ]
+    },
+    {
+      "status": "OK",
+      "path": "src/SlashingHandler.sol",
+      "lines": [
+        52,
+        52
+      ],
+      "audited_lines": [
+        52,
+        52
+      ]
+    }
+  ],
+  "votes": [
+    {
+      "verdict": "NEEDS_PROOF",
+      "severity": "medium",
+      "request_id": "f19745c3-b80f-466e-971f-a3025ae8055c"
+    },
+    {
+      "verdict": "NEEDS_PROOF",
+      "severity": "medium",
+      "request_id": "fb9768ca-6626-4289-aa02-0a68185f2ca7"
+    },
+    {
+      "verdict": "NEEDS_PROOF",
+      "severity": "medium",
+      "request_id": "6ccecdc8-3a9c-4c51-b511-3bf75cf3bb85"
+    }
+  ],
+  "evidence": {
+    "model": "deepseek-ai/DeepSeek-V4.1-Flash",
+    "tokens_read": 44178,
+    "claim": "A vault whose totalAssets is 0 at finalize time makes Vault.slashAssets pass transferAmount=0 to SlashingHandler.handleSlashing, which reverts with ZeroAmount, blocking finalizeSlashing for all vaults in the request.",
+    "root_cause_file": "src/Vault.sol",
+    "root_cause_line": 198,
+    "code_supports_claim": "yes",
+    "support_reason": "Vault.slashAssets (src/Vault.sol:198) computes transferAmount = Math.min(totalAssets(), totalAssetsToSlash) with no zero guard, then unconditionally calls handleSlashing (src/Vault.sol:202). SlashingHandler.handleSlashing reverts on amount==0 (src/SlashingHandler.sol:53). SlasherLib.finalizeSlashing loops over all vaults (src/entities/SlasherLib.sol:134-139) with no try/catch, so one zero-asset vault reverts the whole finalize. Nothing removes a vault from the DSS stake set on withdrawal (Operator.updateVaultStakeInDSS only via queued stake update, src/entities/Operator.sol:103-109), so an emptied vault remains slashable.",
+    "blocking_code": [],
+    "poc": "runnable_test",
+    "impact": "accounting_error",
+    "preconditions": [
+      "Vault staked to DSS has totalAssets reduced to 0 (full redeem finished, or prior 100% slash by another DSS) before finalizeSlashing",
+      "Vault remains in operator's vaultStakedInDssMap for that DSS",
+      "A queued slashing includes that vault"
+    ],
+    "trusted_role_required": false,
+    "known_issue_match": "",
+    "missing_evidence": [
+      "Confirmation that a vault emptied by a prior 100% slash by another DSS also remains staked and triggers the same revert (report only tests the withdrawal path)",
+      "Whether the DoS is permanent or only until the vault is unstaked from the DSS (requires 9-day MIN_STAKE_UPDATE_DELAY), to gauge severity"
+    ]
+  },
+  "decision": {
+    "provider": "serv",
+    "model": "gpt-6-luna",
+    "prompt_guard_requested": true
+  },
+  "usd": 0.005276,
+  "certificate": {
+    "version": 1,
+    "seal_type": "sha256-checksum",
+    "contest": "karak",
+    "audited_commit": "f5e52fdcb4c20c4318d532a9f08f7876e9afb321",
+    "finding_sha256": "e0b456b7bc8bf6a8d1ac125a11b8d2079f2a89cd00c846780066ba57f8ab2a3f",
+    "verdict": "NEEDS_PROOF",
+    "agreement": "unanimous",
+    "route": "automatic",
+    "votes": [
+      {
+        "verdict": "NEEDS_PROOF",
+        "serv_request_id": "f19745c3-b80f-466e-971f-a3025ae8055c"
+      },
+      {
+        "verdict": "NEEDS_PROOF",
+        "serv_request_id": "fb9768ca-6626-4289-aa02-0a68185f2ca7"
+      },
+      {
+        "verdict": "NEEDS_PROOF",
+        "serv_request_id": "6ccecdc8-3a9c-4c51-b511-3bf75cf3bb85"
+      }
+    ],
+    "decider": "serv/gpt-6-luna",
+    "evidence_model": "deepseek-ai/DeepSeek-V4.1-Flash",
+    "flags": [],
+    "usd": 0.005276,
+    "issued_at": "2026-11-15T09:46:29.747Z"
+  },
+  "seal": "fc8beffc4ce5f4ea264fe6af450714dffe822e5b3f93ba8dcf94068abab27152"
+}

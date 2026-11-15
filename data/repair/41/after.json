@@ -1,0 +1,118 @@
+{
+  "verdict": "NEEDS_PROOF",
+  "agreement": "unanimous",
+  "route": "human",
+  "severity_supported": "medium",
+  "missing": [
+    "A PoC using a DSS with normal, non-reverting hooks to show the evasion is not caused by the hostile test DSS.",
+    "A PoC showing slashing is evaded while the vault remains funded and the staker does not redeem, isolating the unstake from withdrawal.",
+    "Evidence that the DSS had no earlier opportunity to slash, accounting for any slashing cooldown or veto window."
+  ],
+  "reason": "The cited code supports the unstake-before-slashing path, but the PoC does not establish it under normal DSS behavior, independently of redemption, or despite any earlier slashing opportunity.",
+  "caps": [
+    "READY capped to NEEDS_PROOF: evidence record still lists missing proof (3)"
+  ],
+  "flags": [],
+  "citations": [
+    {
+      "status": "OK",
+      "path": "src/entities/SlasherLib.sol",
+      "lines": [
+        52,
+        52
+      ],
+      "audited_lines": [
+        52,
+        52
+      ]
+    },
+    {
+      "status": "OK",
+      "path": "src/Core.sol",
+      "lines": [
+        149,
+        149
+      ],
+      "audited_lines": [
+        149,
+        149
+      ]
+    }
+  ],
+  "votes": [
+    {
+      "verdict": "NEEDS_PROOF",
+      "severity": "medium",
+      "request_id": "bd6d3877-d69a-49c5-a97b-bffd91d3d151"
+    },
+    {
+      "verdict": "NEEDS_PROOF",
+      "severity": "medium",
+      "request_id": "b9b64c98-991a-449a-ba3e-ff9100ca8f17"
+    },
+    {
+      "verdict": "NEEDS_PROOF",
+      "severity": "medium",
+      "request_id": "ca6d66f5-5f54-4dff-a77a-6610a5ad29b3"
+    }
+  ],
+  "evidence": {
+    "model": "deepseek-ai/DeepSeek-V4.1-Flash",
+    "tokens_read": 43452,
+    "claim": "Operator can dodge a DSS slashing by pre-scheduling an unstake and finalizing it (front-running requestSlashing) so the vault is no longer staked to the DSS, causing requestSlashing to revert with VaultNotStakedToDSS.",
+    "root_cause_file": "src/entities/SlasherLib.sol",
+    "root_cause_line": 51,
+    "code_supports_claim": "yes",
+    "support_reason": "requestSlashing validates isVaultStakeToDSS (SlasherLib.sol:51-52) and reverts if the vault was unstaked. finalizeUpdateVaultStakeInDSS (Core.sol:146-153) is permissionless and only requires MIN_STAKE_UPDATE_DELAY (Operator.sol:93) plus matching root; the finish hook uses ignoreFailure:true (Operator.sol:128) and the request hook ignores failure for unstakes (Operator.sol:82), so a DSS cannot block finalization. Nothing in Core prevents the operator from finalizing the unstake before the DSS's requestSlashing lands.",
+    "blocking_code": [],
+    "poc": "runnable_test",
+    "impact": "accounting_error",
+    "preconditions": [
+      "Operator has a vault staked to the DSS and has queued an unstake that has passed MIN_STAKE_UPDATE_DELAY",
+      "Operator can land finalizeUpdateVaultStakeInDSS before the DSS's requestSlashing (ordering/front-run)"
+    ],
+    "trusted_role_required": false,
+    "known_issue_match": "",
+    "missing_evidence": [
+      "The PoC's HostileHooksDSS reverts in requestUpdateStakeHook for unstakes, but the report's own text says the DSS can observe the request via that hook; a judge needs a PoC where the DSS behaves normally (non-reverting hooks) to show the evasion is not an artifact of a self-sabotaging DSS",
+      "The PoC uses a staker redeem of all shares in the same flow; need to show the slash is evaded even when the staker does not redeem (i.e., the vault remains funded but unstaked), to separate the unstake evasion from the withdrawal",
+      "No test showing the DSS could not have slashed earlier (e.g., that the slashing cooldown or veto window did not already give the DSS a chance), so the 'front-run' framing is not fully established"
+    ]
+  },
+  "decision": {
+    "provider": "serv",
+    "model": "gpt-6-luna",
+    "prompt_guard_requested": true
+  },
+  "usd": 0.004157,
+  "certificate": {
+    "version": 1,
+    "seal_type": "sha256-checksum",
+    "contest": "karak",
+    "audited_commit": "f5e52fdcb4c20c4318d532a9f08f7876e9afb321",
+    "finding_sha256": "082f142b6d45844dedf057a44a2da9cded46fba2eba750bb3e135237e022c5dd",
+    "verdict": "NEEDS_PROOF",
+    "agreement": "unanimous",
+    "route": "human",
+    "votes": [
+      {
+        "verdict": "NEEDS_PROOF",
+        "serv_request_id": "bd6d3877-d69a-49c5-a97b-bffd91d3d151"
+      },
+      {
+        "verdict": "NEEDS_PROOF",
+        "serv_request_id": "b9b64c98-991a-449a-ba3e-ff9100ca8f17"
+      },
+      {
+        "verdict": "NEEDS_PROOF",
+        "serv_request_id": "ca6d66f5-5f54-4dff-a77a-6610a5ad29b3"
+      }
+    ],
+    "decider": "serv/gpt-6-luna",
+    "evidence_model": "deepseek-ai/DeepSeek-V4.1-Flash",
+    "flags": [],
+    "usd": 0.004157,
+    "issued_at": "2026-11-15T09:46:23.978Z"
+  },
+  "seal": "869af46d7b266cb273c983f77edc881c2a6969d5e364c4691e5f12343e5adf6c"
+}

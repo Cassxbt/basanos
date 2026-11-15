@@ -1,0 +1,140 @@
+{
+  "verdict": "NEEDS_PROOF",
+  "agreement": "unanimous",
+  "route": "automatic",
+  "severity_supported": "medium",
+  "missing": [
+    "Evidence that the registered-only invariant is intended to apply when a queued slash is finalized, rather than only when it is requested.",
+    "Evidence that the described slash request on day 8 is permitted under the documented 7-day slashing window and its timing rules."
+  ],
+  "reason": "The PoC demonstrates a reachable post-unregistration slash and a depositor’s loss. The report does not establish that this contradicts the intended invariant or that its day-8 request is within the documented slashing window.",
+  "caps": [],
+  "flags": [],
+  "citations": [
+    {
+      "status": "OK",
+      "path": "src/Core.sol",
+      "lines": [
+        130,
+        130
+      ],
+      "audited_lines": [
+        130,
+        130
+      ]
+    },
+    {
+      "status": "OK",
+      "path": "src/Core.sol",
+      "lines": [
+        220,
+        220
+      ],
+      "audited_lines": [
+        220,
+        220
+      ]
+    },
+    {
+      "status": "OK",
+      "path": "src/Core.sol",
+      "lines": [
+        248,
+        248
+      ],
+      "audited_lines": [
+        248,
+        248
+      ]
+    },
+    {
+      "status": "OK",
+      "path": "src/Core.sol",
+      "lines": [
+        113,
+        113
+      ],
+      "audited_lines": [
+        113,
+        113
+      ]
+    }
+  ],
+  "votes": [
+    {
+      "verdict": "NEEDS_PROOF",
+      "severity": "medium",
+      "request_id": "7e3b8429-5224-48e2-aefa-f89391f2ef63"
+    },
+    {
+      "verdict": "NEEDS_PROOF",
+      "severity": "medium",
+      "request_id": "51e54d9b-f3dd-4934-94da-c60338422b7a"
+    },
+    {
+      "verdict": "NEEDS_PROOF",
+      "severity": "medium",
+      "request_id": "fffd45d0-f54c-4469-a2e8-16db58678cf0"
+    }
+  ],
+  "evidence": {
+    "model": "deepseek-ai/DeepSeek-V4.1-Flash",
+    "tokens_read": 44520,
+    "claim": "A DSS can finalize a slashing on an operator after the operator has unstaked all vaults and unregistered from that DSS, violating the invariant that only DSSs an operator is registered with can slash it.",
+    "root_cause_file": "src/entities/SlasherLib.sol",
+    "root_cause_line": 126,
+    "code_supports_claim": "yes",
+    "support_reason": "requestSlashing (Core.sol:220-231) checks registration via checkIfOperatorIsRegInRegDSS, but finalizeSlashing (Core.sol:248-256 -> SlasherLib.finalizeSlashing:126-151) only checks the stored slash root and veto window; it never re-checks that the operator is still registered or that the vaults are still staked to the DSS. Unregistration (Operator.sol:181-203) only requires vaultStakedInDssMap to be empty, not that no slashing is pending. So a slash queued while registered executes after unstake+unregister.",
+    "blocking_code": [],
+    "poc": "runnable_test",
+    "impact": "funds_loss",
+    "preconditions": [
+      "Operator has a queued unstake for all vaults staked to a DSS",
+      "DSS requests slashing while operator still registered (within cooldown)",
+      "Operator finalizes unstake and unregisters before SLASHING_VETO_WINDOW elapses",
+      "Anyone calls finalizeSlashing after the veto window"
+    ],
+    "trusted_role_required": false,
+    "known_issue_match": "",
+    "missing_evidence": [
+      "Confirmation that the README invariant 'Only DSSs an operator is registered with can slash said operator' is intended to apply at finalization time, not just at request time (README separately says a DSS can slash conduct before unstake initiation for up to 7 days, which could be read as permitting this)",
+      "Whether the 7-day slashing window vs 9-day MIN_STAKE_UPDATE_DELAY ordering is intended to guarantee finalization before unstake completes"
+    ]
+  },
+  "decision": {
+    "provider": "serv",
+    "model": "gpt-6-luna",
+    "prompt_guard_requested": true
+  },
+  "usd": 0.004589,
+  "certificate": {
+    "version": 1,
+    "seal_type": "sha256-checksum",
+    "contest": "karak",
+    "audited_commit": "f5e52fdcb4c20c4318d532a9f08f7876e9afb321",
+    "finding_sha256": "7dc69bcabdf2e4ee0fcde4399faf50676d68d2c292f0158676d855a7d47e7514",
+    "verdict": "NEEDS_PROOF",
+    "agreement": "unanimous",
+    "route": "automatic",
+    "votes": [
+      {
+        "verdict": "NEEDS_PROOF",
+        "serv_request_id": "7e3b8429-5224-48e2-aefa-f89391f2ef63"
+      },
+      {
+        "verdict": "NEEDS_PROOF",
+        "serv_request_id": "51e54d9b-f3dd-4934-94da-c60338422b7a"
+      },
+      {
+        "verdict": "NEEDS_PROOF",
+        "serv_request_id": "fffd45d0-f54c-4469-a2e8-16db58678cf0"
+      }
+    ],
+    "decider": "serv/gpt-6-luna",
+    "evidence_model": "deepseek-ai/DeepSeek-V4.1-Flash",
+    "flags": [],
+    "usd": 0.004589,
+    "issued_at": "2026-11-15T09:46:20.612Z"
+  },
+  "seal": "c69323d0862fb7a1577d79e66ca318515bdb9b2c44b8afd7b3137af12978fe3d"
+}
