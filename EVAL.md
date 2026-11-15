@@ -66,7 +66,7 @@ When an audit-contest report goes through Basanos, does the verdict line up with
 
 ## Amendment 1, 2026-11-15, before any scoring
 
-An independent review of the data (`stress/R3_STEP12_DATA_CITATIONS.md`) found two errors, both confirmed against GitHub's label history:
+An independent review of the data found two errors, both confirmed against GitHub's label history:
 - The severity labels on these issues are the judge's final severity, not what the warden submitted.
 - The dataset had dropped 19 reports that were submitted as High/Medium and downgraded to QA. These are the clearest cases of overclaimed severity.
 
@@ -99,7 +99,7 @@ Fixes are written by a separate agent from each report's recommended mitigation 
 
 ## Amendment 3, 2026-11-15, before any consensus run
 
-**Why.** The milestone review (`stress/R4_MILESTONE1_REVIEW.md`) showed that run-to-run noise dominates. The same report gets the same verdict only 70% of the time (Dolphin decides) or 64% (SERV decides). Averaging the four existing calls per report gives AUROC 0.752 post hoc, and that number is not claimed. This is a fresh test of a fixed aggregation rule.
+**Why.** An independent milestone review showed that run-to-run noise dominates. The same report gets the same verdict only 70% of the time (Dolphin decides) or 64% (SERV decides). Averaging the four existing calls per report gives AUROC 0.752 post hoc, and that number is not claimed. This is a fresh test of a fixed aggregation rule.
 
 **What runs.** The shipped `precheck()` path with these changes:
 - the `UNRELATED` citation check;

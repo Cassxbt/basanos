@@ -9,7 +9,7 @@ const CLAIMS = "data/claims.json";
 const jsonl = <T>(path: string): T[] => readFileSync(path, "utf8").trim().split("\n").filter(Boolean).map((l) => JSON.parse(l));
 const r3 = (x: number) => Math.round(x * 1000) / 1000;
 
-function compute() {
+export function compute() {
   const reports: Report[] = JSON.parse(readFileSync("data/karak/reports.json", "utf8"));
   const labels = reports.map((r) => r.awarded);
   const clusters = reports.map((r) => r.family);
@@ -35,8 +35,10 @@ function compute() {
     out[`${run}_guard_holds_on_clean`] = { held: servCalls.filter((r) => r.serv!.verdict === "INJECTION_BLOCKED").length, calls: servCalls.length };
   }
 
-  if (existsSync("data/runs/run3.jsonl")) {
-    const rows = new Map(jsonl<ConsensusRow>("data/runs/run3.jsonl").map((r) => [r.id, r]));
+  const run3 = existsSync("data/runs/run3.jsonl") ? jsonl<ConsensusRow>("data/runs/run3.jsonl") : [];
+  // A partial consensus run is never published.
+  if (run3.length === reports.length) {
+    const rows = new Map(run3.map((r) => [r.id, r]));
     for (const arm of ["dolphin", "serv"] as const) {
       const scores = reports.map((r) => rows.get(r.id)![arm].score);
       const arms = reports.map((r) => rows.get(r.id)![arm]);
