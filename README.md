@@ -1,8 +1,8 @@
 # Basanos
 
-**A finding that cites the wrong line, repeats a known issue, or skips the proof costs the hunter the payout and the judge an hour.**
+**Check your finding before the judge does.**
 
-Basanos checks an audit-contest finding against the audited code before it is submitted. It returns one verdict and the exact evidence a judge would still need. It never submits anything.
+Basanos checks a smart-contract audit-contest finding against the audited code before it is submitted. It returns one verdict and the specific evidence a judge would still ask for. It is advice, not a guarantee, and it never submits anything. The live demo covers one closed contest (Code4rena 2024-07 Karak).
 
 > *βάσανος*: the touchstone. Assayers rubbed gold on a black stone and read the streak.
 
@@ -12,12 +12,14 @@ Live: **[basanos-nu.vercel.app](https://basanos-nu.vercel.app)** · Judge path: 
 
 ```
 finding ──► 1. code       every GitHub link resolved at its commit and compared with the audited commit;
-                          fake lines, missing files, unrelated spans, out-of-scope files stop here (no model call, $0)
-        ──► 2. Dolphin    DeepSeek-V4.1-Flash reads the entire in-scope source plus the contest's known issues
+                          a finding with no link to audited code it actually discusses stops here (no model call, $0)
+        ──► 2. guard      SERV Prompt Guard screens the raw finding; code scans for text addressed to the pipeline
+        ──► 3. Dolphin    DeepSeek-V4.1-Flash reads the entire in-scope source plus the contest's known issues
                           and writes an evidence record (~43k tokens, ~$0.0005), three independent times
-        ──► 3. SERV       one bounded decision per pass, Prompt Guard on the untrusted finding text,
-                          then code caps the decision against the evidence record
-        ──► consensus     all three agree → route automatically; otherwise → a human
+        ──► 4. SERV       one bounded decision per pass with Prompt Guard on, then code caps the decision:
+                          locations must exist, proof must be in the finding, nothing may remain on a missing list
+        ──► consensus     same verdict and severity three times, nothing flagged, nothing overruled → automatic;
+                          anything else → a human
 ```
 
 **Verdicts**
@@ -31,12 +33,18 @@ finding ──► 1. code       every GitHub link resolved at its commit and com
 | `CITATION_BROKEN` | No link points at audited code that the finding actually discusses. |
 | `GUARD_HELD` | SERV Prompt Guard held the text. This goes to a human; it is not a rejection. |
 
-**Code has the last word.** `src/caps.ts` downgrades `READY` when the evidence record shows any of:
+**Code has the last word.** `src/caps.ts` downgrades `READY` to `NEEDS_PROOF`, and sends it to a person, when any of these hold:
 - the claim is only partly supported;
+- the root cause, or any blocking reference, is not real audited code;
 - the code blocks the path;
 - it matches a known issue;
 - a trusted role is required;
-- there is no proof of concept.
+- the finding contains no test with an assertion and no concrete steps (read by code; nothing is executed);
+- either the evidence record or the decision still lists missing proof;
+- any citation fails to resolve;
+- the finding contains text addressed to the reviewer.
+
+Model output is validated against a schema at runtime. `test/enforcement.test.ts` replays the contradictory-READY probe from the milestone review offline.
 
 The caps are tested in `test/caps.test.ts`.
 
@@ -48,15 +56,15 @@ The caps are tested in `test/caps.test.ts`.
    - An injection: sent to a human.
    - A fixed bug: `BLOCKED_BY_CODE`, pointing at the fix line.
 2. Open [`/proof`](https://basanos-nu.vercel.app/proof/). Your browser recomputes every claim from the committed rows. Press **Tamper with the data** and the affected claims turn red.
-3. On the [home page](https://basanos-nu.vercel.app/#check), run any example and press **Tamper with it** on the Assay Certificate. The seal breaks.
+3. On the [home page](https://basanos-nu.vercel.app/#check), run any example and press **Tamper with it** on the Assay Receipt. Its SHA-256 checksum stops matching. A checksum detects edits; it does not prove who issued the receipt or that the verdict is right.
 4. Locally, `npm run verify` recomputes every published number and exits 1 on any mismatch.
 
 Local, with your own keys:
 
 ```bash
 npm ci
-cp .env.example .env            # SERV_API_KEY, DOLPHIN_API_KEY (REPPO_API_KEY only for the audit)
-npm test                        # 23 tests, no keys or network needed
+cp .env.example .env            # SERV_API_KEY, DOLPHIN_API_KEY; the CLI and MCP load .env from the working directory
+npm test                        # 29 tests, no keys or network needed
 npm run verify                  # recompute published numbers from data/runs
 npx tsx src/cli.ts finding.md --contest karak
 ```
@@ -64,7 +72,7 @@ npx tsx src/cli.ts finding.md --contest karak
 **MCP**, for an agent that hunts bugs. Add this to Claude Code or Cursor:
 
 ```json
-{ "mcpServers": { "basanos": { "command": "npx", "args": ["tsx", "/path/to/basanos/src/mcp.ts"],
+{ "mcpServers": { "basanos": { "command": "npx", "args": ["tsx", "/absolute/path/to/basanos/src/mcp.ts"],
   "env": { "SERV_API_KEY": "…", "DOLPHIN_API_KEY": "…" } } } }
 ```
 
@@ -133,8 +141,8 @@ About **$0.0032 per three-pass check**: a SERV screen, three Dolphin reads and t
 
 | Sponsor | Role in the critical path | If it disappears |
 |---|---|---|
-| **Dolphin** (`lighthouse.dphn.ai`, DeepSeek-V4.1-Flash) | Reads the entire in-scope source three times per check and writes the evidence record that the caps enforce. | The full read moves to a paid frontier model at about 13× (SERV `gpt-6-luna`) to 100× (`gpt-5.4-mini`) the input price, and three passes per check stop being cheap. |
-| **SERV Reasoning** (`gpt-6-luna` + `serv_prompt_guard`) | Makes the single bounded decision, screens the untrusted finding text, and returns a request id for every pass. | No guard on hostile text, no per-decision receipt. Measured: no accuracy gain over Dolphin deciding. |
+| **Dolphin** (`lighthouse.dphn.ai`, DeepSeek-V4.1-Flash) | Reads the entire in-scope source three times per check and writes the evidence record that the caps enforce. | The same read on SERV's cheapest model costs about 13× more per input token ($0.13 vs $0.01 per million). Still cheap in dollars, but no longer close to free. |
+| **SERV Reasoning** (`gpt-6-luna` + `serv_prompt_guard`) | Screens the raw finding before the open model reads it, then makes one bounded decision per pass with a request id. | Measured: no accuracy gain over Dolphin deciding. The ablation below isolates what the guard adds that the code defenses do not. |
 | **Reppo Eval API** | Independent audit of a verdict sample (`src/eval/reppo-audit.ts`). | Nothing in the product path depends on it. The audit result was a null. Reppo publishes submissions, so it is only ever used on public, closed-contest findings. |
 
 ## What is real

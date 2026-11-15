@@ -1,0 +1,139 @@
+{
+  "verdict": "NEEDS_PROOF",
+  "agreement": "unanimous",
+  "route": "automatic",
+  "severity_supported": "low_or_none",
+  "missing": [
+    "Confirm that the invariant is intended to apply when finalizing a slash, rather than only when requesting one; the design rationale leaves this uncertain.",
+    "Demonstrate that finalizing the queued slash after unstaking actually reduces the operator’s vault balance or otherwise causes loss; the PoC only shows that the call does not revert."
+  ],
+  "reason": "The cited code supports the sequence and does not re-check registration at slash finalization. But the report does not establish that the intended invariant applies at that point or demonstrate a resulting loss, so the claimed impact is not yet supported.",
+  "caps": [],
+  "flags": [],
+  "citations": [
+    {
+      "status": "OK",
+      "path": "src/Core.sol",
+      "lines": [
+        130,
+        130
+      ],
+      "audited_lines": [
+        130,
+        130
+      ]
+    },
+    {
+      "status": "OK",
+      "path": "src/Core.sol",
+      "lines": [
+        220,
+        220
+      ],
+      "audited_lines": [
+        220,
+        220
+      ]
+    },
+    {
+      "status": "OK",
+      "path": "src/Core.sol",
+      "lines": [
+        248,
+        248
+      ],
+      "audited_lines": [
+        248,
+        248
+      ]
+    },
+    {
+      "status": "OK",
+      "path": "src/Core.sol",
+      "lines": [
+        113,
+        113
+      ],
+      "audited_lines": [
+        113,
+        113
+      ]
+    }
+  ],
+  "votes": [
+    {
+      "verdict": "NEEDS_PROOF",
+      "severity": "low_or_none",
+      "request_id": "a2147a7a-7051-4bbd-b90e-851c80b811bf"
+    },
+    {
+      "verdict": "NEEDS_PROOF",
+      "severity": "low_or_none",
+      "request_id": "81c8fca4-5498-45e7-96bc-bfb9c704d6b8"
+    },
+    {
+      "verdict": "NEEDS_PROOF",
+      "severity": "low_or_none",
+      "request_id": "9700df15-a90d-4355-aaab-cf7550ad5ac0"
+    }
+  ],
+  "evidence": {
+    "model": "deepseek-ai/DeepSeek-V4.1-Flash",
+    "tokens_read": 42986,
+    "claim": "A DSS can finalize a queued slashing after the operator has unstaked its vaults and unregistered from that DSS, violating the invariant that only DSSs an operator is registered with can slash it.",
+    "root_cause_file": "src/entities/SlasherLib.sol",
+    "root_cause_line": 126,
+    "code_supports_claim": "yes",
+    "support_reason": "finalizeSlashing (SlasherLib.sol:126-151) only checks the stored slash root and veto window; it never re-checks operator registration or that the vault is still staked to the DSS. unregisterOperatorFromDSS (Operator.sol:181-203) only requires vaultStakedInDssMap to be empty, which finalizeUpdateVaultStakeInDSS clears (Operator.sol:103-109) without regard to pending slashings. So the sequence requestSlashing -> unstake finalize -> unregister -> finalizeSlashing succeeds.",
+    "blocking_code": [],
+    "poc": "runnable_test",
+    "impact": "admin_misuse",
+    "preconditions": [
+      "Operator has a queued unstake for all vaults staked to the DSS and the MIN_STAKE_UPDATE_DELAY has passed",
+      "DSS has a queued slashing within the veto window on those vaults",
+      "Operator finalizes unstake and unregisters before the veto window expires"
+    ],
+    "trusted_role_required": false,
+    "known_issue_match": "",
+    "missing_evidence": [
+      "Confirmation that the invariant 'only DSSs an operator is registered with can slash' is intended to hold at finalization time, not just at request time (the README lists it as a main invariant, but the design comment at Vault.sol:154 and the withdrawal-delay rationale suggest slashing of already-queued operations is intended)",
+      "Demonstration that the slashed amount is actually taken from the operator's vault after unstaking (the PoC only asserts the call does not revert)"
+    ]
+  },
+  "decision": {
+    "provider": "serv",
+    "model": "gpt-6-luna",
+    "prompt_guard_requested": true
+  },
+  "usd": 0.003827,
+  "certificate": {
+    "version": 1,
+    "seal_type": "sha256-checksum",
+    "contest": "karak",
+    "audited_commit": "f5e52fdcb4c20c4318d532a9f08f7876e9afb321",
+    "finding_sha256": "3f482d8565b332e157f007954b5d220f20c5dde0121dc64e41e2d92b86b883c7",
+    "verdict": "NEEDS_PROOF",
+    "agreement": "unanimous",
+    "route": "automatic",
+    "votes": [
+      {
+        "verdict": "NEEDS_PROOF",
+        "serv_request_id": "a2147a7a-7051-4bbd-b90e-851c80b811bf"
+      },
+      {
+        "verdict": "NEEDS_PROOF",
+        "serv_request_id": "81c8fca4-5498-45e7-96bc-bfb9c704d6b8"
+      },
+      {
+        "verdict": "NEEDS_PROOF",
+        "serv_request_id": "9700df15-a90d-4355-aaab-cf7550ad5ac0"
+      }
+    ],
+    "decider": "serv/gpt-6-luna",
+    "evidence_model": "deepseek-ai/DeepSeek-V4.1-Flash",
+    "flags": [],
+    "usd": 0.003827,
+    "issued_at": "2026-11-15T09:27:05.245Z"
+  },
+  "seal": "13e055d43cd50ab6133d3f07ba45d96e1994c30cc8e9b6c0741f0663a6c26810"
+}

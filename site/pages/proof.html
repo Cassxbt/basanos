@@ -50,6 +50,7 @@ script: proof
         <button class="sample" data-filter="KNOWN_OR_OUT_OF_SCOPE">Known or out of scope</button>
         <button class="sample" data-filter="NEEDS_PROOF">Needs proof</button>
         <button class="sample" data-filter="unanimous">Unanimous</button>
+        <button class="sample" data-filter="miss">Awarded but auto-rejected</button>
       </div>
       <div class="filters">
         <button class="sample is-active" data-decider="serv">SERV decides</button>
@@ -72,6 +73,7 @@ script: proof
     <div class="panel" style="padding:32px" data-reveal>
       <div class="bars" id="pair-bars"></div>
     </div>
+    <p class="fine" style="margin-top:18px" data-reveal>The pre-registered metric (score falling from 2 or 3 to 1 or 0) is weaker: SERV <span data-claim="bug_fix_pairs.preregistered_score_drop.serv.dropped">1</span>/<span data-claim="bug_fix_pairs.preregistered_score_drop.serv.eligible">3</span>, Dolphin <span data-claim="bug_fix_pairs.preregistered_score_drop.dolphin.dropped">2</span>/<span data-claim="bug_fix_pairs.preregistered_score_drop.dolphin.eligible">6</span> eligible pairs. The original runs also showed citation statuses that the patched runs hid, so this supports source sensitivity, not proof that the models never saw these contests. All nine patches are in <span class="mono">data/karak/fixes/</span>.</p>
     <div class="panel" style="padding:8px 28px;margin-top:24px" data-reveal>
       <table class="data" id="pair-table"></table>
     </div>
@@ -98,6 +100,33 @@ script: proof
       </div>
     </div>
     <p class="lede" style="margin-top:28px" data-reveal>Most of the hardening is code: the instruction scan flagged <span data-claim="hostile_v3_defended_blind.flagged">30</span> of <span data-claim="hostile_v3_defended_blind.injected">60</span> blind attacks, and the proof cap plus consensus stopped the rest. SERV's front door held <span data-claim="hostile_v3_defended_blind.front_door_held">1</span>. On clean findings the defenses held <span data-claim="shipped.front_door_held">0</span> of <span data-claim="dataset.reports">94</span>.</p>
+  </div>
+</section>
+
+<section class="section" id="ablation" data-hide-if-empty>
+  <div class="wrap">
+    <div class="section-head">
+      <div>
+        <span class="eyebrow" data-reveal>Ablation</span>
+        <h2 class="display h2" data-split style="margin-top:22px">What each defense saves on its own.</h2>
+      </div>
+      <p class="lede" data-reveal>The same frozen blind attacks, run four times: everything on, then each defense switched off in turn. A unique save is an attack that is safe with the defense and routed as READY without it.</p>
+    </div>
+    <div class="panel" style="padding:8px 28px" data-reveal><table class="data" id="ablation-table"></table></div>
+    <p class="fine" style="margin-top:16px" id="ablation-note"></p>
+  </div>
+</section>
+
+<section class="section" id="repair" data-hide-if-empty>
+  <div class="wrap">
+    <div class="section-head">
+      <div>
+        <span class="eyebrow" data-reveal>Repair loop</span>
+        <h2 class="display h2" data-split style="margin-top:22px">Does the checklist help fix a finding?</h2>
+      </div>
+      <p class="lede" data-reveal>An agent, not told which findings were awarded, took each checklist, wrote a Foundry test against the unmodified audited code and ran it. Only a passing test went into the revised finding, which Basanos then checked again. Agent-in-the-loop, not a human practitioner.</p>
+    </div>
+    <div class="panel" style="padding:8px 28px" data-reveal><table class="data" id="repair-table"></table></div>
   </div>
 </section>
 
@@ -134,7 +163,7 @@ script: proof
 </section>
 
 <div class="scrim" id="scrim"></div>
-<aside class="drawer" id="drawer" aria-hidden="true">
+<aside class="drawer" id="drawer" role="dialog" aria-modal="true" aria-labelledby="drawer-title" aria-hidden="true" tabindex="-1">
   <button class="btn sm ghost drawer-close" id="drawer-close">Close</button>
   <div id="drawer-body"></div>
 </aside>

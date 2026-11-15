@@ -1,0 +1,104 @@
+{
+  "verdict": "KNOWN_OR_OUT_OF_SCOPE",
+  "agreement": "unanimous",
+  "route": "automatic",
+  "severity_supported": "low_or_none",
+  "missing": [
+    "Confirmation that NativeVaults are deployed with asset == Constants.DEAD_BEEF and that allowlistAssets is used for that key (deployVaults validates assetSlashingHandlers[vaultConfigs[i].asset] != 0, CoreLib.sol:85)",
+    "Whether changing the handler for an existing asset is an intended/realistic operation vs. only adding new assets",
+    "Demonstration that finalizeSlashing reverts end-to-end (queued slashing + changed handler)"
+  ],
+  "reason": "The revert path is supported, but it requires a trusted manager or owner to change the asset’s slashing handler. This is privileged-role behavior, so the report is not eligible as a vulnerability finding.",
+  "caps": [],
+  "flags": [],
+  "citations": [
+    {
+      "status": "OK",
+      "path": "src/NativeVault.sol",
+      "lines": [
+        308,
+        308
+      ],
+      "audited_lines": [
+        308,
+        308
+      ]
+    }
+  ],
+  "votes": [
+    {
+      "verdict": "KNOWN_OR_OUT_OF_SCOPE",
+      "severity": "low_or_none",
+      "request_id": "23a264ed-e8e7-4053-ae8d-2606f4041b7a"
+    },
+    {
+      "verdict": "KNOWN_OR_OUT_OF_SCOPE",
+      "severity": "low_or_none",
+      "request_id": "ece3e138-05c5-4f71-9acd-d2e2f95128ff"
+    },
+    {
+      "verdict": "KNOWN_OR_OUT_OF_SCOPE",
+      "severity": "low_or_none",
+      "request_id": "e39244c4-ed10-4367-a781-d0ed94acded3"
+    }
+  ],
+  "evidence": {
+    "model": "deepseek-ai/DeepSeek-V4.1-Flash",
+    "tokens_read": 41908,
+    "claim": "Changing the asset's slashingHandler in Core's assetSlashingHandlers mapping makes NativeVault.slashAssets revert (NotSlashStore), DoSing slashing for already-deployed NativeVaults.",
+    "root_cause_file": "src/NativeVault.sol",
+    "root_cause_line": 308,
+    "code_supports_claim": "yes",
+    "support_reason": "NativeVault.slashAssets requires slashingHandler == self.slashStore (line 308), where slashStore is fixed at initialize (line 75). SlasherLib.finalizeSlashing passes self.assetSlashingHandlers[vault.asset()] (SlasherLib.sol:137), which is mutable via Core.allowlistAssets (Core.sol:85-91 -> CoreLib.sol:73). If the mapping is updated, the passed handler differs from the vault's stored slashStore and slashAssets reverts, blocking finalizeSlashing for that vault.",
+    "blocking_code": [],
+    "poc": "concrete_steps",
+    "impact": "unclear",
+    "preconditions": [
+      "Manager/owner calls allowlistAssets to change the slashing handler for the NativeVault asset (DEAD_BEEF)",
+      "At least one NativeVault already deployed with the old slashStore"
+    ],
+    "trusted_role_required": true,
+    "known_issue_match": "",
+    "missing_evidence": [
+      "Confirmation that NativeVaults are deployed with asset == Constants.DEAD_BEEF and that allowlistAssets is used for that key (deployVaults validates assetSlashingHandlers[vaultConfigs[i].asset] != 0, CoreLib.sol:85)",
+      "Whether changing the handler for an existing asset is an intended/realistic operation vs. only adding new assets",
+      "Demonstration that finalizeSlashing reverts end-to-end (queued slashing + changed handler)"
+    ]
+  },
+  "decision": {
+    "provider": "serv",
+    "model": "gpt-6-luna",
+    "prompt_guard_requested": true
+  },
+  "usd": 0.003149,
+  "certificate": {
+    "version": 1,
+    "seal_type": "sha256-checksum",
+    "contest": "karak",
+    "audited_commit": "f5e52fdcb4c20c4318d532a9f08f7876e9afb321",
+    "finding_sha256": "78548dd3dd9a2c9529dcae277f6cb1c836ef9752da062c24491083a2e32d6ce8",
+    "verdict": "KNOWN_OR_OUT_OF_SCOPE",
+    "agreement": "unanimous",
+    "route": "automatic",
+    "votes": [
+      {
+        "verdict": "KNOWN_OR_OUT_OF_SCOPE",
+        "serv_request_id": "23a264ed-e8e7-4053-ae8d-2606f4041b7a"
+      },
+      {
+        "verdict": "KNOWN_OR_OUT_OF_SCOPE",
+        "serv_request_id": "ece3e138-05c5-4f71-9acd-d2e2f95128ff"
+      },
+      {
+        "verdict": "KNOWN_OR_OUT_OF_SCOPE",
+        "serv_request_id": "e39244c4-ed10-4367-a781-d0ed94acded3"
+      }
+    ],
+    "decider": "serv/gpt-6-luna",
+    "evidence_model": "deepseek-ai/DeepSeek-V4.1-Flash",
+    "flags": [],
+    "usd": 0.003149,
+    "issued_at": "2026-11-15T09:27:04.624Z"
+  },
+  "seal": "3decadd5b9dab900701fdc9cd98b8b5c0b99553e3ef4dcef4addd33704ef9ad5"
+}

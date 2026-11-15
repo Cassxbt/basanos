@@ -1,0 +1,8 @@
+{
+ "number": 7,
+ "poc_passed": true,
+ "attempts": 2,
+ "summary": "Zero-asset vault that is still staked to the DSS makes finalizeSlashing revert with ZeroAmount and leaves the healthy vault unslashed; verified end to end.",
+ "checklist_items_addressed": 2,
+ "checklist_items_total": 2
+}

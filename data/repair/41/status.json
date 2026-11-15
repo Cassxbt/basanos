@@ -1,0 +1,8 @@
+{
+  "number": 41,
+  "poc_passed": true,
+  "attempts": 2,
+  "summary": "The test proves that an operator who finalizes a pre-scheduled unstake first makes requestSlashing revert with VaultNotStakedToDSS (even against a DSS with all-reverting hooks) and exits with the full 1000, while a control shows the slash lands if requested one second earlier.",
+  "checklist_items_addressed": 3,
+  "checklist_items_total": 3
+}

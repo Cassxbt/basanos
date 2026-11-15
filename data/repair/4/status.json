@@ -1,0 +1,8 @@
+{
+  "number": 4,
+  "poc_passed": true,
+  "attempts": 3,
+  "summary": "The test proves a slash queued while the operator was registered is finalized after it unstaked and unregistered, burning 100 tokens from each vault and cutting a post-unregistration depositor from 1000 to 950; whether that violates the intended invariant remains a design-intent question.",
+  "checklist_items_addressed": 2,
+  "checklist_items_total": 2
+}

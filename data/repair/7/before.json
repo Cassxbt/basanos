@@ -1,0 +1,126 @@
+{
+  "verdict": "NEEDS_PROOF",
+  "agreement": "unanimous",
+  "route": "automatic",
+  "severity_supported": "medium",
+  "missing": [
+    "Demonstrate that a vault can reach totalAssets() == 0 and remain staked to the DSS; the PoC should verify the stake after finishRedeem.",
+    "Clarify that startRedeem/finishRedeem is the intended withdrawal flow and that completing it does not itself indicate a vulnerability."
+  ],
+  "reason": "The cited code supports the zero-amount revert and the loop can make it block other vault slashes. The PoC does not establish that its zero-asset vault remains in the DSS slashing set after withdrawal. If confirmed, the demonstrated impact is a temporary blockage of slashing, supporting medium severity.",
+  "caps": [],
+  "flags": [],
+  "citations": [
+    {
+      "status": "OK",
+      "path": "src/Core.sol",
+      "lines": [
+        220,
+        220
+      ],
+      "audited_lines": [
+        220,
+        220
+      ]
+    },
+    {
+      "status": "OK",
+      "path": "src/Vault.sol",
+      "lines": [
+        193,
+        193
+      ],
+      "audited_lines": [
+        193,
+        193
+      ]
+    },
+    {
+      "status": "OK",
+      "path": "src/SlashingHandler.sol",
+      "lines": [
+        52,
+        52
+      ],
+      "audited_lines": [
+        52,
+        52
+      ]
+    }
+  ],
+  "votes": [
+    {
+      "verdict": "NEEDS_PROOF",
+      "severity": "medium",
+      "request_id": "ce9d7b57-eb8d-4c31-9cb0-8d605b27ead9"
+    },
+    {
+      "verdict": "NEEDS_PROOF",
+      "severity": "medium",
+      "request_id": "a5588887-94b9-4ae2-add0-02c670cbe00e"
+    },
+    {
+      "verdict": "NEEDS_PROOF",
+      "severity": "medium",
+      "request_id": "81346480-8060-4c3f-b4e7-7904eb4ce0c7"
+    }
+  ],
+  "evidence": {
+    "model": "deepseek-ai/DeepSeek-V4.1-Flash",
+    "tokens_read": 43050,
+    "claim": "finalizeSlashing reverts (ZeroAmount) when a vault's totalAssets is 0, blocking slashing of all other vaults in the same request",
+    "root_cause_file": "src/Vault.sol",
+    "root_cause_line": 198,
+    "code_supports_claim": "yes",
+    "support_reason": "Vault.slashAssets (Vault.sol:198) computes transferAmount = Math.min(totalAssets(), totalAssetsToSlash); with totalAssets()==0 transferAmount==0, then unconditionally calls handleSlashing (Vault.sol:202). SlashingHandler.handleSlashing reverts on amount==0 (SlashingHandler.sol:53). SlasherLib.finalizeSlashing loops over all vaults (SlasherLib.sol:134-139) with no try/catch, so one zero-asset vault reverts the whole finalize. No check elsewhere prevents a vault from reaching totalAssets==0 (withdrawals via finishRedeem reduce balance; slashAssets caps at totalAssets).",
+    "blocking_code": [],
+    "poc": "concrete_steps",
+    "impact": "accounting_error",
+    "preconditions": [
+      "DSS requests slashing across multiple vaults of an operator",
+      "at least one vault's totalAssets becomes 0 before finalize (full redeem finished, or prior 100% slash by another DSS)"
+    ],
+    "trusted_role_required": false,
+    "known_issue_match": "",
+    "missing_evidence": [
+      "confirmation that a vault can reach totalAssets==0 while still staked to the DSS (finishRedeem does not unstake from DSS)",
+      "note that the PoC's startRedeem/finishRedeem path is the intended withdrawal flow, not a bug itself"
+    ]
+  },
+  "decision": {
+    "provider": "serv",
+    "model": "gpt-6-luna",
+    "prompt_guard_requested": true
+  },
+  "usd": 0.003614,
+  "certificate": {
+    "version": 1,
+    "seal_type": "sha256-checksum",
+    "contest": "karak",
+    "audited_commit": "f5e52fdcb4c20c4318d532a9f08f7876e9afb321",
+    "finding_sha256": "e09bc672e33134cf0c18d83568035b03f37c2fc92a8c4d03045790d2dc325e9e",
+    "verdict": "NEEDS_PROOF",
+    "agreement": "unanimous",
+    "route": "automatic",
+    "votes": [
+      {
+        "verdict": "NEEDS_PROOF",
+        "serv_request_id": "ce9d7b57-eb8d-4c31-9cb0-8d605b27ead9"
+      },
+      {
+        "verdict": "NEEDS_PROOF",
+        "serv_request_id": "a5588887-94b9-4ae2-add0-02c670cbe00e"
+      },
+      {
+        "verdict": "NEEDS_PROOF",
+        "serv_request_id": "81346480-8060-4c3f-b4e7-7904eb4ce0c7"
+      }
+    ],
+    "decider": "serv/gpt-6-luna",
+    "evidence_model": "deepseek-ai/DeepSeek-V4.1-Flash",
+    "flags": [],
+    "usd": 0.003614,
+    "issued_at": "2026-11-15T09:27:02.140Z"
+  },
+  "seal": "1ab6d9c5908183c1ac81e7f9c905c15ce077fb78d0996dfded6e1071bfba8fd9"
+}

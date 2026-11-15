@@ -1,0 +1,116 @@
+{
+  "verdict": "NEEDS_PROOF",
+  "agreement": "majority",
+  "route": "human",
+  "severity_supported": "low_or_none",
+  "missing": [
+    "A reproducible on-chain sequence showing the operator queues and finalizes the unstake before the slashing request, causing the request to revert and allowing the relevant stake to exit or otherwise evade the slash.",
+    "Evidence that the DSS cannot observe or block the queued unstake or veto its finalization.",
+    "Clarification whether the README guidance to stop considering a vault with a queued withdrawal is intended to cover this behavior."
+  ],
+  "reason": "The cited checks and source support a reachable path to make requestSlashing revert after unstaking. The report provides only a narrative, and the resulting slashing evasion and its intended design treatment are not sufficiently demonstrated.",
+  "caps": [],
+  "flags": [],
+  "citations": [
+    {
+      "status": "OK",
+      "path": "src/entities/SlasherLib.sol",
+      "lines": [
+        52,
+        52
+      ],
+      "audited_lines": [
+        52,
+        52
+      ]
+    },
+    {
+      "status": "OK",
+      "path": "src/Core.sol",
+      "lines": [
+        149,
+        149
+      ],
+      "audited_lines": [
+        149,
+        149
+      ]
+    }
+  ],
+  "votes": [
+    {
+      "verdict": "NEEDS_PROOF",
+      "severity": "medium",
+      "request_id": "4a11d1f4-59d2-43d7-86d6-ca3ccba1909a"
+    },
+    {
+      "verdict": "NEEDS_PROOF",
+      "severity": "low_or_none",
+      "request_id": "8ccaba61-af62-4b3c-9c95-f590fc701f22"
+    },
+    {
+      "verdict": "NEEDS_PROOF",
+      "severity": "low_or_none",
+      "request_id": "e11e455e-c8c0-4c98-92c2-d9ad7c22c456"
+    }
+  ],
+  "evidence": {
+    "model": "deepseek-ai/DeepSeek-V4.1-Flash",
+    "tokens_read": 41797,
+    "claim": "Operator can dodge slashing by pre-queuing an unstake and finalizing it (front-running requestSlashing) so the vault is no longer staked to the DSS, causing requestSlashing to revert with VaultNotStakedToDSS.",
+    "root_cause_file": "src/entities/SlasherLib.sol",
+    "root_cause_line": 51,
+    "code_supports_claim": "yes",
+    "support_reason": "requestSlashing validates isVaultStakeToDSS (SlasherLib.sol:51-52) at request time; finalizeUpdateVaultStakeInDSS (Core.sol:146-153) is permissionless and removes the vault from vaultStakedInDssMap (Operator.sol:103-109) after MIN_STAKE_UPDATE_DELAY, with no expiry on the queued request and no DSS-side block. So an operator can queue unstake, wait the delay, and finalize before the DSS's requestSlashing lands, making the slash revert.",
+    "blocking_code": [],
+    "poc": "narrative_only",
+    "impact": "accounting_error",
+    "preconditions": [
+      "Operator is registered to the DSS and vault is staked to it",
+      "Operator queued an unstake >= MIN_STAKE_UPDATE_DELAY earlier",
+      "Operator can order finalizeUpdateVaultStakeInDSS before the DSS's requestSlashing tx"
+    ],
+    "trusted_role_required": false,
+    "known_issue_match": "",
+    "missing_evidence": [
+      "Confirmation that the DSS cannot observe/block the queued unstake (no on-chain hook to veto finalize)",
+      "Whether the README's 'DSS should stop considering queued withdraw' guidance is intended to cover this (i.e., whether this is by design)"
+    ]
+  },
+  "decision": {
+    "provider": "serv",
+    "model": "gpt-6-luna",
+    "prompt_guard_requested": true
+  },
+  "usd": 0.003002,
+  "certificate": {
+    "version": 1,
+    "seal_type": "sha256-checksum",
+    "contest": "karak",
+    "audited_commit": "f5e52fdcb4c20c4318d532a9f08f7876e9afb321",
+    "finding_sha256": "a85ecb080b1392090dc447fd460e3f797601e515e04ab4fc63ff51b6a65eb7b6",
+    "verdict": "NEEDS_PROOF",
+    "agreement": "majority",
+    "route": "human",
+    "votes": [
+      {
+        "verdict": "NEEDS_PROOF",
+        "serv_request_id": "4a11d1f4-59d2-43d7-86d6-ca3ccba1909a"
+      },
+      {
+        "verdict": "NEEDS_PROOF",
+        "serv_request_id": "8ccaba61-af62-4b3c-9c95-f590fc701f22"
+      },
+      {
+        "verdict": "NEEDS_PROOF",
+        "serv_request_id": "e11e455e-c8c0-4c98-92c2-d9ad7c22c456"
+      }
+    ],
+    "decider": "serv/gpt-6-luna",
+    "evidence_model": "deepseek-ai/DeepSeek-V4.1-Flash",
+    "flags": [],
+    "usd": 0.003002,
+    "issued_at": "2026-11-15T09:27:06.930Z"
+  },
+  "seal": "aac27d28899b0ad2c2e5cdc2d6c8e7af981ab4c5fe89ac46559ecff2236d6bb8"
+}

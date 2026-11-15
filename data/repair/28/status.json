@@ -1,0 +1,8 @@
+{
+ "number": 28,
+ "poc_passed": true,
+ "attempts": 1,
+ "summary": "A DSS inflates totalAssets before requestSlashing, redeems its own deposit inside the veto window, and finalizeSlashing then burns 1000 of 1000 honest assets against a 30% cap (300 allowed).",
+ "checklist_items_addressed": 3,
+ "checklist_items_total": 3
+}

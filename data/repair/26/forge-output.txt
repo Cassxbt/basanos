@@ -1,0 +1,10 @@
+Ran 2 tests for test/basanos/Poc26.t.sol:Poc26
+[PASS] test_operator_can_escape_by_unregistering_during_delay() (gas: 1401843)
+[PASS] test_uncancellable_stake_is_finalized_by_stranger_and_slashed() (gas: 1745167)
+Logs:
+  vault totalAssets before slash: 1000
+  vault totalAssets after slash: 700
+
+Suite result: ok. 2 passed; 0 failed; 0 skipped; finished in 11.56ms (7.48ms CPU time)
+
+Ran 1 test suite in 217.75ms (11.56ms CPU time): 2 tests passed, 0 failed, 0 skipped (2 total tests)

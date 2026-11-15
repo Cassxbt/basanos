@@ -72,12 +72,16 @@ writeFileSync(`${STATIC}/data/attacks.json`, JSON.stringify([
   { key: "patched", contest: "karak-fix31", ...finding(31) },
 ]));
 
-const run4 = new Map(jsonl<ConsensusRow>("data/runs/run4.jsonl").map((r) => [r.id, r]));
+const shippedRun = JSON.parse(readFileSync("data/claims.json", "utf8")).shipped_source ?? "run4";
+const run4 = new Map(jsonl<ConsensusRow>(`data/runs/${shippedRun}.jsonl`).map((r) => [r.id, r]));
 const arm = (a: ConsensusRow["serv"]) => ({
   score: a.score,
   verdict: a.verdict,
   agreement: a.agreement,
-  votes: a.votes.map((v) => ({ verdict: v.verdict, id: v.requestId })),
+  reason: a.reason ?? null,
+  missing: a.missing ?? [],
+  overruled: a.votes.some((v) => v.caps.some((c) => c.startsWith("READY capped"))),
+  votes: a.votes.map((v) => ({ verdict: v.verdict, id: v.requestId, caps: v.caps })),
 });
 const fixes: { number: number; files: string[]; summary: string }[] = JSON.parse(readFileSync("data/karak/fixes.json", "utf8"));
 writeFileSync(`${STATIC}/data/proof.json`, JSON.stringify({

@@ -1,0 +1,7 @@
+Ran 1 test for test/basanos/Poc28.t.sol:Poc28
+[PASS] test_dssBypassesMaxSlashablePercentage() (gas: 1814419)
+Logs:
+  allowed slash (30% of honest stake): 300
+  actually slashed: 1000
+Suite result: ok. 1 passed; 0 failed; 0 skipped; finished in 31.28ms (11.01ms CPU time)
+Ran 1 test suite in 384.03ms (31.28ms CPU time): 1 tests passed, 0 failed, 0 skipped (1 total tests)

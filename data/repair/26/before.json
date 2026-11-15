@@ -1,0 +1,105 @@
+{
+  "verdict": "NEEDS_PROOF",
+  "agreement": "majority",
+  "route": "human",
+  "severity_supported": "low_or_none",
+  "missing": [
+    "Demonstrate that a registered malicious DSS can finalize the queued stake and slash the vault, including the required DSS and operator registration state.",
+    "Provide a test showing a third party can finalize the request and that slashing follows.",
+    "Quantify the loss or duration of restricted fund access, and explain how it exceeds the acknowledged design behavior of ignoring queued stake."
+  ],
+  "reason": "The code supports an uncancellable queued request and permissionless finalization, but the report does not demonstrate that this path enables slashing or establish the claimed loss or fund-lock impact.",
+  "caps": [],
+  "flags": [],
+  "citations": [
+    {
+      "status": "OK",
+      "path": "src/Core.sol",
+      "lines": [
+        146,
+        146
+      ],
+      "audited_lines": [
+        146,
+        146
+      ]
+    }
+  ],
+  "votes": [
+    {
+      "verdict": "NEEDS_PROOF",
+      "severity": "low_or_none",
+      "request_id": "532fa8a0-0ab5-463d-a185-125b4ab83725"
+    },
+    {
+      "verdict": "NEEDS_PROOF",
+      "severity": "low_or_none",
+      "request_id": "480ad3c9-dbca-4417-9fc2-d1e29ca173fa"
+    },
+    {
+      "verdict": "NEEDS_PROOF",
+      "severity": "medium",
+      "request_id": "d35fa854-f56a-4771-b9a8-074c54843dc6"
+    }
+  ],
+  "evidence": {
+    "model": "deepseek-ai/DeepSeek-V4.1-Flash",
+    "tokens_read": 41768,
+    "claim": "Operators cannot cancel a queued vault-stake request to a DSS; anyone (including a malicious DSS) can finalize it after the delay, exposing funds to slashing.",
+    "root_cause_file": "src/entities/Operator.sol",
+    "root_cause_line": 61,
+    "code_supports_claim": "yes",
+    "support_reason": "requestUpdateVaultStakeInDSS (Operator.sol:61-87) stores pendingStakeUpdates[vault] and there is no cancel function anywhere; finalizeUpdateVaultStakeInDSS (Core.sol:146-153) has no caller restriction and validateQueuedStakeUpdate (Operator.sol:89-101) only checks delay and root match, so any party can finalize the queued stake.",
+    "blocking_code": [],
+    "poc": "narrative_only",
+    "impact": "unclear",
+    "preconditions": [
+      "operator has submitted a stake request to a DSS that later turns malicious",
+      "MIN_STAKE_UPDATE_DELAY has elapsed",
+      "veto committee does not cancel the resulting slashing in time"
+    ],
+    "trusted_role_required": false,
+    "known_issue_match": "",
+    "missing_evidence": [
+      "demonstration that a malicious DSS can actually slash the newly-staked vault (DSS must be registered and operator registered to it)",
+      "quantification of loss vs. the acknowledged 'sitting on queued withdraw' / DSS-should-ignore-queued-stake design note",
+      "test showing finalize by a third party succeeds and slashing follows"
+    ]
+  },
+  "decision": {
+    "provider": "serv",
+    "model": "gpt-6-luna",
+    "prompt_guard_requested": true
+  },
+  "usd": 0.002814,
+  "certificate": {
+    "version": 1,
+    "seal_type": "sha256-checksum",
+    "contest": "karak",
+    "audited_commit": "f5e52fdcb4c20c4318d532a9f08f7876e9afb321",
+    "finding_sha256": "7ef350f65a70bf8d86351173eeba1403b9b28ea97b9d6fbed7902a0a4e9399b0",
+    "verdict": "NEEDS_PROOF",
+    "agreement": "majority",
+    "route": "human",
+    "votes": [
+      {
+        "verdict": "NEEDS_PROOF",
+        "serv_request_id": "532fa8a0-0ab5-463d-a185-125b4ab83725"
+      },
+      {
+        "verdict": "NEEDS_PROOF",
+        "serv_request_id": "480ad3c9-dbca-4417-9fc2-d1e29ca173fa"
+      },
+      {
+        "verdict": "NEEDS_PROOF",
+        "serv_request_id": "d35fa854-f56a-4771-b9a8-074c54843dc6"
+      }
+    ],
+    "decider": "serv/gpt-6-luna",
+    "evidence_model": "deepseek-ai/DeepSeek-V4.1-Flash",
+    "flags": [],
+    "usd": 0.002814,
+    "issued_at": "2026-11-15T09:26:59.911Z"
+  },
+  "seal": "240f7caa1d2d3feda46587e602910dbbfad2b182c11c08d026aa4e073658e921"
+}

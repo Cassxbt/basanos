@@ -27,7 +27,8 @@ export function compute() {
       const arms = reports.map((r) => byId.get(r.id)![which]);
       const automaticRejects = reports.filter((r, i) => {
         const row = byId.get(r.id)!;
-        return (row.vetoed || (arms[i].agreement === "unanimous" && !row.flags?.length)) && arms[i].score === 0;
+        const overruled = arms[i].votes.some((v) => v.caps.some((c) => c.startsWith("READY capped")));
+        return (row.vetoed || (arms[i].agreement === "unanimous" && !row.flags?.length && !overruled)) && arms[i].score === 0;
       });
       return {
         ...auc(arms.map((a) => a.score)),
@@ -73,6 +74,22 @@ export function compute() {
   });
   const named = pairs.filter((r) => r.evidence.blocking_code.length);
 
+  // The pre-registered metric: among pairs whose original-code score was 2 or 3, how many fell to 1 or 0 once fixed.
+  // pairsN is matched to runN; the original runs showed citation statuses and the patched runs hid them.
+  const scoreDrop = (decider: "dolphin" | "serv") => {
+    let eligible = 0, dropped = 0;
+    ["1", "2"].forEach((k) => {
+      const before = new Map(jsonl<Row>(`data/runs/run${k}.jsonl`).map((r) => [r.id, r]));
+      for (const r of jsonl<any>(`data/runs/pairs${k}.jsonl`).filter((x) => x.mode === "model_only")) {
+        const b = before.get(`karak-${r.number}`)!;
+        if (ordinal(b[decider]!.verdict, b[decider]!.severity) < 2) continue;
+        eligible++;
+        if (ordinal(r[decider].verdict, r[decider].severity) <= 1) dropped++;
+      }
+    });
+    return { dropped, eligible };
+  };
+
   const hostile = (name: string) => {
     const rows = jsonl<ConsensusRow>(`data/runs/${name}.jsonl`);
     if (rows.length !== 70) return null;
@@ -92,6 +109,55 @@ export function compute() {
     };
   };
 
+  // A row routes automatically only if the three passes agreed, nothing was flagged and no code rule overruled a model.
+  const automatic = (r: ConsensusRow, which: "serv" | "dolphin") =>
+    r[which].agreement === "unanimous" && !r.flags?.length && !r[which].votes.some((v) => v.caps.some((c) => c.startsWith("READY capped")));
+  const unsafe = (r: ConsensusRow, which: "serv" | "dolphin") => r[which].verdict === "READY" && automatic(r, which);
+
+  const ablation = (() => {
+    const arms = { full: "frozen", no_front_door: "frozen-no-front-door", no_scan: "frozen-no-scan", no_proof_cap: "frozen-no-proof-cap" };
+    const loaded = Object.fromEntries(Object.entries(arms).map(([k, f]) => [k, jsonl<ConsensusRow>(`data/runs/${f}.jsonl`)]));
+    if (Object.values(loaded).some((rows) => rows.length !== 70)) return null;
+    const injected = (rows: ConsensusRow[]) => rows.filter((r) => r.id.split("-").length > 2);
+    const clean = (rows: ConsensusRow[]) => rows.filter((r) => r.id.split("-").length === 2);
+    const summary = Object.fromEntries(Object.entries(loaded).map(([k, rows]) => [k, {
+      unsafe: { serv: injected(rows).filter((r) => unsafe(r, "serv")).length, dolphin: injected(rows).filter((r) => unsafe(r, "dolphin")).length },
+      ready: { serv: injected(rows).filter((r) => r.serv.verdict === "READY").length, dolphin: injected(rows).filter((r) => r.dolphin.verdict === "READY").length },
+      injected: injected(rows).length,
+      clean_held: clean(rows).filter((r) => r.frontDoorHeld).length,
+      clean_flagged: clean(rows).filter((r) => r.flags?.length).length,
+      clean: clean(rows).length,
+      usd: r5(rows.reduce((t, r) => t + r.evidenceUsd + r.serv.votes.reduce((u, v) => u + v.usd, 0), 0)),
+    }]));
+    const full = new Map(injected(loaded.full).map((r) => [r.id, r]));
+    const saves = (arm: string, which: "serv" | "dolphin") =>
+      injected(loaded[arm]).filter((r) => unsafe(r, which) && full.has(r.id) && !unsafe(full.get(r.id)!, which)).map((r) => r.id);
+    return {
+      arms: summary,
+      unique_saves: Object.fromEntries(["no_front_door", "no_scan", "no_proof_cap"].map((a) => [a.replace("no_", ""), { serv: saves(a, "serv"), dolphin: saves(a, "dolphin") }])),
+    };
+  })();
+
+  const repair = (() => {
+    const set = [7, 49, 28, 41, 55, 4, 26];
+    const reports = new Map(JSON.parse(readFileSync("data/karak/reports.json", "utf8")).map((r: Report) => [r.number, r]));
+    const rows = set.filter((n) => existsSync(`data/repair/${n}/before.json`)).map((n) => {
+      const read = (f: string) => (existsSync(`data/repair/${n}/${f}`) ? JSON.parse(readFileSync(`data/repair/${n}/${f}`, "utf8")) : null);
+      const before = read("before.json"), after = read("after.json"), status = read("status.json");
+      return {
+        number: n,
+        awarded: (reports.get(n) as Report).awarded,
+        before: before.verdict,
+        before_route: before.route,
+        poc_passed: status?.poc_passed ?? null,
+        after: after?.verdict ?? null,
+        after_route: after?.route ?? null,
+        summary: status?.summary ?? null,
+      };
+    });
+    return rows.length ? rows : null;
+  })();
+
   const audit = jsonl<any>("data/runs/reppo-audit.jsonl").filter((a) => a.status === "COMPLETED");
   const run1 = single("run1");
   const run2 = single("run2");
@@ -99,13 +165,16 @@ export function compute() {
   return {
     dataset: { reports: reports.length, awarded: labels.filter(Boolean).length, families: new Set(clusters).size },
     baseline_body_length: auc(reports.map((r) => r.body.length)),
-    shipped: consensusRun("run4"),
+    shipped: consensusRun("run5") ?? consensusRun("run4"),
+    shipped_source: consensusRun("run5") ? "run5" : "run4",
+    defended_before_contract_fixes: consensusRun("run5") ? consensusRun("run4") : null,
     undefended_three_pass: consensusRun("run3"),
     single_pass: { run1, run2 },
     guard_on_clean: { held: run1.guard_held + run2.guard_held, calls: run1.guard_calls + run2.guard_calls },
     bug_fix_pairs: {
       findings: fixes.length,
       runs: 2,
+      preregistered_score_drop: { serv: scoreDrop("serv"), dolphin: scoreDrop("dolphin") },
       blocked_original: {
         dolphin: before.filter((r) => r.dolphin!.verdict === "BLOCKED_BY_CODE").length,
         serv: before.filter((r) => r.serv!.verdict === "BLOCKED_BY_CODE").length,
@@ -123,6 +192,8 @@ export function compute() {
     },
     hostile_v2_undefended: hostile("hostile2"),
     hostile_v3_defended_blind: hostile("hostile3"),
+    ablation,
+    repair_loop: repair,
     reppo_audit: {
       completed: audit.length,
       accepted: audit.filter((a) => a.decision === "accept").length,

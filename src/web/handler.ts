@@ -8,10 +8,13 @@ const MAX_REPORT = 60_000;
 const MAX_TITLE = 300;
 const WINDOW_MS = 10 * 60_000;
 const PER_ADDRESS = 12;
-// One instance never spends more than this per window, whoever is asking.
+// Per warm instance, not global: every concurrent request reserves its worst case up front, so one instance
+// cannot overrun this in a window. Cold starts and parallel instances each get their own allowance.
 const INSTANCE_BUDGET_USD = 0.5;
+const RESERVE_USD = 0.01;
+const DEADLINE_MS = 52_000;
 
-configureClients({ timeout: 40_000, maxRetries: 1 });
+configureClients({ timeout: 16_000, maxRetries: 0 });
 
 const hits = new Map<string, number[]>();
 let spent: { at: number; usd: number }[] = [];
@@ -28,9 +31,12 @@ function overLimit(address: string, now: number): boolean {
   return recent.length > PER_ADDRESS;
 }
 
-function overBudget(now: number): boolean {
+function reserve(now: number): { usd: number; at: number } | null {
   spent = spent.filter((s) => now - s.at < WINDOW_MS);
-  return spent.reduce((sum, s) => sum + s.usd, 0) >= INSTANCE_BUDGET_USD;
+  if (spent.reduce((sum, s) => sum + s.usd, 0) + RESERVE_USD > INSTANCE_BUDGET_USD) return null;
+  const entry = { at: now, usd: RESERVE_USD };
+  spent.push(entry);
+  return entry;
 }
 
 function send(res: ServerResponse, status: number, body: unknown) {
@@ -51,7 +57,6 @@ export default async function handler(req: IncomingMessage & { body?: unknown },
   if (req.method !== "POST") return send(res, 405, { error: "POST only." });
   const now = Date.now();
   if (overLimit(addressOf(req), now)) return send(res, 429, { error: "Too many checks from this address. Try again in a few minutes." });
-  if (overBudget(now)) return send(res, 503, { error: "The public demo has reached its spending limit for now. Try again shortly, or run it locally." });
 
   let input: unknown;
   try {
@@ -68,13 +73,17 @@ export default async function handler(req: IncomingMessage & { body?: unknown },
     return send(res, 400, { error: `Unknown contest. Known: ${CONTESTS.map((c) => c.id).join(", ")}.` });
   }
 
+  const held = reserve(now);
+  if (!held) return send(res, 503, { error: "The public demo has reached its spending limit for now. Try again shortly, or run it locally." });
   try {
     const { contest: c, policy } = loadContest(contest);
-    const result = await precheck({ title, body: report }, c, policy);
-    spent.push({ at: now, usd: result.usd });
+    const deadline = new Promise<never>((_, reject) => setTimeout(() => reject(new Error("deadline")), DEADLINE_MS));
+    const result = await Promise.race([precheck({ title, body: report }, c, policy), deadline]);
+    held.usd = result.usd;
     return send(res, 200, { ...toReport(result, contest, c.auditedCommit, title, report), ms: Date.now() - now });
   } catch (err) {
     console.error(err);
-    return send(res, 502, { error: "The check failed upstream. Nothing was stored; try again." });
+    if ((err as Error).message === "deadline") return send(res, 504, { error: "The check took too long. The providers may be slow; try again in a minute." });
+    return send(res, 502, { error: "The check failed upstream. Nothing was stored here; try again." });
   }
 }

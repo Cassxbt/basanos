@@ -1,0 +1,8 @@
+{
+  "number": 26,
+  "poc_passed": true,
+  "attempts": 2,
+  "summary": "The test proves a queued stake cannot be cancelled, a stranger can finalize it and a registered DSS can then slash the vault from 1000 to 700, but a second test shows the operator can avoid this by unregistering during the 9-day delay, which narrows the claim.",
+  "checklist_items_addressed": 3,
+  "checklist_items_total": 3
+}

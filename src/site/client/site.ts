@@ -292,7 +292,7 @@ export function drawStreak(svg: SVGSVGElement) {
 
 export function enter(el: Element | Element[], delay = 0) {
   if (reduce) return;
-  gsap.from(el, { y: 18, opacity: 0, filter: "blur(4px)", duration: 0.9, ease: EXPO, stagger: 0.06, delay });
+  gsap.from(el, { y: 10, opacity: 0, duration: 0.45, ease: EXPO, stagger: 0.04, delay });
 }
 
 let streakId = 0;

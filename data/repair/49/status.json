@@ -1,0 +1,8 @@
+{
+ "number": 49,
+ "poc_passed": true,
+ "attempts": 1,
+ "summary": "Changing the allowlisted handler makes a queued NativeVault slash revert with NotSlashStore and restoring it unblocks it, but it requires the trusted manager role so severity is Low/QA at best.",
+ "checklist_items_addressed": 2,
+ "checklist_items_total": 3
+}

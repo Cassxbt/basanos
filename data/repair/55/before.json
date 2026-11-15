@@ -1,0 +1,60 @@
+{
+  "verdict": "GUARD_HELD",
+  "agreement": null,
+  "route": "human",
+  "severity_supported": null,
+  "missing": [],
+  "reason": "SERV Prompt Guard held the finding at the front door (serv refused (59182572-dd9f-4180-974e-17e508514458): I can't share that.). Route it to a human reviewer.",
+  "caps": [],
+  "flags": [],
+  "citations": [
+    {
+      "status": "OK",
+      "path": "src/entities/SlasherLib.sol",
+      "lines": [
+        134,
+        138
+      ],
+      "audited_lines": [
+        134,
+        138
+      ]
+    },
+    {
+      "status": "OK",
+      "path": "src/NativeVault.sol",
+      "lines": [
+        308,
+        308
+      ],
+      "audited_lines": [
+        308,
+        308
+      ]
+    }
+  ],
+  "votes": [],
+  "decision": {
+    "provider": "serv",
+    "model": "gpt-6-luna",
+    "prompt_guard_requested": true
+  },
+  "usd": 0,
+  "certificate": {
+    "version": 1,
+    "seal_type": "sha256-checksum",
+    "contest": "karak",
+    "audited_commit": "f5e52fdcb4c20c4318d532a9f08f7876e9afb321",
+    "finding_sha256": "5761bfc3d829785514b2fd2c121714bb14c6a24bb236ad483e5b70f5f74ee9d3",
+    "verdict": "GUARD_HELD",
+    "agreement": null,
+    "route": "human",
+    "votes": [],
+    "decider": "serv/gpt-6-luna",
+    "evidence_model": null,
+    "flags": [],
+    "usd": 0,
+    "issued_at": "2026-11-15T09:26:31.654Z"
+  },
+  "seal": "e39fa7298abc38614f86d3190ed95b1dbdceecb859a9c1cae632aaba155167e0"
+}

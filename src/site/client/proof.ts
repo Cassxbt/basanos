@@ -2,7 +2,7 @@ import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { $, $$, esc, getClaims, streakSVG, VERDICT, ready } from "./site.ts";
 
-interface Arm { score: number; verdict: string; agreement: string | null; votes: { verdict: string; id: string | null }[] }
+interface Arm { score: number; verdict: string; agreement: string | null; reason: string | null; missing: string[]; overruled: boolean; votes: { verdict: string; id: string | null; caps: string[] }[] }
 interface Row { id: string; n: number; title: string; family: number; awarded: boolean; final: string | null; len: number; flags: string[]; held: boolean; vetoed: boolean; serv: Arm; dolphin: Arm }
 
 // Same estimator, same seed and same resampling order as src/eval/score.ts, so results match to the digit.
@@ -96,7 +96,7 @@ async function main() {
         state: "recomputed",
         published: `${s.serv.automatic_rejects_not_awarded}/${s.serv.automatic_rejects}`,
         computed: () => {
-          const auto = rows.filter((r) => (r.vetoed || (r.serv.agreement === "unanimous" && !r.flags.length)) && r.serv.score === 0);
+          const auto = rows.filter((r) => (r.vetoed || (r.serv.agreement === "unanimous" && !r.flags.length && !r.serv.overruled)) && r.serv.score === 0);
           return `${auto.filter((r) => !r.awarded).length}/${auto.length}`;
         },
       },
@@ -189,6 +189,7 @@ async function main() {
         (filter === "awarded" && r.awarded) ||
         (filter === "not" && !r.awarded) ||
         (filter === "unanimous" && a.agreement === "unanimous") ||
+        (filter === "miss" && r.awarded && a.score === 0 && (r.vetoed || (a.agreement === "unanimous" && !r.flags.length && !a.overruled))) ||
         a.verdict === filter;
       el.classList.toggle("dim", !show);
     }
@@ -206,10 +207,23 @@ async function main() {
   ScrollTrigger.create({ trigger: tray, start: "top 85%", once: true, onEnter: renderTray });
 
   const drawer = $("#drawer"), scrim = $("#scrim");
-  const close = () => { drawer.classList.remove("open"); scrim.classList.remove("open"); drawer.setAttribute("aria-hidden", "true"); };
+  let opener: HTMLElement | null = null;
+  const close = () => {
+    if (!drawer.classList.contains("open")) return;
+    drawer.classList.remove("open"); scrim.classList.remove("open"); drawer.setAttribute("aria-hidden", "true");
+    opener?.focus();
+  };
   $("#drawer-close").addEventListener("click", close);
   scrim.addEventListener("click", close);
-  addEventListener("keydown", (e) => e.key === "Escape" && close());
+  addEventListener("keydown", (e) => {
+    if (!drawer.classList.contains("open")) return;
+    if (e.key === "Escape") return close();
+    if (e.key !== "Tab") return;
+    const focusable = $$<HTMLElement>("button, a[href]", drawer);
+    const first = focusable[0], last = focusable[focusable.length - 1];
+    if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+    else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+  });
   tray.addEventListener("click", (e) => {
     const el = (e.target as HTMLElement).closest<HTMLElement>(".specimen");
     if (!el) return;
@@ -218,15 +232,19 @@ async function main() {
       const v = VERDICT[a.verdict] ?? VERDICT.NEEDS_PROOF;
       return `<div class="block-title">${name}</div>${streakSVG(v.color, 48)}
         <p style="font:500 28px/1 var(--display);color:${v.color};margin:4px 0 12px">${esc(v.label)}</p>
-        ${a.votes.map((x, i) => `<div class="leader"><span>pass ${i + 1}: ${esc((VERDICT[x.verdict] ?? { label: x.verdict }).label)}</span><span class="dots"></span><span>${esc(x.id ? x.id.slice(0, 18) + "…" : "—")}</span></div>`).join("")}
-        <div class="leader"><span>agreement</span><span class="dots"></span><span>${esc(a.agreement ?? "code veto")}</span></div>`;
+        ${a.reason ? `<p class="reason" style="font-size:15px;margin:0 0 12px">${esc(a.reason)}</p>` : ""}
+        ${a.missing.length ? `<ol class="missing">${a.missing.map((m) => `<li>${esc(m)}</li>`).join("")}</ol>` : ""}
+        ${a.votes.map((x, i) => `<div class="leader"><span>pass ${i + 1}: ${esc((VERDICT[x.verdict] ?? { label: x.verdict }).label)}</span><span class="dots"></span><span class="mono" style="user-select:all">${esc(x.id ?? "—")}</span></div>`).join("")}
+        <div class="leader"><span>agreement</span><span class="dots"></span><span>${esc(a.agreement ?? "code veto")}${a.overruled ? " · code overruled a READY" : ""}</span></div>`;
     };
+    opener = el;
     $("#drawer-body").innerHTML = `<span class="eyebrow">Karak #${r.n} · family ${r.family}</span>
-      <h3 class="display h3" style="margin:18px 0 14px">${esc(r.title)}</h3>
+      <h3 class="display h3" id="drawer-title" style="margin:18px 0 14px">${esc(r.title)}</h3>
       <div class="verdict-meta"><span class="chip ${r.awarded ? "c-gold" : "c-ash"}">${r.awarded ? "awarded by the judge" : "not awarded"}</span>${r.final ? `<span class="chip c-ash">final severity: ${esc(r.final)}</span>` : ""}</div>
       ${arm("SERV decides (shipped)", r.serv)}${arm("Dolphin decides", r.dolphin)}
       <p class="fine" style="margin-top:22px"><a class="gold" href="https://github.com/code-423n4/2024-07-karak-findings/issues/${r.n}">Open the original finding on GitHub →</a></p>`;
     drawer.classList.add("open"); scrim.classList.add("open"); drawer.setAttribute("aria-hidden", "false");
+    $("#drawer-close").focus({ preventScroll: true });
     gsap.from($$("#drawer-body > *"), { opacity: 0, x: 20, duration: 0.6, ease: "expo.out", stagger: 0.04, delay: 0.1 });
   });
 
@@ -258,6 +276,23 @@ async function main() {
     bar("…and routed automatically · SERV", h3.ready_routed_automatically.serv, h3.injected),
     bar("Flagged by the instruction scan", h3.flagged, h3.injected),
   ].join("");
+  const ab = claims.ablation;
+  if (ab) {
+    const label: Record<string, string> = { full: "Everything on", no_front_door: "No SERV front door", no_scan: "No instruction scan", no_proof_cap: "No proof cap" };
+    $("#ablation-table").innerHTML = `<tr><th>Arm</th><th>Injected → READY + automatic (SERV / Dolphin)</th><th>Clean findings held or flagged</th><th>Cost</th></tr>` +
+      Object.entries(ab.arms).map(([k, a]: [string, any]) =>
+        `<tr><td>${label[k]}</td><td>${a.unsafe.serv}/${a.injected} · ${a.unsafe.dolphin}/${a.injected}</td><td>${a.clean_held + a.clean_flagged}/${a.clean}</td><td>$${a.usd.toFixed(3)}</td></tr>`).join("");
+    const saves = Object.entries(ab.unique_saves).map(([k, v]: [string, any]) => `${k.replaceAll("_", " ")}: ${v.serv.length} (SERV deciding), ${v.dolphin.length} (Dolphin deciding)`);
+    $("#ablation-note").textContent = `Unique saves — ${saves.join(" · ")}.`;
+  } else $("#ablation").hidden = true;
+
+  const rl = claims.repair_loop;
+  if (rl) {
+    const vl = (v: string | null) => (v ? (VERDICT[v] ?? { label: v }).label : "—");
+    $("#repair-table").innerHTML = `<tr><th>Finding</th><th>Judge</th><th>Before</th><th>Executed test</th><th>After</th></tr>` +
+      rl.map((r: any) => `<tr><td>#${r.number}</td><td>${r.awarded ? "awarded" : "not awarded"}</td><td>${esc(vl(r.before))}</td><td>${r.poc_passed === null ? "not attempted" : r.poc_passed ? "passed" : "no passing test"}${r.summary ? `<br><span class="muted">${esc(r.summary)}</span>` : ""}</td><td>${esc(vl(r.after))}${r.after_route ? ` · ${esc(r.after_route)}` : ""}</td></tr>`).join("");
+  } else $("#repair").hidden = true;
+
   for (const f of $$(".fill")) {
     ScrollTrigger.create({ trigger: f, start: "top 92%", once: true, onEnter: () => f.style.setProperty("--v", f.dataset.v!) });
   }

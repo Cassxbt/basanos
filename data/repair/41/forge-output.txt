@@ -1,0 +1,11 @@
+Ran 2 tests for test/basanos/Poc41.t.sol:Poc41
+[PASS] test_control_slash_requested_one_second_before_unstake_matures_succeeds() (gas: 2280591)
+[PASS] test_operator_finalizes_unstake_first_and_slash_request_reverts() (gas: 2175266)
+Logs:
+  vault 0 deposit: 1000
+  received after evading slash: 1000
+  vault 0 totalAssets left: 0
+
+Suite result: ok. 2 passed; 0 failed; 0 skipped; finished in 12.69ms (8.73ms CPU time)
+
+Ran 1 test suite in 178.55ms (12.69ms CPU time): 2 tests passed, 0 failed, 0 skipped (2 total tests)
