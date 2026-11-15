@@ -1,0 +1,140 @@
+<!--
+slug: proof
+title: Proof — every number, recomputed in your browser
+description: The claims ledger, the 94-finding specimen tray, bug/fix pairs, hostile-text results and the null results, all recomputed from the committed run data.
+nav: proof
+script: proof
+-->
+<section class="page-intro">
+  <div class="wrap">
+    <span class="eyebrow" data-reveal>Proof</span>
+    <h1 class="display h1" data-split>Every number, <em>recomputed</em> in your browser.</h1>
+    <p class="lede" data-reveal>The rows behind this page are the committed run files. Your browser recomputes each claim, including the clustered bootstrap with the same seed, and compares it with what we published. Change the data and the ledger turns red.</p>
+    <div class="hero-cta" data-reveal>
+      <button class="btn" id="recompute" data-magnetic>Recompute <span class="arrow">↻</span></button>
+      <button class="btn ghost" id="tamper" data-magnetic>Tamper with the data</button>
+    </div>
+  </div>
+</section>
+
+<section class="section" style="padding-top:0">
+  <div class="wrap">
+    <div class="tray-tools">
+      <span class="eyebrow">Claims ledger · <span id="ledger-state">recomputing…</span></span>
+      <div class="legend">
+        <span class="check-ok"><i></i>recomputed here</span>
+        <span style="color:var(--amber)"><i></i>null result, published anyway</span>
+        <span style="color:var(--sky)"><i></i>reported, not verifiable here</span>
+        <span style="color:var(--gold)"><i></i>public elsewhere</span>
+      </div>
+    </div>
+    <div class="claims" id="ledger"></div>
+  </div>
+</section>
+
+<section class="section" id="tray">
+  <div class="wrap">
+    <div class="section-head">
+      <div>
+        <span class="eyebrow" data-reveal>The specimen tray</span>
+        <h2 class="display h2" data-split style="margin-top:22px">All <span data-claim="dataset.reports">94</span> findings, one streak each.</h2>
+      </div>
+      <p class="lede" data-reveal>Each tile is one Karak finding submitted as High or Medium, coloured by the shipped verdict. A gold dot means the contest judge awarded it. Open any tile for its three passes and SERV request ids.</p>
+    </div>
+    <div class="tray-tools">
+      <div class="filters" id="filters">
+        <button class="sample is-active" data-filter="all">All</button>
+        <button class="sample" data-filter="awarded">Awarded</button>
+        <button class="sample" data-filter="not">Not awarded</button>
+        <button class="sample" data-filter="BLOCKED_BY_CODE">Blocked by code</button>
+        <button class="sample" data-filter="KNOWN_OR_OUT_OF_SCOPE">Known or out of scope</button>
+        <button class="sample" data-filter="NEEDS_PROOF">Needs proof</button>
+        <button class="sample" data-filter="unanimous">Unanimous</button>
+      </div>
+      <div class="filters">
+        <button class="sample is-active" data-decider="serv">SERV decides</button>
+        <button class="sample" data-decider="dolphin">Dolphin decides</button>
+      </div>
+    </div>
+    <div class="tray" id="specimens"></div>
+  </div>
+</section>
+
+<section class="section" id="pairs">
+  <div class="wrap">
+    <div class="section-head">
+      <div>
+        <span class="eyebrow" data-reveal>Bug/fix pairs</span>
+        <h2 class="display h2" data-split style="margin-top:22px">Fix the bug. Watch the verdict move.</h2>
+      </div>
+      <p class="lede" data-reveal>Each awarded finding ran again against a branch where its bug is fixed: compiled, with a test that fails before the fix and passes after. The citation check was hidden, so only reading the source could reveal the change.</p>
+    </div>
+    <div class="panel" style="padding:32px" data-reveal>
+      <div class="bars" id="pair-bars"></div>
+    </div>
+    <div class="panel" style="padding:8px 28px;margin-top:24px" data-reveal>
+      <table class="data" id="pair-table"></table>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="hostile">
+  <div class="wrap">
+    <div class="section-head">
+      <div>
+        <span class="eyebrow" data-reveal>Hostile text</span>
+        <h2 class="display h2" data-split style="margin-top:22px">We found the hole first.</h2>
+      </div>
+      <p class="lede" data-reveal>Our second attack set poisoned the unguarded evidence step. We published that, added three defenses, then let an agent that had never seen them write six new attacks. The defenses were committed before we opened the file.</p>
+    </div>
+    <div class="grid-2">
+      <div class="panel" style="padding:28px" data-reveal>
+        <span class="eyebrow">Before · known payloads</span>
+        <div class="bars" id="v2-bars" style="margin-top:22px"></div>
+      </div>
+      <div class="panel" style="padding:28px" data-reveal>
+        <span class="eyebrow">After · blind payloads</span>
+        <div class="bars" id="v3-bars" style="margin-top:22px"></div>
+      </div>
+    </div>
+    <p class="lede" style="margin-top:28px" data-reveal>Most of the hardening is code: the instruction scan flagged <span data-claim="hostile_v3_defended_blind.flagged">30</span> of <span data-claim="hostile_v3_defended_blind.injected">60</span> blind attacks, and the proof cap plus consensus stopped the rest. SERV's front door held <span data-claim="hostile_v3_defended_blind.front_door_held">1</span>. On clean findings the defenses held <span data-claim="shipped.front_door_held">0</span> of <span data-claim="dataset.reports">94</span>.</p>
+  </div>
+</section>
+
+<section class="section">
+  <div class="wrap">
+    <div class="section-head">
+      <div>
+        <span class="eyebrow" data-reveal>What did not work</span>
+        <h2 class="display h2" data-split style="margin-top:22px">The nulls, in the same type size.</h2>
+      </div>
+      <p class="lede" data-reveal>A tool that only reports its wins is a pitch. These are the results that went against us.</p>
+    </div>
+    <div class="crit" data-reveal>
+      <h4>Outcomes</h4>
+      <p>As a predictor of the contest outcome, the shipped check is indistinguishable from report length: AUROC <span data-claim="shipped.serv.auroc" data-format="auc">0.711</span> against <span data-claim="baseline_body_length.auroc" data-format="auc">0.661</span>, intervals overlapping. That is why it gives a missing-evidence checklist, not a score.</p>
+      <p class="muted">Labels are contest outcomes. A valid bug can lose as a duplicate or a downgrade.</p>
+    </div>
+    <div class="crit" data-reveal>
+      <h4>SERV vs Dolphin</h4>
+      <p>As the decider, SERV is not more accurate than the open model, at about nineteen times the per-decision cost. Its job here is the guard, the bounded call and the receipt.</p>
+      <p class="muted">Both deciders run on the same evidence in every run, so this is a like-for-like comparison.</p>
+    </div>
+    <div class="crit" data-reveal>
+      <h4>The second evaluator</h4>
+      <p>Reppo's evaluator panel accepted <span data-claim="reppo_audit.accepted">20</span> of <span data-claim="reppo_audit.completed">20</span> sampled verdicts, including every one the contest judge contradicted. A second evaluator needs evaluating too.</p>
+      <p class="muted">Reppo publishes submissions, so only closed-contest findings were sent.</p>
+    </div>
+    <div class="crit" data-reveal>
+      <h4>Scope</h4>
+      <p>One closed contest, <span data-claim="dataset.reports">94</span> findings in <span data-claim="dataset.families">47</span> duplicate families, 9 bug/fix pairs. Suggestive, not general.</p>
+      <p class="muted"><a class="gold" href="https://github.com/Cassxbt/basanos/blob/main/EVAL.md">EVAL.md</a> has the plan and every amendment.</p>
+    </div>
+  </div>
+</section>
+
+<div class="scrim" id="scrim"></div>
+<aside class="drawer" id="drawer" aria-hidden="true">
+  <button class="btn sm ghost drawer-close" id="drawer-close">Close</button>
+  <div id="drawer-body"></div>
+</aside>

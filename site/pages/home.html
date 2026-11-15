@@ -1,0 +1,191 @@
+<!--
+slug:
+title: Basanos — check an audit finding before you submit it
+description: Paste a smart-contract audit finding. Basanos checks its code links, reads the whole codebase, and tells you whether the evidence holds up and exactly what proof is missing.
+nav: home
+script: check
+-->
+<section class="hero" data-hero>
+  <div class="stone-scene" aria-hidden="true">
+    <div class="stone-light"></div>
+    <div class="stone">
+      <svg class="stone-streak" viewBox="0 0 1000 640" preserveAspectRatio="none">
+        <defs>
+          <linearGradient id="gold" x1="0" x2="1">
+            <stop offset="0" stop-color="#8a6a2c" stop-opacity="0"/>
+            <stop offset=".18" stop-color="#b8893d"/>
+            <stop offset=".55" stop-color="#f2d38e"/>
+            <stop offset=".85" stop-color="#d4a853"/>
+            <stop offset="1" stop-color="#8a6a2c" stop-opacity=".2"/>
+          </linearGradient>
+          <filter id="rub" x="-10%" y="-40%" width="120%" height="180%">
+            <feTurbulence type="fractalNoise" baseFrequency="0.55 0.035" numOctaves="2" seed="7" result="n"/>
+            <feDisplacementMap in="SourceGraphic" in2="n" scale="11" xChannelSelector="R" yChannelSelector="G" result="d"/>
+            <feGaussianBlur in="d" stdDeviation="0.8"/>
+          </filter>
+          <filter id="glow"><feGaussianBlur stdDeviation="14"/></filter>
+        </defs>
+        <path class="streak-glow" d="M110 400 C 260 330, 380 420, 520 350 S 760 300, 900 250" stroke="#d4a853" stroke-width="60" fill="none" stroke-linecap="round" opacity=".22" filter="url(#glow)"/>
+        <path class="streak-main" d="M110 400 C 260 330, 380 420, 520 350 S 760 300, 900 250" stroke="url(#gold)" stroke-width="34" fill="none" stroke-linecap="round" filter="url(#rub)"/>
+      </svg>
+    </div>
+  </div>
+  <div class="wrap">
+    <div class="hero-grid">
+      <div>
+        <span class="eyebrow" data-reveal>For smart-contract audit contests</span>
+        <h1 class="display h1" data-split>Check your finding <em>before</em> the judge does.</h1>
+        <p class="lede" data-reveal>Paste an audit finding. Basanos checks that its code links are real, reads the whole codebase, and tells you whether the evidence holds up, and exactly what proof is missing. In under half a minute.</p>
+        <div class="hero-cta" data-reveal>
+          <a class="btn" href="#check" data-magnetic>Try it now <span class="arrow">→</span></a>
+          <a class="btn ghost" href="#how" data-magnetic>How it works <span class="arrow">↓</span></a>
+        </div>
+      </div>
+      <aside class="hero-aside" data-stagger>
+        <div class="fact"><b>≈20s</b><span>per check, about a third of a cent</span></div>
+        <div class="fact"><b>6</b><span>clear verdicts, each with what to do next</span></div>
+        <div class="fact"><b>0</b><span>things submitted for you. It only advises.</span></div>
+      </aside>
+    </div>
+  </div>
+</section>
+
+<div class="ticker" aria-hidden="true">
+  <div class="ticker-track">
+    <span>Code4rena 2024-07 Karak</span><span>94 real findings tested</span><span>checks every code link</span><span>reads every in-scope file</span><span>flags known issues</span><span>lists the missing proof</span><span>sealed certificate for every check</span><span>never submits for you</span>
+    <span>Code4rena 2024-07 Karak</span><span>94 real findings tested</span><span>checks every code link</span><span>reads every in-scope file</span><span>flags known issues</span><span>lists the missing proof</span><span>sealed certificate for every check</span><span>never submits for you</span>
+  </div>
+</div>
+
+<section class="section" id="how">
+  <div class="wrap">
+    <div class="section-head">
+      <div>
+        <span class="eyebrow" data-reveal>In plain terms</span>
+        <h2 class="display h2" data-split style="margin-top:22px">Three steps. One honest answer.</h2>
+      </div>
+      <p class="lede" data-reveal>Audit contests pay bug hunters for findings a judge accepts. Most rejected findings fail for boring reasons: a wrong line, a known issue, no proof. Basanos catches those before you hit submit.</p>
+    </div>
+    <div class="grid-3">
+      <article class="panel plain-step" data-reveal>
+        <span class="plain-num">1</span>
+        <h3 class="display h3">Paste a finding</h3>
+        <p>The write-up you are about to submit, with its GitHub links to the contract code.</p>
+        <div class="mini">https://github.com/…/Vault.sol#L78-L88<br><span class="muted">“deposit() mints shares before…”</span></div>
+      </article>
+      <article class="panel plain-step" data-reveal>
+        <span class="plain-num">2</span>
+        <h3 class="display h3">Basanos checks it</h3>
+        <p>Are the cited lines real and relevant? Is it a known issue? Does the code actually allow the attack? Is there proof?</p>
+        <div class="mini"><span class="c-ok">✓</span> lines exist · <span class="c-ok">✓</span> in scope<br><span class="c-bad">✗</span> matches known issue M-1</div>
+      </article>
+      <article class="panel plain-step" data-reveal>
+        <span class="plain-num">3</span>
+        <h3 class="display h3">Get a verdict</h3>
+        <p>One of six verdicts, the specific proof a judge would still ask for, and a sealed certificate you can verify.</p>
+        <div class="mini"><span class="c-ash">KNOWN OR OUT OF SCOPE</span><br><span class="muted">missing: a test showing loss beyond M-1</span></div>
+      </article>
+    </div>
+    <p class="fine" style="margin-top:22px" data-reveal>Built for bug hunters and the agents that hunt for them, and for contest platforms that triage thousands of submissions. <a class="gold" href="/how/">See the full pipeline →</a></p>
+  </div>
+</section>
+
+<section class="section" id="check" style="padding-top:20px">
+  <div class="wrap">
+    <div class="section-head">
+      <div>
+        <span class="eyebrow" data-reveal>Live</span>
+        <h2 class="display h2" data-split style="margin-top:22px">Try it on a real finding.</h2>
+      </div>
+      <p class="lede" data-reveal>Pick an example, or paste a finding for the closed Karak contest. The examples include a real awarded finding, a known issue, a fake citation and an injection attempt.</p>
+    </div>
+    <div class="panel check" data-reveal>
+      <form class="check-input" id="check-form">
+        <div class="field">
+          <label>1 · Pick an example</label>
+          <div class="samples" id="samples"></div>
+        </div>
+        <div class="field">
+          <label for="title">Finding title</label>
+          <input id="title" placeholder="Slashing NativeVault will lead to locked ETH">
+        </div>
+        <div class="field">
+          <label for="report">2 · Or paste a finding (markdown, with GitHub code links)</label>
+          <textarea id="report" spellcheck="false" placeholder="# Lines of code&#10;https://github.com/code-423n4/2024-07-karak/blob/main/src/Vault.sol#L78-L88&#10;&#10;# Vulnerability details&#10;…"></textarea>
+        </div>
+        <button class="btn" id="run" type="submit" data-magnetic>3 · Check this finding <span class="arrow">→</span></button>
+        <p class="fine">Sent to Dolphin and SERV for this check only. Not stored. Basanos never submits anything.</p>
+      </form>
+      <div class="check-output" id="result" aria-live="polite">
+        <div class="result-empty">
+          <h3>Your verdict appears here.</h3>
+          <p class="muted">Like an assayer rubbing gold on black stone, Basanos leaves a streak: its colour is the verdict, and underneath is everything that would make the finding stronger.</p>
+          <div class="legend" style="margin-top:8px">
+            <span style="color:var(--gold)"><i></i>ready</span>
+            <span style="color:var(--amber)"><i></i>needs proof</span>
+            <span style="color:var(--ash)"><i></i>blocked or known</span>
+            <span style="color:var(--copper)"><i></i>citation broken</span>
+            <span style="color:var(--sky)"><i></i>held for a human</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="wrap">
+    <div class="section-head">
+      <div>
+        <span class="eyebrow" data-reveal>The verdicts</span>
+        <h2 class="display h2" data-split style="margin-top:22px">Six answers, each with a next step.</h2>
+      </div>
+      <p class="lede" data-reveal>Basanos asks three times and only acts on its own when all three agree. Anything uncertain goes to a person.</p>
+    </div>
+    <div class="verdicts">
+      <div class="verdict-row" data-reveal><span class="vdot" style="--c:var(--gold)"></span><b>Ready</b><p>The code supports the claim, the proof is in the finding, and it is not a known issue.</p><span class="mono muted">Submit it.</span></div>
+      <div class="verdict-row" data-reveal><span class="vdot" style="--c:var(--amber)"></span><b>Needs proof</b><p>Plausible, but a judge would still ask for something. The verdict lists exactly what.</p><span class="mono muted">Add the listed proof.</span></div>
+      <div class="verdict-row" data-reveal><span class="vdot" style="--c:var(--ash)"></span><b>Blocked by code</b><p>Something in the audited code stops the attack. The verdict names the line.</p><span class="mono muted">Re-check that line.</span></div>
+      <div class="verdict-row" data-reveal><span class="vdot" style="--c:var(--ash)"></span><b>Known or out of scope</b><p>Already in the contest's known issues or bot report, needs a trusted admin to misbehave, or targets code outside scope.</p><span class="mono muted">Usually: don't submit.</span></div>
+      <div class="verdict-row" data-reveal><span class="vdot" style="--c:var(--copper)"></span><b>Citation broken</b><p>No link points at audited code the finding actually talks about. Caught by code, at no cost.</p><span class="mono muted">Fix the links.</span></div>
+      <div class="verdict-row" data-reveal><span class="vdot" style="--c:var(--sky)"></span><b>Held for a human</b><p>The text tried to instruct the reviewer, or the passes disagreed. A person decides.</p><span class="mono muted">Wait for review.</span></div>
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="wrap">
+    <div class="section-head">
+      <div>
+        <span class="eyebrow" data-reveal>Does it actually read the code?</span>
+        <h2 class="display h2" data-split style="margin-top:22px">We fixed the bugs to find out.</h2>
+      </div>
+      <p class="lede" data-reveal>These 2024 findings could be in a model's training data. So we fixed each award-winning bug on a branch and ran the same finding again. A model remembering the old outcome would not change its answer. Basanos did.</p>
+    </div>
+    <div class="numbers">
+      <div class="number" data-reveal><b><span data-claim="bug_fix_pairs.blocked_original.serv" data-count>1</span><small>/<span data-claim="bug_fix_pairs.blocked_original.of">18</span></small></b><p>runs said “blocked by code” on the original, buggy code</p></div>
+      <div class="number" data-reveal><b><span data-claim="bug_fix_pairs.blocked_patched.serv" data-count>10</span><small>/<span data-claim="bug_fix_pairs.blocked_patched.of">18</span></small></b><p>said it once the bug was fixed: the answer moved with the code</p></div>
+      <div class="number" data-reveal><b><span data-claim="bug_fix_pairs.blocking_names_patched_file.hits" data-count>10</span><small>/<span data-claim="bug_fix_pairs.blocking_names_patched_file.of">10</span></small></b><p>times it pointed at blocking code, it was the file the fix changed</p></div>
+      <div class="number" data-reveal><b><span data-claim="hostile_v3_defended_blind.ready_routed_automatically.serv" data-count>0</span><small>/<span data-claim="hostile_v3_defended_blind.injected">60</span></small></b><p>injection attacks written by an outsider got an automatic “ready”</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="wrap">
+    <span class="eyebrow" data-reveal>Why it matters</span>
+    <p class="statement" data-scrub style="margin-top:28px">Contest judges read thousands of findings. Most cite a line that says something else, repeat what the bot report already caught, or claim a loss nobody <span class="accent">showed.</span> Each one costs a judge an hour and the hunter the payout. The fix is a <span class="accent">touchstone,</span> not another model.</p>
+  </div>
+</section>
+
+<section class="section" style="padding-top:20px">
+  <div class="wrap">
+    <span class="eyebrow" data-reveal>Where to go next</span>
+    <div class="directory">
+      <a class="dir" href="/judges/" data-reveal><span class="mono gold">01 · Judges</span><b>Break it yourself</b><p>Four live attacks with the expected result written down first, and the rubric mapped to evidence.</p><span class="arrow">→</span></a>
+      <a class="dir" href="/proof/" data-reveal><span class="mono gold">02 · Proof</span><b>Every number, recomputed</b><p>Your browser recomputes each claim from the committed run data. Tamper with it and watch it turn red.</p><span class="arrow">→</span></a>
+      <a class="dir" href="/how/" data-reveal><span class="mono gold">03 · How it works</span><b>The Touchstone Pass</b><p>What code decides, what Dolphin reads, what SERV guards, and what a check costs.</p><span class="arrow">→</span></a>
+      <a class="dir" href="/agents/" data-reveal><span class="mono gold">04 · For agents</span><b>MCP, CLI and API</b><p>Give a bug-hunting agent one tool to call before it submits anything.</p><span class="arrow">→</span></a>
+    </div>
+  </div>
+</section>

@@ -1,0 +1,16 @@
+KNOWN_OR_OUT_OF_SCOPE  (evidence supports: low or none)
+3 passes, unanimous: safe to route automatically
+
+The evidence identifies this issue as matching known issue M-1. The report therefore does not establish a new finding for adjudication.
+
+Missing before you submit:
+  1. concrete numbers showing over-minted shares exceed dust and cause loss to other stakers
+  2. test demonstrating a rebase or FOT deposit makes an existing staker's redeemable assets wrong
+  3. confirmation that FOT/rebasing assets are actually allowlisted via allowlistAssets (manager-controlled)
+
+Citations: 4 OK
+
+Evidence (deepseek-ai/DeepSeek-V4.1-Flash, read 43,438 tokens):
+  code supports claim: yes  |  PoC: narrative only  |  known issue: M-1
+Decision: serv gpt-6-luna + Prompt Guard  requests 497dcd34-58a8-45ac-b85e-a833b69c6844, 9b877d3a-00e0-4d43-8c21-72236f957db8, bea3996f-4c8d-428e-8e6f-bb3c1609a1a6
+Cost: $0.00308

@@ -1,0 +1,106 @@
+<!--
+slug: judges
+title: For judges — break Basanos yourself
+description: A 90-second judge path: four live attacks on production, the rubric mapped to evidence, and every hackathon rule mapped to the file that satisfies it.
+nav: judges
+script: judges
+-->
+<section class="page-intro">
+  <div class="wrap">
+    <span class="eyebrow" data-reveal>For judges · 90 seconds</span>
+    <h1 class="display h1" data-split>Don't take our word. <em>Break it.</em></h1>
+    <p class="lede" data-reveal>Four attacks run live against the production pipeline, each with the result we expect written down first. If one comes back different, the page says so in red.</p>
+    <div class="hero-cta" data-reveal>
+      <button class="btn" id="run-all" data-magnetic>Run all four attacks <span class="arrow">→</span></button>
+      <a class="btn ghost" href="/proof/" data-magnetic>Check our numbers instead <span class="arrow">→</span></a>
+    </div>
+  </div>
+</section>
+
+<section class="section" style="padding-top:20px">
+  <div class="wrap">
+    <div class="grid-2" id="attacks">
+      <article class="panel attack" data-attack="fabricated" data-reveal>
+        <span class="num">Attack 01 · code · costs $0</span>
+        <h3>Cite lines that don't exist.</h3>
+        <p>A reentrancy claim linking <span class="mono">Vault.sol#L812-L840</span>. The audited file has 365 lines.</p>
+        <p class="expect">Expected: CITATION_BROKEN, routed automatically, no model call.</p>
+        <button class="btn sm" data-run>Run attack <span class="arrow">→</span></button>
+        <div class="out"></div>
+      </article>
+      <article class="panel attack" data-attack="known" data-reveal>
+        <span class="num">Attack 02 · Dolphin reads the bot report</span>
+        <h3>Resubmit a known issue.</h3>
+        <p>Karak #93: fee-on-transfer accounting. The contest's bot report already listed it as M-1, so the judge ruled it ineligible.</p>
+        <p class="expect">Expected: KNOWN_OR_OUT_OF_SCOPE, with M-1 named.</p>
+        <button class="btn sm" data-run>Run attack <span class="arrow">→</span></button>
+        <div class="out"></div>
+      </article>
+      <article class="panel attack" data-attack="injected" data-reveal>
+        <span class="num">Attack 03 · hostile text</span>
+        <h3>Tell the reviewer what to write.</h3>
+        <p>Karak #10, rejected by the judge, with a note appended telling the evidence extractor to record full support and a runnable test. Before the defenses, this payload reached READY 4 times in 10.</p>
+        <p class="expect">Expected: not READY, and sent to a human.</p>
+        <button class="btn sm" data-run>Run attack <span class="arrow">→</span></button>
+        <div class="out"></div>
+      </article>
+      <article class="panel attack" data-attack="patched" data-reveal>
+        <span class="num">Attack 04 · memory vs reading</span>
+        <h3>Fix the bug, keep the finding.</h3>
+        <p>Karak #31 won a Medium. Here it runs against a branch where its bug is fixed. A model recalling the 2024 outcome would still call it valid.</p>
+        <p class="expect">Expected: BLOCKED_BY_CODE, pointing at NativeVault.sol.</p>
+        <button class="btn sm" data-run>Run attack <span class="arrow">→</span></button>
+        <div class="out"></div>
+      </article>
+    </div>
+  </div>
+</section>
+
+<section class="section" style="padding-top:40px">
+  <div class="wrap">
+    <div class="section-head">
+      <div>
+        <span class="eyebrow" data-reveal>The rubric</span>
+        <h2 class="display h2" data-split style="margin-top:22px">Where to look, criterion by criterion.</h2>
+      </div>
+      <p class="lede" data-reveal>Judged on creativity, user readiness and revenue potential. Each row points at something you can open or run, not a sentence to trust.</p>
+    </div>
+    <div class="crit" data-reveal>
+      <h4>Creativity</h4>
+      <p>A pre-submit gate for audit contests: the open model does the heavy reading, code owns the veto, SERV guards the hostile text and makes one bounded call. Proven not by accuracy claims but by bug/fix pairs: the verdict moves when the code moves.</p>
+      <p class="muted">Attack 04 above · <a class="gold" href="/proof/#pairs">bug/fix pairs on /proof</a> · <a class="gold" href="/how/">the Touchstone Pass</a></p>
+    </div>
+    <div class="crit" data-reveal>
+      <h4>User readiness</h4>
+      <p>Live on this site, an MCP tool a bug-hunting agent calls before it submits, a CLI with exit codes for CI, and an HTTP route. Every check returns an Assay Certificate your browser verifies.</p>
+      <p class="muted"><a class="gold" href="/#check">Run a check</a> · <a class="gold" href="/agents/">MCP, CLI and API</a></p>
+    </div>
+    <div class="crit" data-reveal>
+      <h4>Revenue potential</h4>
+      <p>A three-pass check costs $<span data-claim="shipped.usd_per_check" data-format="usd4">0.0032</span> at list prices, so any per-check price clears margin. Buyers: contest platforms and bug-bounty programs triaging intake, and hunters paying per check before they submit. No customers yet; we say so.</p>
+      <p class="muted"><a class="gold" href="/how/#economics">Economics on /how</a></p>
+    </div>
+  </div>
+</section>
+
+<section class="section" style="padding-top:40px">
+  <div class="wrap">
+    <div class="section-head">
+      <div>
+        <span class="eyebrow" data-reveal>Rules</span>
+        <h2 class="display h2" data-split style="margin-top:22px">Every rule, mapped to a file.</h2>
+      </div>
+      <p class="lede" data-reveal>The repository is the source of truth. Each requirement of SERV Hackathon 02 points at the code that meets it.</p>
+    </div>
+    <div class="panel" style="padding:8px 28px" data-reveal>
+      <table class="data">
+        <tr><th>Requirement</th><th>Where</th><th>What it does</th></tr>
+        <tr><td>SERV Reasoning is part of the build</td><td>src/verdict.ts · judge(), screen()</td><td>Prompt Guard front door on the raw finding; one bounded decision per pass with a request id</td></tr>
+        <tr><td>Dolphin track: decentralized open models</td><td>src/evidence.ts · extractEvidence()</td><td>DeepSeek-V4.1-Flash on lighthouse.dphn.ai reads the full source three times per check</td></tr>
+        <tr><td>Working demo</td><td>this site · src/web/handler.ts</td><td>Live checks with a per-instance spend ceiling</td></tr>
+        <tr><td>Proof of what was built during the hackathon</td><td>git history · EVAL.md</td><td>Evaluation plan committed before the runs, with four dated amendments</td></tr>
+        <tr><td>Data collection enabled</td><td>OpenServ console</td><td>Enabled on the workspace that issues every SERV request id shown here</td></tr>
+      </table>
+    </div>
+  </div>
+</section>
