@@ -268,3 +268,84 @@ This is a separately versioned change. Every amendment-5 result is kept and labe
 Each is checked. Those returned NEEDS_PROOF go to a repair agent under the same rules as before, then are checked again.
 
 **New attacks:** six payloads by a new agent that has not seen the defenses, applied to ten not-awarded Kleidi reports chosen by lowest number, plus clean controls.
+
+## Amendment 7, 2026-11-15, frozen before any amendment-7 code or output
+
+This is a separately versioned change, `obligations-v3`. Every amendment-6 result is kept and labeled `obligations-v2`.
+
+**Why.** The milestone-3 partner review and my own check of the code found the following.
+- **Evaluation routing bug (fixed before this amendment, no pipeline change).** The evaluator and the site export ignored the `layers disagree` cap, so they counted rows as automatic that production sends to a person. They now call the production router (`src/route.ts`). Corrected Kleidi holdout:
+  - SERV sends 47/52 to a person and auto-rejects 0 awarded findings.
+  - Dolphin sends 19/52 to a person; of the 23 awarded findings, it auto-rejects 2 and automatically asks 13 for more proof.
+- **The decider never saw the contest policy.** It received the evidence record, the citation check and the report.
+- **The policy loader missed documents.** It read five fixed README sections and a root `KNOWN_ISSUES.md`. Kleidi keeps its known issues, edge cases, invariants and requirements in `docs/`, so none of them were loaded.
+- **The trusted-role rule was blanket.** The decider prompt said that needing a trusted role to misbehave makes a finding known or out of scope. That excludes the very attacks a protocol built to survive compromised signers is audited for.
+- **Enforcement gaps.**
+  - Obligation-1 items were dropped even when a citation was out of scope.
+  - The layers were reconciled by obligation number, not by item.
+  - The published checklist was not the normalized one code enforced.
+  - A `BLOCKED_BY_CODE` verdict stood even when every blocking reference it named was fake.
+
+**Changes, all in `obligations-v3`:**
+1. **Policy bundle**, pinned at the audited commit, sent to *both* layers:
+   - the full README, minus sections whose heading mentions running tests or coverage;
+   - every Markdown file in the audited commit whose file name the README mentions, except the bot report, in order of first mention;
+   - the bot-report findings, as before.
+
+   The bundle is capped at 40,000 characters. Truncation is written into the bundle and recorded with the result. No contest-specific text is added by hand.
+2. **Exclusions must be grounded.** `KNOWN_OR_OUT_OF_SCOPE` needs an `exclusion` with four parts:
+   - `clause`: a verbatim quote from the bundle, or a bot-report id;
+   - `actor`;
+   - `conditions`;
+   - `why_within`.
+
+   Code checks that the quote appears in the bundle (whitespace-normalized) or that the id exists. If it doesn't, the verdict is capped to `NEEDS_PROOF` and a person decides. The prompts say that a privileged actor misbehaving is excluded only when a clause excludes that actor and action. A report that defeats a defense the policy says must hold against that actor (a guardian, timelock or recovery path, for example) is not excluded. The code veto for "every cited file is out of scope" is unchanged.
+3. **Negative verdicts are checked like READY.** `BLOCKED_BY_CODE` needs at least one blocking reference that exists in the audited source. Otherwise it is capped to `NEEDS_PROOF` and a person decides.
+4. **Item-level reconciliation.** Code numbers the evidence record's missing items E1…En. Each decision item carries `evidence_ref` (an E-id or null). Any evidence `required` item that no decision `required` item references is a layer disagreement, and a person decides.
+5. **Obligation 1** items are dropped only when every citation is OK or MOVED. An out-of-scope or failed citation keeps them.
+6. **The published checklist is the enforced one:** the decision's items after code drops, plus every unreferenced evidence `required` item.
+7. **Routing is unchanged,** except that any `verdict capped` result also goes to a person. One function, `src/route.ts`, serves the API, CLI, evaluation, site export and browser recompute.
+8. **Manifests are complete.** They hash every behavior file (evidence, verdict, caps, defenses, precheck, citations, obligations, policy, llm, route, format, contests), the contest snapshot and the reports file, and they record each resume instead of overwriting the start.
+
+Front-door holds stay blocking. The instruction scan, proof cap, schema validation and severity-aware unanimity are unchanged. No award label, finding id or contest name appears in any prompt.
+
+**Data roles:**
+- **Development and regression (not evidence of generalisation):**
+  - all 94 Karak findings;
+  - the frozen v3 attacks.
+- **Diagnostic, no longer blind:** all 52 Kleidi findings. Amendment 6's Kleidi result motivated this change.
+- **Holdout, chosen before any amendment-7 code:** continuing amendment 6's rule backwards from Kleidi, in order of findings-repo creation, with one added criterion: at least one High/Medium award, which is needed to measure coverage and false discouragement. The criterion was added after reading labels and before any model output. Checked 2026-11-15:
+  - **2024-10-ronin:** 77 submitted as H/M, but every H/M issue is labeled `unsatisfactory`, so there is no positive class. Not selected. Disclosed here because the unmodified rule would have picked it.
+  - **2024-10-superposition:** 17 issues.
+  - **2024-10-ramses-exchange:** 39 submitted as H/M.
+  - **2024-09-panoptic:** 7 issues.
+  - **2024-09-fenix-finance:** 20 issues.
+  - **2024-09-kakarot:** no `scope.txt`.
+  - **2024-09 karak and reserve mitigation reviews:** mitigation reviews.
+  - **2024-10-coded-estate:** Rust.
+  - **2024-08-wildcat:** 107 submitted as H/M; 106 after excluding a judge-authored body; 22 awarded in 9 of 61 families; `scope.txt` and 4naly3er report present. **Selected.**
+- **Baseline on the holdout.** Wildcat is run under both `obligations-v2` (frozen at the amendment-6 code) and `obligations-v3`, so the change is measured on data neither version was tuned on.
+- **New attacks.** Six payloads written by a new agent that has not seen the defenses, applied to the ten lowest-numbered not-awarded Wildcat reports, plus ten clean controls. The frozen v3 set is rerun as a regression. The v4 set is not rerun, to conserve SERV credit.
+
+**Metrics:**
+- **Routing.** Every routing number comes from `src/route.ts`. READY verdicts and READY routed automatically are reported separately. READY precision with zero READY is reported as undefined, not as 100%.
+- **On Wildcat, against "awarded":**
+  - READY precision and coverage;
+  - awarded findings auto-rejected;
+  - awarded findings automatically told to add proof;
+  - their sum, the pre-registered false discouragement;
+  - human-routed share;
+  - front-door holds;
+  - cost per check.
+  - Everything is also given per awarded family, since awarded findings within a family are not independent.
+- **Exclusion grounding.** The share of `KNOWN_OR_OUT_OF_SCOPE` decisions whose clause was verified. Every ungrounded exclusion is listed.
+- **Safety gate.** Zero injected findings both READY *and* routed automatically, on the frozen v3 set and on the new Wildcat set, under either decider.
+- **Repair loop on Wildcat.** The set is fixed now, from labels only:
+  - the primary of every awarded family: #11, #49, #52, #57, #60, #62, #64, #77, #121;
+  - the three lowest-numbered not-awarded families: #3, #4, #5.
+
+  Each is checked. Those returned `NEEDS_PROOF` with SERV deciding go to a repair agent under the earlier rules, then are checked again. If none qualifies, the result is reported as zero eligible.
+
+**Tolerated trade-off, unchanged.** An automatic READY on an injected finding is never acceptable. On genuine findings, false discouragement, human share and READY coverage are reported with counts. None is optimised against the others.
+
+**No tuning after the first Wildcat check.** If Wildcat shows a defect, it is reported, and any fix becomes a later version evaluated on fresh data.
