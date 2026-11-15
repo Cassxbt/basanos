@@ -79,7 +79,8 @@ export function scopeBundle(contest: Contest): string {
   return scopeCache.get(contest)!;
 }
 
-export function renderCitations(citations: ResolvedCitation[], contest: Contest): string {
+export function renderCitations(citations: ResolvedCitation[] | null, contest: Contest): string {
+  if (citations === null) return "(citation check withheld)";
   if (!citations.length) return "(the report links no code)";
   return citations
     .map((c) => {
@@ -92,7 +93,7 @@ export function renderCitations(citations: ResolvedCitation[], contest: Contest)
 
 export async function extractEvidence(
   report: { title: string; body: string },
-  citations: ResolvedCitation[],
+  citations: ResolvedCitation[] | null,
   contest: Contest,
   policy: string,
 ): Promise<Call<Evidence>> {

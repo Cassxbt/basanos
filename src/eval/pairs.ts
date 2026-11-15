@@ -34,7 +34,7 @@ async function check(r: Report, contest: Contest, mode: Mode) {
     const veto = citationVeto(citations);
     if (veto) return { vetoed: veto.verdict, citations: citations.map((c) => c.status) };
   }
-  const shown = mode === "full" ? citations : [];
+  const shown = mode === "full" ? citations : null;
   const citationText = mode === "full" ? summarizeCitations(citations) : "Citation check withheld for this test.";
   const e = await extractEvidence(r, shown, contest, KARAK_POLICY);
   const [dolphin, serv] = await Promise.all([
@@ -52,12 +52,15 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   const git = new GitSource("data/karak/repo");
   const done = new Set(existsSync(out) ? readFileSync(out, "utf8").trim().split("\n").filter(Boolean).map((l) => JSON.parse(l).key) : []);
   const jobs = fixes.flatMap((f) => (["full", "model_only"] as Mode[]).map((mode) => ({ f, mode, key: `${f.number}:${mode}` })));
-  await Promise.all(
-    jobs.filter((j) => !done.has(j.key)).map(async ({ f, mode, key }) => {
+  const queue = jobs.filter((j) => !done.has(j.key));
+  const worker = async () => {
+    for (let job = queue.shift(); job; job = queue.shift()) {
+      const { f, mode, key } = job;
       const r = reports.find((x) => x.number === f.number)!;
       const result = await check(r, karak(git, f.commit), mode);
       appendFileSync(out, JSON.stringify({ key, number: f.number, mode, fixCommit: f.commit, ...result }) + "\n");
       console.log(`${key} ${result.vetoed ?? `dolphin=${result.dolphin!.verdict}/${result.dolphin!.severity} serv=${result.serv!.verdict}/${result.serv!.severity}`}`);
-    }),
-  );
+    }
+  };
+  await Promise.all(Array.from({ length: 4 }, worker));
 }

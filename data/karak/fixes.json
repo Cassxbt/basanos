@@ -1,0 +1,135 @@
+[
+  {
+    "number": 4,
+    "branch": "fix/4",
+    "commit": "e775a74340783c163e43924cc230d2fbda673713",
+    "files": [
+      "src/entities/Operator.sol",
+      "src/entities/SlasherLib.sol",
+      "src/interfaces/Errors.sol"
+    ],
+    "summary": "Counts queued slashings per (operator, DSS), incremented in requestSlashing and decremented in finalizeSlashing/cancelSlashing, and makes unregisterOperatorFromDSS revert while the count is non-zero.",
+    "root_cause": "unregisterOperatorFromDSS only checks that no vaults are staked, so an operator can leave a DSS while a slash against it is still queued and the slash then finalizes against an unregistered operator.",
+    "compiles": true,
+    "invasive": false,
+    "unfixable_in_code": false,
+    "notes": "Follows the report's recommendation (block unregistering with pending slashes); the sponsor's actual PR 365 (private repo) could not be read. New trailing field in Operator.State mapping value (storage-safe) and new error PendingSlashingRequests. Residual: a DSS can keep a request unfinalized to delay unregistration, but finalize is permissionless and the veto committee can cancel. Verified with a temporary Foundry test (not committed) that reproduces the bug on the audited commit and passes on this branch; full existing suite run on branch. Existing suite: 83/84 pass; the one failure is a pre-existing fuzz flake unrelated to the patch (vault.t.sol fuzz test_multiple_deposits_with_time_and_slash (FullMulDivFailed/TotalSupplyOverflow on extreme inputs)), which also fails on a worktree whose patch does not touch Vault. Compiled with forge build (solc 0.8.25, deps installed under scratch/karak-deps and symlinked as node_modules in each worktree, untracked)."
+  },
+  {
+    "number": 7,
+    "branch": "fix/7",
+    "commit": "81cc02face47b20110435389439d4b104f116cff",
+    "files": [
+      "src/Vault.sol"
+    ],
+    "summary": "slashAssets in Vault returns 0 before approving/calling the handler when the computed transfer amount is zero.",
+    "root_cause": "Vault.slashAssets passes a zero transferAmount to SlashingHandler.handleSlashing, which reverts on zero, so one empty vault reverts the whole multi-vault finalizeSlashing.",
+    "compiles": true,
+    "invasive": false,
+    "unfixable_in_code": false,
+    "notes": "Guard placed in Vault (not SlashingHandler) so the handler stays strict. NativeVault.slashAssets already does not revert on zero. Sponsor PR 365 (shared with #4) not readable; this is the minimal equivalent of the report's description. Verified with a temporary Foundry test (not committed) that reproduces the bug on the audited commit and passes on this branch; full existing suite run on branch. Compiled with forge build (solc 0.8.25, deps installed under scratch/karak-deps and symlinked as node_modules in each worktree, untracked)."
+  },
+  {
+    "number": 15,
+    "branch": "fix/15",
+    "commit": "bb569a130c45b4eb687f2ab2a4d5435aa0966e86",
+    "files": [
+      "src/Core.sol",
+      "src/Vault.sol",
+      "src/entities/CoreLib.sol",
+      "src/entities/SlasherLib.sol",
+      "src/interfaces/Errors.sol",
+      "src/interfaces/ICore.sol"
+    ],
+    "summary": "Core tracks a per-vault count of queued slashings (set in requestSlashing, cleared in finalize/cancel), exposes isSlashingPending(vault) in Core/ICore, and Vault._deposit reverts while the count is non-zero.",
+    "root_cause": "Deposits are accepted between requestSlashing and finalizeSlashing, so new depositors share in a slash sized on earlier shareholders and users have no way to see a slash is pending.",
+    "compiles": true,
+    "invasive": true,
+    "unfixable_in_code": false,
+    "notes": "Touches 6 files (Core, ICore, CoreLib, SlasherLib, Vault, Errors). The sponsor said it would fix via PR 383 by having Core pause vault deposits during a queued slashing (plus a deposit_OVERRIDE_SLASH_PROTECTION escape hatch); this branch implements the same intent with a counter instead of the pause bitmap, which also handles concurrent slashes from several DSSs and does not clobber manual pauses. Covers deposit, deposit-with-slippage and mint via the Solady _deposit hook. No override entrypoint added. Not a pure off-chain issue: the sponsor changed contract code, so it is fixable. Verified with a temporary Foundry test (not committed) that reproduces the bug on the audited commit and passes on this branch; full existing suite run on branch. Existing suite: 83/84 pass; the one failure is a pre-existing fuzz flake unrelated to the patch (same vault.t.sol fuzz flake), which also fails on a worktree whose patch does not touch Vault. Compiled with forge build (solc 0.8.25, deps installed under scratch/karak-deps and symlinked as node_modules in each worktree, untracked)."
+  },
+  {
+    "number": 17,
+    "branch": "fix/17",
+    "commit": "d477404b2b760e637faef7e2a2bd88f2bcdbaa23",
+    "files": [
+      "src/entities/SlasherLib.sol"
+    ],
+    "summary": "QueuedSlashing stores slashPercentagesWad instead of precomputed earmarkedStakes, and fetchEarmarkedStakes is evaluated against current totalAssets inside finalizeSlashing rather than in requestSlashing.",
+    "root_cause": "The slash amount is fixed at request time from totalAssets (which still includes assets of withdrawals that complete during the veto window), so the DSS slashes a larger absolute amount than its percentage of the stake that remains.",
+    "compiles": true,
+    "invasive": false,
+    "unfixable_in_code": false,
+    "notes": "Mirrors the sponsor's stated plan in the issue thread (PR 385: compute earmarked stakes during finalizeSlashing); the PR itself is private. Changes the QueuedSlashing struct layout (ABI) and therefore the slashing root. Assets of withdrawals that are queued but not yet finished at finalization are still counted, and the report's second scenario (miner reordering finishRedeem) was judged user error, so it is intentionally not addressed. Existing tests do not reference earmarkedStakes and pass. Verified with a temporary Foundry test (not committed) that reproduces the bug on the audited commit and passes on this branch; full existing suite run on branch. Existing suite: 83/84 pass; the one failure is a pre-existing fuzz flake unrelated to the patch (same vault.t.sol fuzz flake), which also fails on a worktree whose patch does not touch Vault. Compiled with forge build (solc 0.8.25, deps installed under scratch/karak-deps and symlinked as node_modules in each worktree, untracked)."
+  },
+  {
+    "number": 31,
+    "branch": "fix/31",
+    "commit": "27dc62a0ba1bd0a9d34f465ab7242d92b88c59f7",
+    "files": [
+      "src/NativeVault.sol"
+    ],
+    "summary": "NativeVault._decreaseBalance caps the asset amount to convertToAssets(balanceOf(owner)) before computing shares to burn.",
+    "root_cause": "After a protocol slash the owner's shares are worth less than node.totalRestakedETH, so a later snapshot delta for the full validator balance makes _decreaseBalance burn more shares (and subtract more totalAssets) than the owner holds, reverting the snapshot permanently.",
+    "compiles": true,
+    "invasive": false,
+    "unfixable_in_code": false,
+    "notes": "Report gives no mitigation; chosen as the smallest local guard. No effect on finishWithdrawal because its amount is already bounded by withdrawableWei. Leaves up to the slashed amount in totalRestakedETH, which the next _transferToSlashStore treats as outstanding slashed ETH. Verified with a harness test (inherits NativeVault, mocked node and beacon-root call) since real beacon proof fixtures cannot express this state; existing suite passes. Compiled with forge build (solc 0.8.25, deps installed under scratch/karak-deps and symlinked as node_modules in each worktree, untracked)."
+  },
+  {
+    "number": 36,
+    "branch": "fix/36",
+    "commit": "52a0ee09621cbdb551b77e4b5997c39c256bcc46",
+    "files": [
+      "src/NativeVault.sol"
+    ],
+    "summary": "NativeVault._transferToSlashStore computes slashedAssets only when totalRestakedETH exceeds convertToAssets(balanceOf(owner)), otherwise leaves it at zero.",
+    "root_cause": "The unchecked subtraction totalRestakedETH - convertToAssets(shares) underflows when ERC4626 rounding makes the share value exceed totalRestakedETH, reverting every snapshot start.",
+    "compiles": true,
+    "invasive": false,
+    "unfixable_in_code": false,
+    "notes": "Identical to the sponsor's fix quoted in the issue thread and to the report's recommended diff (the convertToAssets call is repeated, as in the quoted fix). Verified with a harness test (bump totalAssets by 3 wei) that underflows on the audited commit and passes on this branch; existing suite passes. Compiled with forge build (solc 0.8.25, deps installed under scratch/karak-deps and symlinked as node_modules in each worktree, untracked)."
+  },
+  {
+    "number": 49,
+    "branch": "fix/49",
+    "commit": "9317b7527a7aa0f578999e0a25e6b8baab762590",
+    "files": [
+      "src/NativeVault.sol"
+    ],
+    "summary": "NativeVault.slashAssets sets self.slashStore to the slashingHandler passed by Core instead of reverting when it differs from the stored slashStore.",
+    "root_cause": "NativeVault pins slashStore at initialize and requires it to equal Core's current asset slashing handler, so any later change of the handler in Core makes every existing NativeVault revert NotSlashStore on slashing.",
+    "compiles": true,
+    "invasive": false,
+    "unfixable_in_code": false,
+    "notes": "Implements the report's third option (stop reverting on mismatch) in the form that keeps ETH routing consistent: only Core (onlyOwner) can call and the argument is Core's own assetSlashingHandlers value, so the vault follows the handler. Side effect: this patch also makes the operator-chosen slashStore in #55 irrelevant for slashability (the store is overwritten on first slash), though #55's branch is the one that rejects it at deploy time. Sponsor fix not recorded in the thread (judge asked sponsor for intent). Verified with a Core + NativeVault test; existing suite passes. Compiled with forge build (solc 0.8.25, deps installed under scratch/karak-deps and symlinked as node_modules in each worktree, untracked)."
+  },
+  {
+    "number": 55,
+    "branch": "fix/55",
+    "commit": "bd6de6de5454149bb21c7273bb6668e638ba5a4d",
+    "files": [
+      "src/entities/CoreLib.sol"
+    ],
+    "summary": "CoreLib.validateVaultConfigs now decodes extraData for DEAD_BEEF (native ETH) vaults and reverts NotSlashStore unless the supplied slashStore equals the allowlisted slashing handler for that asset.",
+    "root_cause": "deployVaults performs no validation of NativeVault extraData, so an operator can set a slashStore different from Core's slashing handler and the vault then always reverts NotSlashStore when slashed.",
+    "compiles": true,
+    "invasive": false,
+    "unfixable_in_code": false,
+    "notes": "Follows the report's recommendation (validate slashStore at deployVaults). Reuses the existing NotSlashStore error. Does not validate manager or nodeImplementation (out of scope; #85 in the findings repo covers manager). Standard vaults with asset DEAD_BEEF and malformed extraData would also revert at decode, which is acceptable because NativeVault is the only vault accepting that asset. Verified with a Core + NativeVault test; existing suite passes. Existing suite: 83/84 pass; the one failure is a pre-existing fuzz flake unrelated to the patch (operatorDSS.t.sol fuzz test_fail_register_operator_to_unregistered_dss (fuzzer picked the test DSS address)), which also fails on a worktree whose patch does not touch Vault. Compiled with forge build (solc 0.8.25, deps installed under scratch/karak-deps and symlinked as node_modules in each worktree, untracked)."
+  },
+  {
+    "number": 102,
+    "branch": "fix/102",
+    "commit": "b23dac4d1f312d1f0136b5341886e68afee5b1c8",
+    "files": [
+      "src/NativeVault.sol"
+    ],
+    "summary": "NativeVault._transferToSlashStore sweeps slashed ETH only out of withdrawableCreditedNodeETH (not the whole node balance) and decrements withdrawableCreditedNodeETH by the swept amount.",
+    "root_cause": "Slashed ETH was swept out of the not-yet-attributed node balance (ETH that just arrived from the beacon chain) before nodeBalanceWei was measured, so the same slashed amount was deducted again as the validator's negative balance delta, burning shares and totalAssets twice and stranding ETH on the node.",
+    "compiles": true,
+    "invasive": false,
+    "unfixable_in_code": false,
+    "notes": "Not the judge's literal wording ('compute nodeBalanceWei before the sweep'): that variant would credit already-swept ETH to the owner when unattributed balance comes from rewards, so the sweep is restricted to attributed ETH instead and unattributed ETH is swept at the following snapshot after being credited. Behavior change: slashed ETH that arrives on the node unattributed reaches the slash store one snapshot later. Verified with a harness test reproducing the report's numbers on the audited commit (26 ETH withdrawable, 28689655172413793103 shares) and 29 ETH withdrawable plus 3 ETH reaching the slash store through a full withdraw cycle on this branch; existing suite passes. Compiled with forge build (solc 0.8.25, deps installed under scratch/karak-deps and symlinked as node_modules in each worktree, untracked)."
+  }
+]
