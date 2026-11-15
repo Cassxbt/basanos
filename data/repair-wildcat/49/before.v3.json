@@ -1,0 +1,140 @@
+{
+  "verdict": "NEEDS_PROOF",
+  "agreement": "unanimous",
+  "route": "human",
+  "severity_supported": "low_or_none",
+  "missing": [
+    {
+      "item": "Show that the EOA-provider restriction breaks a protocol invariant or causes concrete loss or denial of service.",
+      "category": "required",
+      "obligation": 3,
+      "why": "The cited code supports that adding an unregistered EOA reverts, but the demonstrated effect is a borrower configuration call failing. That alone does not establish the claimed impact or severity.",
+      "resolves_when": "Provide a concrete in-scope scenario where the restriction causes loss of funds, DoS of a market function, or violation of a listed invariant."
+    },
+    {
+      "item": "Establish that support for EOA role providers is a binding contest requirement.",
+      "category": "required",
+      "obligation": 4,
+      "why": "The claim relies on documentation prose; the provided evidence does not establish that the contest treats this behavior as an in-scope vulnerability rather than a design or documentation mismatch.",
+      "resolves_when": "Cite a contest policy clause or invariant requiring EOA role providers to be supported."
+    }
+  ],
+  "reason": "The cited implementation supports the revert on adding an unregistered EOA. However, concrete protocol impact and the binding status of the documentation statement remain unestablished.",
+  "caps": [
+    "layers disagree: evidence requires E1 (obligation 3), the decision does not"
+  ],
+  "flags": [],
+  "citations": [
+    {
+      "status": "OK",
+      "path": "src/access/AccessControlHooks.sol",
+      "lines": [
+        220,
+        220
+      ],
+      "audited_lines": [
+        220,
+        220
+      ]
+    },
+    {
+      "status": "OK",
+      "path": "src/access/FixedTermLoanHooks.sol",
+      "lines": [
+        254,
+        254
+      ],
+      "audited_lines": [
+        254,
+        254
+      ]
+    }
+  ],
+  "votes": [
+    {
+      "verdict": "NEEDS_PROOF",
+      "severity": "low_or_none",
+      "request_id": "b3a5acd2-86d5-4221-b35f-6a72b0c45073"
+    },
+    {
+      "verdict": "NEEDS_PROOF",
+      "severity": "low_or_none",
+      "request_id": "21f99d54-c722-41e7-b8d0-d7c906aba7f1"
+    },
+    {
+      "verdict": "NEEDS_PROOF",
+      "severity": "low_or_none",
+      "request_id": "0688abd4-5c77-4ee1-977a-b2dcd7451f74"
+    }
+  ],
+  "evidence": {
+    "model": "deepseek-ai/DeepSeek-V4.1-Flash",
+    "tokens_read": 88974,
+    "claim": "addRoleProvider calls IRoleProvider(providerAddress).isPullProvider() unconditionally, so an EOA provider (which has no code) causes the call to revert, contradicting the docs' statement that a role provider can be an EOA.",
+    "root_cause_file": "src/access/AccessControlHooks.sol",
+    "root_cause_line": 220,
+    "code_supports_claim": "yes",
+    "support_reason": "At AccessControlHooks.sol:220 (and FixedTermLoanHooks.sol:257) addRoleProvider performs a high-level external call `IRoleProvider(providerAddress).isPullProvider()` whenever the provider is not already registered. Solidity's high-level call to an address with no code reverts (extcodesize check), so an EOA cannot be added as a new provider. Only the deployer, seeded in the constructor (lines 124-128 / 135-139), can be an EOA provider. The report's PoC trace matches this behavior.",
+    "blocking_code": [],
+    "poc": "runnable_test",
+    "impact": "accounting_error",
+    "preconditions": [
+      "Borrower attempts to add an EOA as a role provider via addRoleProvider"
+    ],
+    "trusted_role_required": true,
+    "known_issue_match": "",
+    "missing_evidence": [
+      {
+        "item": "Demonstration that the inability to add an EOA provider breaks a protocol invariant or causes loss, rather than only contradicting documentation prose",
+        "category": "required",
+        "obligation": 3,
+        "why": "The effect shown is a revert on a borrower configuration call; the docs statement is not a contest invariant, and the borrower can still use the deployer EOA or a contract provider, so the stated impact/severity is not established.",
+        "resolves_when": "A concrete scenario is shown where the EOA-provider restriction causes loss of funds, DoS of a market function, or violation of a listed Main Invariant."
+      },
+      {
+        "item": "Whether the docs statement 'a role provider can be an EOA' is a binding spec the contest treats as a vulnerability class",
+        "category": "required",
+        "obligation": 4,
+        "why": "The claim rests on documentation prose; the policy's known-issues/scope sections do not list this as in-scope, and the borrower is a trusted role who chooses providers, so the finding may be a design/documentation mismatch rather than an in-scope bug.",
+        "resolves_when": "A cited contest policy clause or invariant establishes that EOA providers must be supported."
+      }
+    ]
+  },
+  "decision": {
+    "provider": "serv",
+    "model": "gpt-6-luna",
+    "prompt_guard_requested": true
+  },
+  "usd": 0.006419,
+  "certificate": {
+    "version": 1,
+    "seal_type": "sha256-checksum",
+    "pipeline": "obligations-v3",
+    "contest": "wildcat",
+    "audited_commit": "fe746cc0fbedc4447a981a50e6ba4c95f98b9fe1",
+    "finding_sha256": "ad819d685aa43bbdc3d6d22345533bbc594541761fe6d37d55169f284d168224",
+    "verdict": "NEEDS_PROOF",
+    "agreement": "unanimous",
+    "route": "human",
+    "votes": [
+      {
+        "verdict": "NEEDS_PROOF",
+        "serv_request_id": "b3a5acd2-86d5-4221-b35f-6a72b0c45073"
+      },
+      {
+        "verdict": "NEEDS_PROOF",
+        "serv_request_id": "21f99d54-c722-41e7-b8d0-d7c906aba7f1"
+      },
+      {
+        "verdict": "NEEDS_PROOF",
+        "serv_request_id": "0688abd4-5c77-4ee1-977a-b2dcd7451f74"
+      }
+    ],
+    "decider": "serv/gpt-6-luna",
+    "evidence_model": "deepseek-ai/DeepSeek-V4.1-Flash",
+    "flags": [],
+    "usd": 0.006419,
+    "issued_at": "2026-11-15T14:52:20.601Z"
+  },
+  "seal": "a9c5795b8c100e3aacb0216e1cc5007a333cedf0186a3b97d9980c91316cbc26"
+}

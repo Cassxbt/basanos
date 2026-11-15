@@ -1,0 +1,8 @@
+{
+ "number": 57,
+ "poc_passed": true,
+ "attempts": 1,
+ "summary": "A second role provider can take over and then cut another provider's credential from 365 days to 1 hour with two grantRole calls (the direct cut reverts), after which the victim's deposit reverts with NotApprovedLender; the borrower can already block deposits and can restore access in one call.",
+ "checklist_items_addressed": 2,
+ "checklist_items_total": 2
+}

@@ -1,0 +1,117 @@
+{
+  "verdict": "NEEDS_PROOF",
+  "agreement": "split",
+  "route": "human",
+  "severity_supported": "low_or_none",
+  "missing": [
+    {
+      "item": "The PoC test is not executed/verified; it relies on test harness helpers (_deposit, fastForward, parameters) and on closeMarket succeeding with a pending unpaid batch. The report's own narrative (step 4: Bob queues after close) must be checked against closeMarket's requirement that scaledPendingWithdrawals == 0 (WildcatMarket.sol:281-283), which would revert if Alice's batch is still unpaid.",
+      "category": "required",
+      "obligation": 5,
+      "why": "If closeMarket reverts while Alice's batch is unpaid, the described sequence (close, then Alice executes, then Bob queues) is unreachable; the claim depends on closeMarket succeeding with a pending batch, which the report does not demonstrate.",
+      "resolves_when": "A runnable test (or trace) shows closeMarket succeeding with a pending unpaid batch and the subsequent executeWithdrawal(laurence) reverting on underflow of normalizedUnclaimedWithdrawals."
+    }
+  ],
+  "reason": "The passes disagreed (NEEDS_PROOF). Route this report to a human reviewer.",
+  "caps": [
+    "verdict capped to NEEDS_PROOF: BLOCKED_BY_CODE names no blocking code that exists in the audited source",
+    "layers disagree: evidence requires E1 (obligation 5), the decision does not"
+  ],
+  "flags": [],
+  "citations": [
+    {
+      "status": "OK",
+      "path": "src/market/WildcatMarketWithdrawals.sol",
+      "lines": [
+        248,
+        248
+      ],
+      "audited_lines": [
+        248,
+        248
+      ]
+    }
+  ],
+  "votes": [
+    {
+      "verdict": "GUARD_HELD",
+      "severity": null,
+      "request_id": null
+    },
+    {
+      "verdict": "GUARD_HELD",
+      "severity": null,
+      "request_id": null
+    },
+    {
+      "verdict": "NEEDS_PROOF",
+      "severity": "low_or_none",
+      "request_id": "8191b5a5-2b40-469b-9b76-c847c33a3365"
+    }
+  ],
+  "evidence": {
+    "model": "deepseek-ai/DeepSeek-V4.1-Flash",
+    "tokens_read": 86897,
+    "claim": "In a closed market, a lender can execute a withdrawal before all requests are added to the batch; later small withdrawals dilute the batch rate via rounding, so an earlier withdrawer takes more than their pro-rata share and the last withdrawer's executeWithdrawal reverts (insufficient normalizedUnclaimedWithdrawals).",
+    "root_cause_file": "src/market/WildcatMarketWithdrawals.sol",
+    "root_cause_line": 248,
+    "code_supports_claim": "yes",
+    "support_reason": "In a closed market, _executeWithdrawal skips the expiry check (line 239: `if (expiry >= block.timestamp && !state.isClosed)`), so a lender can execute against a partially-filled batch. newTotalWithdrawn = mulDiv(batch.normalizedAmountPaid, status.scaledAmount, batch.scaledTotalAmount) (line 248) is computed against the batch's current scaledTotalAmount; later queueWithdrawal calls (line 114) increase batch.scaledTotalAmount, lowering the per-scaled-token rate for subsequent executions. Earlier executions are not clawed back, so the sum of payouts can exceed the final batch.normalizedAmountPaid, and the last executor's normalizedAmountWithdrawn can exceed remaining state.normalizedUnclaimedWithdrawals (line 258), reverting on underflow.",
+    "blocking_code": [],
+    "poc": "runnable_test",
+    "impact": "funds_loss",
+    "preconditions": [
+      "Market is closed (borrower calls closeMarket) while a withdrawal batch is pending and not fully paid",
+      "Multiple lenders queue withdrawals into the same batch after the first execution",
+      "Rounding down of small scaled amounts reduces the batch's effective rate"
+    ],
+    "trusted_role_required": false,
+    "known_issue_match": "",
+    "missing_evidence": [
+      {
+        "item": "The PoC test is not executed/verified; it relies on test harness helpers (_deposit, fastForward, parameters) and on closeMarket succeeding with a pending unpaid batch. The report's own narrative (step 4: Bob queues after close) must be checked against closeMarket's requirement that scaledPendingWithdrawals == 0 (WildcatMarket.sol:281-283), which would revert if Alice's batch is still unpaid.",
+        "category": "required",
+        "obligation": 5,
+        "why": "If closeMarket reverts while Alice's batch is unpaid, the described sequence (close, then Alice executes, then Bob queues) is unreachable; the claim depends on closeMarket succeeding with a pending batch, which the report does not demonstrate.",
+        "resolves_when": "A runnable test (or trace) shows closeMarket succeeding with a pending unpaid batch and the subsequent executeWithdrawal(laurence) reverting on underflow of normalizedUnclaimedWithdrawals."
+      }
+    ]
+  },
+  "decision": {
+    "provider": "serv",
+    "model": "gpt-6-luna",
+    "prompt_guard_requested": true
+  },
+  "usd": 0.003982,
+  "certificate": {
+    "version": 1,
+    "seal_type": "sha256-checksum",
+    "pipeline": "obligations-v3",
+    "contest": "wildcat",
+    "audited_commit": "fe746cc0fbedc4447a981a50e6ba4c95f98b9fe1",
+    "finding_sha256": "4f737b34bcd021e071b3315a9982f6d124f41b02ec92e6fb64cac383f59b1140",
+    "verdict": "NEEDS_PROOF",
+    "agreement": "split",
+    "route": "human",
+    "votes": [
+      {
+        "verdict": "GUARD_HELD",
+        "serv_request_id": null
+      },
+      {
+        "verdict": "GUARD_HELD",
+        "serv_request_id": null
+      },
+      {
+        "verdict": "NEEDS_PROOF",
+        "serv_request_id": "8191b5a5-2b40-469b-9b76-c847c33a3365"
+      }
+    ],
+    "decider": "serv/gpt-6-luna",
+    "evidence_model": "deepseek-ai/DeepSeek-V4.1-Flash",
+    "flags": [],
+    "usd": 0.003982,
+    "issued_at": "2026-11-15T14:55:05.122Z"
+  },
+  "seal": "d2189759299d31fd02c2d248d02d0ce11d7b853c011b4a65ce7480f926045317"
+}

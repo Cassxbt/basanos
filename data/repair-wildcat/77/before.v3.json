@@ -1,0 +1,153 @@
+{
+  "verdict": "NEEDS_PROOF",
+  "agreement": "split",
+  "route": "human",
+  "severity_supported": "low_or_none",
+  "missing": [
+    {
+      "item": "Support for the claim that fixed-term markets must freeze APR changes before term end",
+      "category": "required",
+      "obligation": 4,
+      "why": "The report asserts this is documented, but the evidence record identifies no supporting policy clause or documentation line. The available information also says the borrower is a trusted role permitted to adjust APR.",
+      "resolves_when": "Provide a specific applicable policy clause or documentation citation establishing that APR changes are prohibited before the fixed term ends, or resolve the named design-intent assumption."
+    },
+    {
+      "item": "Demonstration that an APR reduction causes the claimed lender harm",
+      "category": "required",
+      "obligation": 3,
+      "why": "The evidence supports that the hook permits APR reductions and blocks early withdrawals, but does not establish that lenders cannot otherwise exit or that the reserve-ratio mechanism fails to protect them.",
+      "resolves_when": "Show a concrete scenario in which lenders cannot exit after the reduction, or demonstrate that the reduction bypasses or defeats the temporary reserve-ratio protection."
+    },
+    {
+      "item": "Executed reproduction through the real market",
+      "category": "strengthens",
+      "obligation": 5,
+      "why": "The described test calls the hook directly rather than exercising the deployed market's APR-setting path. This would strengthen the claim-specific reproduction evidence, though the source review supports reachability.",
+      "resolves_when": "Run a test against a deployed market showing the APR reduction succeeds while a withdrawal before term end is blocked."
+    }
+  ],
+  "reason": "The passes disagreed (NEEDS_PROOF). Route this report to a human reviewer.",
+  "caps": [],
+  "flags": [],
+  "citations": [
+    {
+      "status": "OK",
+      "path": "src/access/FixedTermLoanHooks.sol",
+      "lines": [
+        857,
+        859
+      ],
+      "audited_lines": [
+        857,
+        859
+      ]
+    },
+    {
+      "status": "OK",
+      "path": "src/access/FixedTermLoanHooks.sol",
+      "lines": [
+        960,
+        978
+      ],
+      "audited_lines": [
+        960,
+        978
+      ]
+    }
+  ],
+  "votes": [
+    {
+      "verdict": "GUARD_HELD",
+      "severity": null,
+      "request_id": null
+    },
+    {
+      "verdict": "NEEDS_PROOF",
+      "severity": "low_or_none",
+      "request_id": "8d78b986-5a1f-40ad-a8dd-ddc672de1065"
+    },
+    {
+      "verdict": "GUARD_HELD",
+      "severity": null,
+      "request_id": null
+    }
+  ],
+  "evidence": {
+    "model": "deepseek-ai/DeepSeek-V4.1-Flash",
+    "tokens_read": 87298,
+    "claim": "FixedTermLoanHooks does not block the borrower from changing (reducing) the market APR before the fixed term ends, letting the borrower rug lenders who cannot withdraw until term end.",
+    "root_cause_file": "src/access/FixedTermLoanHooks.sol",
+    "root_cause_line": 960,
+    "code_supports_claim": "yes",
+    "support_reason": "onSetAnnualInterestAndReserveRatioBips (L960-978) only delegates to MarketConstraintHooks, which permits reductions (with temporary reserve ratio) and never checks fixedTermEndTime. onQueueWithdrawal (L857-859) blocks withdrawals until term end, so lenders cannot ragequit. The borrower is a trusted role but the fixed-term defense is meant to hold against borrower APR changes; the report's path is reachable.",
+    "blocking_code": [],
+    "poc": "concrete_steps",
+    "impact": "informational",
+    "preconditions": [
+      "Market deployed with FixedTermLoanHooks and fixedTermEndTime in the future",
+      "Borrower calls setAnnualInterestAndReserveRatioBips with a lower APR"
+    ],
+    "trusted_role_required": true,
+    "known_issue_match": "",
+    "missing_evidence": [
+      {
+        "item": "Policy/design-intent basis that fixed-term markets are supposed to freeze APR changes",
+        "category": "required",
+        "obligation": 4,
+        "why": "The report asserts 'documentation states APR cannot be changed until term ends' but cites no policy clause or doc line; the contest policy does not list this as an invariant, and the borrower is a trusted role permitted to adjust APR. Without a cited clause or precise assumption, the exclusion/design-intent question is unresolved.",
+        "resolves_when": "A cited contest policy clause or doc line stating fixed-term markets must not allow APR changes before term end is provided."
+      },
+      {
+        "item": "Demonstration that the APR reduction actually harms lenders (e.g., reserve ratio increase is insufficient to let them exit, or APR can be set to 0 with no reserve-ratio consequence)",
+        "category": "required",
+        "obligation": 3,
+        "why": "The claimed impact 'rug lenders' depends on the reserve-ratio ragequit mechanism failing to protect them; the report only shows the hook does not revert, not that lenders are actually unable to exit or that the reduction is unpenalized.",
+        "resolves_when": "A concrete scenario shows lenders cannot exit (reserve ratio not raised enough / no liquidity) after the APR reduction, or that the reduction bypasses the temporary reserve ratio."
+      },
+      {
+        "item": "Executed PoC against the real market (not just the mock hook) showing setAnnualInterestAndReserveRatioBips succeeds and queueWithdrawal reverts",
+        "category": "strengthens",
+        "obligation": 5,
+        "why": "The provided test only calls the hook directly on a mock; it does not exercise the market's setAnnualInterestAndReserveRatioBips path, but the code reading already supports reachability.",
+        "resolves_when": "A test on a deployed market shows the APR change succeeds while withdrawal is blocked."
+      }
+    ]
+  },
+  "decision": {
+    "provider": "serv",
+    "model": "gpt-6-luna",
+    "prompt_guard_requested": true
+  },
+  "usd": 0.003862,
+  "certificate": {
+    "version": 1,
+    "seal_type": "sha256-checksum",
+    "pipeline": "obligations-v3",
+    "contest": "wildcat",
+    "audited_commit": "fe746cc0fbedc4447a981a50e6ba4c95f98b9fe1",
+    "finding_sha256": "02f2fb8361ad4a3307f56f041ce16b7bea35a8fe62d20e8d61689ad142a07dfd",
+    "verdict": "NEEDS_PROOF",
+    "agreement": "split",
+    "route": "human",
+    "votes": [
+      {
+        "verdict": "GUARD_HELD",
+        "serv_request_id": null
+      },
+      {
+        "verdict": "NEEDS_PROOF",
+        "serv_request_id": "8d78b986-5a1f-40ad-a8dd-ddc672de1065"
+      },
+      {
+        "verdict": "GUARD_HELD",
+        "serv_request_id": null
+      }
+    ],
+    "decider": "serv/gpt-6-luna",
+    "evidence_model": "deepseek-ai/DeepSeek-V4.1-Flash",
+    "flags": [],
+    "usd": 0.003862,
+    "issued_at": "2026-11-15T14:50:09.314Z"
+  },
+  "seal": "bb65b3f7e92b3fc4e042c324716fbd2816ba8384ec7d355dbea499a3170c4df3"
+}

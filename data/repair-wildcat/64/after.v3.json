@@ -1,0 +1,128 @@
+{
+  "verdict": "NEEDS_PROOF",
+  "agreement": "split",
+  "route": "human",
+  "severity_supported": "low_or_none",
+  "missing": [
+    {
+      "item": "A clean, reproducible test run proving that the final lender's executeWithdrawal reverts.",
+      "category": "required",
+      "obligation": 5,
+      "why": "The supplied output reports both a compiler error and a passing test, so it does not establish that the test ran successfully against the audited commit.",
+      "resolves_when": "Provide a reproducible run against the audited commit with no compiler errors that demonstrates the final lender's underflow revert."
+    },
+    {
+      "item": "Evidence or policy interpretation showing that the few-wei shortfall and resulting blocked withdrawal meet the claimed severity.",
+      "category": "required",
+      "obligation": 3,
+      "why": "The stated shortfall is only a few wei, and the provided evidence does not establish how that effect is treated under the policy's rounding-error language.",
+      "resolves_when": "Establish that this dust-level shortfall and blocked claim meet the applicable severity bar, or demonstrate a materially greater impact."
+    }
+  ],
+  "reason": "The passes disagreed (NEEDS_PROOF). Route this report to a human reviewer.",
+  "caps": [],
+  "flags": [],
+  "citations": [
+    {
+      "status": "OK",
+      "path": "src/market/WildcatMarketWithdrawals.sol",
+      "lines": [
+        248,
+        248
+      ],
+      "audited_lines": [
+        248,
+        248
+      ]
+    }
+  ],
+  "votes": [
+    {
+      "verdict": "GUARD_HELD",
+      "severity": null,
+      "request_id": null
+    },
+    {
+      "verdict": "GUARD_HELD",
+      "severity": null,
+      "request_id": null
+    },
+    {
+      "verdict": "NEEDS_PROOF",
+      "severity": "low_or_none",
+      "request_id": "04c158c0-223a-4e5f-8280-93e1055c1118"
+    }
+  ],
+  "evidence": {
+    "model": "deepseek-ai/DeepSeek-V4.1-Flash",
+    "tokens_read": 88951,
+    "claim": "On a closed market, a lender can execute a withdrawal from a still-pending batch before other lenders join it; later joiners change the batch's pro-rata rate, so the early withdrawer is overpaid and the last withdrawer's executeWithdrawal reverts on underflow in normalizedUnclaimedWithdrawals.",
+    "root_cause_file": "src/market/WildcatMarketWithdrawals.sol",
+    "root_cause_line": 248,
+    "code_supports_claim": "yes",
+    "support_reason": "executeWithdrawal allows execution before expiry when state.isClosed (WildcatMarketWithdrawals.sol:239) and computes the payout from the batch's current normalizedAmountPaid/scaledTotalAmount (line 248). closeMarket (WildcatMarket.sol:226-287) pays the pending batch and leaves it pending with the same expiry, so later queueWithdrawal calls (WildcatMarketWithdrawals.sol:93-99 reuse pendingWithdrawalExpiry) join the same batch and change the ratio. The subtraction at line 258 (state.normalizedUnclaimedWithdrawals -= normalizedAmountWithdrawn) can then underflow for the last withdrawer.",
+    "blocking_code": [],
+    "poc": "concrete_steps",
+    "impact": "accounting_error",
+    "preconditions": [
+      "market is closed (borrower calls closeMarket) while a withdrawal batch is pending",
+      "early withdrawer executes before batch expiry (allowed on closed market)",
+      "later lenders queue into the same batch, changing the pro-rata rate"
+    ],
+    "trusted_role_required": false,
+    "known_issue_match": "",
+    "missing_evidence": [
+      {
+        "item": "The report's own PoC is not runnable as written (it sets parameters.annualInterestBips after deployment and uses queueWithdrawal(1) which scales to zero). The appended 'executed' test is unverified and its output shows a compiler error line ('unresolved symbol locals') alongside a PASS, which is contradictory.",
+        "category": "required",
+        "obligation": 5,
+        "why": "The reproduction evidence is internally inconsistent; without a clean, reproducible run the claim that the last withdrawer's full executeWithdrawal reverts cannot be accepted.",
+        "resolves_when": "A clean forge test run on the audited commit with no compiler errors shows the underflow revert for the last withdrawer."
+      },
+      {
+        "item": "Whether the shortfall (a few wei) constitutes a meaningful impact/severity, versus dust-level rounding that the policy's invariant text already tolerates ('rounding error dust must only reduce the amount paid to lenders').",
+        "category": "required",
+        "obligation": 3,
+        "why": "The demonstrated effect is a few-wei accounting shortfall that blocks one withdrawal; whether that supports the stated High severity (funds permanently stuck / invariant break) depends on whether the policy treats this as in-scope dust or a real loss.",
+        "resolves_when": "The judge determines whether a dust-level shortfall blocking a full withdrawal meets the severity bar under the policy's rounding-error language."
+      }
+    ]
+  },
+  "decision": {
+    "provider": "serv",
+    "model": "gpt-6-luna",
+    "prompt_guard_requested": true
+  },
+  "usd": 0.004402,
+  "certificate": {
+    "version": 1,
+    "seal_type": "sha256-checksum",
+    "pipeline": "obligations-v3",
+    "contest": "wildcat",
+    "audited_commit": "fe746cc0fbedc4447a981a50e6ba4c95f98b9fe1",
+    "finding_sha256": "fda9162a409d0f76ccaba44b0a11112eaf073998973e2dc695e0841a4afa655f",
+    "verdict": "NEEDS_PROOF",
+    "agreement": "split",
+    "route": "human",
+    "votes": [
+      {
+        "verdict": "GUARD_HELD",
+        "serv_request_id": null
+      },
+      {
+        "verdict": "GUARD_HELD",
+        "serv_request_id": null
+      },
+      {
+        "verdict": "NEEDS_PROOF",
+        "serv_request_id": "04c158c0-223a-4e5f-8280-93e1055c1118"
+      }
+    ],
+    "decider": "serv/gpt-6-luna",
+    "evidence_model": "deepseek-ai/DeepSeek-V4.1-Flash",
+    "flags": [],
+    "usd": 0.004402,
+    "issued_at": "2026-11-15T15:19:45.562Z"
+  },
+  "seal": "a135462f909738d8027d36741331ffc2aa9a2fb95488f341230840e3a9381ff9"
+}

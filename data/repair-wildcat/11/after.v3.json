@@ -1,0 +1,209 @@
+{
+  "verdict": "NEEDS_PROOF",
+  "agreement": "majority",
+  "route": "human",
+  "severity_supported": "low_or_none",
+  "missing": [
+    {
+      "item": "Document whether stateful, short-TTL one-time credential providers are an expected deployment pattern.",
+      "category": "strengthens",
+      "obligation": 3,
+      "why": "The demonstrated denial-of-service depends on this provider design and a delay beyond the credential TTL; documenting its relevance would better establish practical likelihood and severity.",
+      "resolves_when": "Cite a documented provider pattern matching the test provider, or retain the impact as explicitly conditional on such a provider."
+    },
+    {
+      "item": "Demonstration that the missing isHooked check is the enabler of the harm, not merely one of several paths to provider state. The report's own tests show the market's onTransfer path also reaches the provider with caller-supplied data (test_viaMarketTransfer_consumesVoucherButMakesRecipientKnownLender), and the direct-call harm requires a stateful short-TTL provider plus a delay/censorship step.",
+      "category": "required",
+      "obligation": 3,
+      "why": "The stated impact (DoS of a lender's withdrawal) depends on a provider design and a transaction-delay precondition that the report itself concedes; without showing the harm is attributable to the missing check rather than to the provider's stateful design, the effect does not support the claimed severity.",
+      "resolves_when": "A test shows a lender's withdrawal/deposit reverts due to the direct call where no market-path call (onTransfer/onQueueWithdrawal via a market) could have produced the same provider-state change, or the report scopes the impact to the provider design it assumes."
+    },
+    {
+      "item": "Whether the assumed provider (stateful, one-time voucher, TTL shorter than the imposed delay) is a realistic/expected role provider under the protocol's documented provider model.",
+      "category": "required",
+      "obligation": 3,
+      "why": "The DoS only manifests for that provider class; if the protocol's providers are not stateful one-shot vouchers, the demonstrated effect does not establish the claimed impact.",
+      "resolves_when": "The report cites a documented provider pattern (e.g. in docs/hooks/templates/Access Control Hooks.md) matching the stateful short-TTL design, or the impact is restated as conditional on such a provider."
+    }
+  ],
+  "reason": "The cited path is reachable, and the tests demonstrate a conditional withdrawal/deposit failure. The known-lender test isolates the direct-call path from the tested market paths. The impact is provider- and delay-dependent, supporting only low_or_none severity.",
+  "caps": [
+    "READY capped to NEEDS_PROOF: evidence record lists 2 required item(s)",
+    "layers disagree: evidence requires E1 (obligation 3), E2 (obligation 3), the decision does not"
+  ],
+  "flags": [],
+  "citations": [
+    {
+      "status": "OK",
+      "path": "src/access/AccessControlHooks.sol",
+      "lines": [
+        812,
+        812
+      ],
+      "audited_lines": [
+        812,
+        812
+      ]
+    },
+    {
+      "status": "OK",
+      "path": "src/access/AccessControlHooks.sol",
+      "lines": [
+        698,
+        698
+      ],
+      "audited_lines": [
+        698,
+        698
+      ]
+    },
+    {
+      "status": "OK",
+      "path": "src/access/AccessControlHooks.sol",
+      "lines": [
+        654,
+        654
+      ],
+      "audited_lines": [
+        654,
+        654
+      ]
+    },
+    {
+      "status": "OK",
+      "path": "src/access/AccessControlHooks.sol",
+      "lines": [
+        670,
+        670
+      ],
+      "audited_lines": [
+        670,
+        670
+      ]
+    },
+    {
+      "status": "OK",
+      "path": "src/access/AccessControlHooks.sol",
+      "lines": [
+        617,
+        617
+      ],
+      "audited_lines": [
+        617,
+        617
+      ]
+    },
+    {
+      "status": "OK",
+      "path": "src/access/AccessControlHooks.sol",
+      "lines": [
+        525,
+        525
+      ],
+      "audited_lines": [
+        525,
+        525
+      ]
+    },
+    {
+      "status": "OK",
+      "path": "src/access/FixedTermLoanHooks.sol",
+      "lines": [
+        848,
+        848
+      ],
+      "audited_lines": [
+        848,
+        848
+      ]
+    }
+  ],
+  "votes": [
+    {
+      "verdict": "GUARD_HELD",
+      "severity": null,
+      "request_id": null
+    },
+    {
+      "verdict": "NEEDS_PROOF",
+      "severity": "low_or_none",
+      "request_id": "91229911-8710-4f2c-8071-8bf49abe0bdb"
+    },
+    {
+      "verdict": "NEEDS_PROOF",
+      "severity": "low_or_none",
+      "request_id": "3f120634-8b31-42ac-9a8e-64385bb5f322"
+    }
+  ],
+  "evidence": {
+    "model": "deepseek-ai/DeepSeek-V4.1-Flash",
+    "tokens_read": 91198,
+    "claim": "AccessControlHooks.onQueueWithdrawal lacks an isHooked check, so any caller can invoke it directly with an arbitrary lender and hooksData, reaching role providers' validateCredential with attacker-chosen data and consuming a lender's one-time credential, causing a delayed DoS of that lender's withdrawal/deposit.",
+    "root_cause_file": "src/access/AccessControlHooks.sol",
+    "root_cause_line": 812,
+    "code_supports_claim": "yes",
+    "support_reason": "onQueueWithdrawal (812-825) has no `_hookedMarkets[msg.sender].isHooked` check (unlike onDeposit 775-776, onTransfer 858-860, and FixedTermLoanHooks.onQueueWithdrawal 855-856). With msg.sender = attacker, isKnownLenderOnMarket[lender][attacker] is false, so _tryValidateAccess (698) -> _tryValidateAccessInner (654) -> _handleHooksData (617) -> _tryValidateCredential (525) calls the attacker-selected provider with attacker-supplied data. The path is reachable by any EOA.",
+    "blocking_code": [],
+    "poc": "runnable_test",
+    "impact": "unclear",
+    "preconditions": [
+      "A role provider whose validateCredential is stateful (consumes a one-time voucher) and whose TTL is shorter than the delay before the victim's transaction lands",
+      "Victim's transaction is delayed past the cached credential's TTL (the report's miner/censorship step)"
+    ],
+    "trusted_role_required": false,
+    "known_issue_match": "",
+    "missing_evidence": [
+      {
+        "item": "Demonstration that the missing isHooked check is the enabler of the harm, not merely one of several paths to provider state. The report's own tests show the market's onTransfer path also reaches the provider with caller-supplied data (test_viaMarketTransfer_consumesVoucherButMakesRecipientKnownLender), and the direct-call harm requires a stateful short-TTL provider plus a delay/censorship step.",
+        "category": "required",
+        "obligation": 3,
+        "why": "The stated impact (DoS of a lender's withdrawal) depends on a provider design and a transaction-delay precondition that the report itself concedes; without showing the harm is attributable to the missing check rather than to the provider's stateful design, the effect does not support the claimed severity.",
+        "resolves_when": "A test shows a lender's withdrawal/deposit reverts due to the direct call where no market-path call (onTransfer/onQueueWithdrawal via a market) could have produced the same provider-state change, or the report scopes the impact to the provider design it assumes."
+      },
+      {
+        "item": "Whether the assumed provider (stateful, one-time voucher, TTL shorter than the imposed delay) is a realistic/expected role provider under the protocol's documented provider model.",
+        "category": "required",
+        "obligation": 3,
+        "why": "The DoS only manifests for that provider class; if the protocol's providers are not stateful one-shot vouchers, the demonstrated effect does not establish the claimed impact.",
+        "resolves_when": "The report cites a documented provider pattern (e.g. in docs/hooks/templates/Access Control Hooks.md) matching the stateful short-TTL design, or the impact is restated as conditional on such a provider."
+      }
+    ]
+  },
+  "decision": {
+    "provider": "serv",
+    "model": "gpt-6-luna",
+    "prompt_guard_requested": true
+  },
+  "usd": 0.006646,
+  "certificate": {
+    "version": 1,
+    "seal_type": "sha256-checksum",
+    "pipeline": "obligations-v3",
+    "contest": "wildcat",
+    "audited_commit": "fe746cc0fbedc4447a981a50e6ba4c95f98b9fe1",
+    "finding_sha256": "76bd00132fd006c652b1d518c000a0b80a2709c0028b1fcc974313e6bf23f6b3",
+    "verdict": "NEEDS_PROOF",
+    "agreement": "majority",
+    "route": "human",
+    "votes": [
+      {
+        "verdict": "GUARD_HELD",
+        "serv_request_id": null
+      },
+      {
+        "verdict": "NEEDS_PROOF",
+        "serv_request_id": "91229911-8710-4f2c-8071-8bf49abe0bdb"
+      },
+      {
+        "verdict": "NEEDS_PROOF",
+        "serv_request_id": "3f120634-8b31-42ac-9a8e-64385bb5f322"
+      }
+    ],
+    "decider": "serv/gpt-6-luna",
+    "evidence_model": "deepseek-ai/DeepSeek-V4.1-Flash",
+    "flags": [],
+    "usd": 0.006646,
+    "issued_at": "2026-11-15T15:15:52.226Z"
+  },
+  "seal": "9dd73f4cbf1536a0e24cee10241fa983f242156508705b34d487c2fc6b1f52ec"
+}

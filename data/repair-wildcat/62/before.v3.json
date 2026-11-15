@@ -1,0 +1,127 @@
+{
+  "verdict": "NEEDS_PROOF",
+  "agreement": "split",
+  "route": "human",
+  "severity_supported": "low_or_none",
+  "missing": [
+    {
+      "item": "Show that the ordering difference causes a real overcharge or other material harm, rather than merely reporting amounts paid in separate scenarios.",
+      "category": "required",
+      "obligation": 3,
+      "why": "The PoC does not compare the same repayment from identical state using both paths or establish who is harmed.",
+      "resolves_when": "Demonstrate and quantify a strictly higher total payment for the same repayment under the state-first path, or identify another concrete harmed party."
+    },
+    {
+      "item": "Establish whether the additional interest is more than the interest correctly owed for the elapsed time before repayment.",
+      "category": "required",
+      "obligation": 3,
+      "why": "If the difference reflects ordinary interest accrual before funds reach the market, it does not establish a vulnerability.",
+      "resolves_when": "Show that the additional amount exceeds interest properly owed for that elapsed time, or otherwise demonstrate concrete harm beyond normal accrual."
+    }
+  ],
+  "reason": "The passes disagreed (NEEDS_PROOF). Route this report to a human reviewer.",
+  "caps": [],
+  "flags": [],
+  "citations": [
+    {
+      "status": "OK",
+      "path": "src/market/WildcatMarket.sol",
+      "lines": [
+        226,
+        226
+      ],
+      "audited_lines": [
+        226,
+        226
+      ]
+    }
+  ],
+  "votes": [
+    {
+      "verdict": "GUARD_HELD",
+      "severity": null,
+      "request_id": null
+    },
+    {
+      "verdict": "NEEDS_PROOF",
+      "severity": "low_or_none",
+      "request_id": "06b770e9-0a22-4685-b7b2-f6ec6adee0c3"
+    },
+    {
+      "verdict": "GUARD_HELD",
+      "severity": null,
+      "request_id": null
+    }
+  ],
+  "evidence": {
+    "model": "deepseek-ai/DeepSeek-V4.1-Flash",
+    "tokens_read": 86904,
+    "claim": "Repayment functions are inconsistent: `repay`/`repayAndProcessUnpaidWithdrawalBatches` pull funds before `_getUpdatedState()`, while `closeMarket`/`repayOutstandingDebt`/`repayDelinquentDebt` fetch state first, so the borrower pays extra interest/fees.",
+    "root_cause_file": "src/market/WildcatMarket.sol",
+    "root_cause_line": 226,
+    "code_supports_claim": "yes",
+    "support_reason": "closeMarket (L226-236) calls _getUpdatedState() before _repay pulls remainingDebt, so interest accrues on the pre-repayment balance; repay (L202-214) transfers first then updates state. The ordering difference is real and reachable by the borrower.",
+    "blocking_code": [],
+    "poc": "concrete_steps",
+    "impact": "unclear",
+    "preconditions": [
+      "borrower is delinquent/indebted and calls closeMarket or repayOutstandingDebt/repayDelinquentDebt",
+      "interest has accrued since last state update"
+    ],
+    "trusted_role_required": true,
+    "known_issue_match": "",
+    "missing_evidence": [
+      {
+        "item": "Demonstration that the ordering difference causes a real loss beyond the borrower's own debt (e.g. that the extra interest is not simply the correct interest owed for the elapsed time, or that a lender/borrower is materially harmed).",
+        "category": "required",
+        "obligation": 3,
+        "why": "The report asserts 'extra fees' but the PoC only logs absolute amounts paid in two scenarios; it does not show the same repayment via `repay` costs less, nor quantify an unfair overcharge. Without that, the effect does not support a stated impact/severity.",
+        "resolves_when": "A test shows the same repayment executed via `repay` (pull-first) results in a strictly lower total paid than via `closeMarket`/`repayOutstandingDebt` for identical state, with the difference quantified."
+      },
+      {
+        "item": "Clarification of whether the 'extra fees' are simply correct accrued interest for the time the funds were not yet in the market (i.e. not a bug).",
+        "category": "required",
+        "obligation": 3,
+        "why": "If the additional interest equals interest legitimately owed for the elapsed period before repayment, the ordering is not a vulnerability; the claim's impact depends on this being an overcharge.",
+        "resolves_when": "Analysis shows the extra amount exceeds interest owed for the elapsed time, or the report identifies a concrete party harmed beyond normal interest accrual."
+      }
+    ]
+  },
+  "decision": {
+    "provider": "serv",
+    "model": "gpt-6-luna",
+    "prompt_guard_requested": true
+  },
+  "usd": 0.003622,
+  "certificate": {
+    "version": 1,
+    "seal_type": "sha256-checksum",
+    "pipeline": "obligations-v3",
+    "contest": "wildcat",
+    "audited_commit": "fe746cc0fbedc4447a981a50e6ba4c95f98b9fe1",
+    "finding_sha256": "00340ae01f82c09e4280fa24059bf61efdff0276785938a6ef6e736153c46fd7",
+    "verdict": "NEEDS_PROOF",
+    "agreement": "split",
+    "route": "human",
+    "votes": [
+      {
+        "verdict": "GUARD_HELD",
+        "serv_request_id": null
+      },
+      {
+        "verdict": "NEEDS_PROOF",
+        "serv_request_id": "06b770e9-0a22-4685-b7b2-f6ec6adee0c3"
+      },
+      {
+        "verdict": "GUARD_HELD",
+        "serv_request_id": null
+      }
+    ],
+    "decider": "serv/gpt-6-luna",
+    "evidence_model": "deepseek-ai/DeepSeek-V4.1-Flash",
+    "flags": [],
+    "usd": 0.003622,
+    "issued_at": "2026-11-15T14:50:08.168Z"
+  },
+  "seal": "1d7a3396d641e431f210e28cdf03e914c9d7a3beba02310057f8096f7ef040a9"
+}

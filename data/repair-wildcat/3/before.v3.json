@@ -1,0 +1,140 @@
+{
+  "verdict": "NEEDS_PROOF",
+  "agreement": "split",
+  "route": "human",
+  "severity_supported": "low_or_none",
+  "missing": [
+    {
+      "item": "A concrete input where setHooksAddress produces a word whose bits 96..255 are non-zero after the clear step",
+      "category": "required",
+      "obligation": 2,
+      "why": "The claim's reachability depends on the clear step failing; the code shows it cannot, so no reachable misconfiguration exists.",
+      "resolves_when": "A test or hand computation shows shr(96, shl(96, x)) retaining any bit >= 96 for some x."
+    }
+  ],
+  "reason": "The passes disagreed (BLOCKED_BY_CODE). Route this report to a human reviewer.",
+  "caps": [
+    "layers disagree: evidence requires E1 (obligation 2), the decision does not"
+  ],
+  "flags": [],
+  "citations": [
+    {
+      "status": "OK",
+      "path": "src/types/HooksConfig.sol",
+      "lines": [
+        90,
+        90
+      ],
+      "audited_lines": [
+        90,
+        90
+      ]
+    },
+    {
+      "status": "OK",
+      "path": "src/types/HooksConfig.sol",
+      "lines": [
+        84,
+        84
+      ],
+      "audited_lines": [
+        84,
+        84
+      ]
+    }
+  ],
+  "votes": [
+    {
+      "verdict": "GUARD_HELD",
+      "severity": null,
+      "request_id": null
+    },
+    {
+      "verdict": "BLOCKED_BY_CODE",
+      "severity": "low_or_none",
+      "request_id": "c60c130a-bfb9-4229-8875-9dbf17ecc862"
+    },
+    {
+      "verdict": "GUARD_HELD",
+      "severity": null,
+      "request_id": null
+    }
+  ],
+  "evidence": {
+    "model": "deepseek-ai/DeepSeek-V4.1-Flash",
+    "tokens_read": 86582,
+    "claim": "setHooksAddress clears only 96 bits (shr(96, shl(96, hooks))) instead of 160, so the original hooksAddress is not fully cleared and a second set produces a wrong address.",
+    "root_cause_file": "src/types/HooksConfig.sol",
+    "root_cause_line": 90,
+    "code_supports_claim": "no",
+    "support_reason": "HooksConfig packs the address in the top 160 bits (shl(96, hooksAddress), line 62) and flags in the low 96 bits. shr(96, shl(96, hooks)) shifts left 96 (address to bits 96-255, flags to bits 0-95) then right 96, restoring the original word exactly. The address is fully preserved and the subsequent or with shl(96,_hooksAddress) overwrites bits 96-255. The 'clear' is a no-op, not a partial clear; the result is correct. The report's premise that the address occupies the 'upper 160 bits' and needs a 160-bit clear is wrong for this layout.",
+    "blocking_code": [
+      {
+        "file": "src/types/HooksConfig.sol",
+        "line": 62,
+        "why": "address stored at shl(96, hooksAddress); flags occupy low 96 bits, so 96-bit shift pair is the correct mask"
+      },
+      {
+        "file": "src/types/HooksConfig.sol",
+        "line": 90,
+        "why": "shr(96, shl(96, hooks)) is identity on the full word; no bits are lost"
+      },
+      {
+        "file": "src/types/HooksConfig.sol",
+        "line": 92,
+        "why": "or with shl(96,_hooksAddress) overwrites the entire address field"
+      }
+    ],
+    "poc": "narrative_only",
+    "impact": "informational",
+    "preconditions": [],
+    "trusted_role_required": false,
+    "known_issue_match": "",
+    "missing_evidence": [
+      {
+        "item": "A concrete input where setHooksAddress returns a word whose bits 96-255 differ from _hooksAddress",
+        "category": "required",
+        "obligation": 3,
+        "why": "The claimed effect (wrong address after second set) does not occur; without a counterexample the impact is unsupported.",
+        "resolves_when": "A test or hand computation shows setHooksAddress(anyConfig, A) then setHooksAddress(result, B) yields hooksAddress()==B; if it always does, the claim fails."
+      }
+    ]
+  },
+  "decision": {
+    "provider": "serv",
+    "model": "gpt-6-luna",
+    "prompt_guard_requested": true
+  },
+  "usd": 0.003292,
+  "certificate": {
+    "version": 1,
+    "seal_type": "sha256-checksum",
+    "pipeline": "obligations-v3",
+    "contest": "wildcat",
+    "audited_commit": "fe746cc0fbedc4447a981a50e6ba4c95f98b9fe1",
+    "finding_sha256": "7bd378412405b463c6f4220acc1efcc9a9c54a622ab9a92f9d6ea900801ce6dc",
+    "verdict": "NEEDS_PROOF",
+    "agreement": "split",
+    "route": "human",
+    "votes": [
+      {
+        "verdict": "GUARD_HELD",
+        "serv_request_id": null
+      },
+      {
+        "verdict": "BLOCKED_BY_CODE",
+        "serv_request_id": "c60c130a-bfb9-4229-8875-9dbf17ecc862"
+      },
+      {
+        "verdict": "GUARD_HELD",
+        "serv_request_id": null
+      }
+    ],
+    "decider": "serv/gpt-6-luna",
+    "evidence_model": "deepseek-ai/DeepSeek-V4.1-Flash",
+    "flags": [],
+    "usd": 0.003292,
+    "issued_at": "2026-11-15T14:49:50.489Z"
+  },
+  "seal": "480ac965a7340266c47d673d27eaf637ecb4d94c97a921fe9c2a83e744bf6488"
+}

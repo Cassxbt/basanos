@@ -1,0 +1,142 @@
+{
+  "verdict": "NEEDS_PROOF",
+  "agreement": "unanimous",
+  "route": "automatic",
+  "severity_supported": "low_or_none",
+  "missing": [
+    {
+      "item": "Whether a malicious or compromised borrower-appointed role provider is an allowed actor under the contest policy.",
+      "category": "required",
+      "obligation": 2,
+      "why": "The two-call path is reachable in code, but the evidence record identifies unresolved policy treatment of malicious providers and notes that the borrower is trusted and can already block deposits.",
+      "resolves_when": "Provide an applicable policy basis establishing that such a provider is in scope, or a ruling that borrower-appointed providers are not trusted."
+    },
+    {
+      "item": "A distinct harmful impact from the expiry-shortening bypass, beyond effects already available to the borrower or a last provider.",
+      "category": "required",
+      "obligation": 3,
+      "why": "The demonstrated deposit lockout is also achievable through blockFromDeposits or revokeRole, so the evidence does not establish additional impact from this bypass.",
+      "resolves_when": "Demonstrate a concrete harm caused by the bypass that those existing powers cannot cause, with a supported scenario and affected party."
+    },
+    {
+      "item": "A clean reproduction run against the audited commit.",
+      "category": "strengthens",
+      "obligation": 5,
+      "why": "The pasted output reports passing tests but also a compilation error; the code path is independently supported by the source evidence.",
+      "resolves_when": "Provide a clean test run without the contradictory compilation error."
+    }
+  ],
+  "reason": "The source supports the two-call bypass, but policy compliance for the actor and distinct impact remain unresolved. The supplied test output is contradictory, though clean reproduction would only strengthen the source-supported path.",
+  "caps": [],
+  "flags": [],
+  "citations": [
+    {
+      "status": "OK",
+      "path": "src/access/FixedTermLoanHooks.sol",
+      "lines": [
+        413,
+        413
+      ],
+      "audited_lines": [
+        413,
+        413
+      ]
+    }
+  ],
+  "votes": [
+    {
+      "verdict": "NEEDS_PROOF",
+      "severity": "low_or_none",
+      "request_id": "51ad966f-9259-4360-b29a-26471cd553d6"
+    },
+    {
+      "verdict": "NEEDS_PROOF",
+      "severity": "low_or_none",
+      "request_id": "08b2f563-1b50-499a-8949-8e5f9faf4a43"
+    },
+    {
+      "verdict": "NEEDS_PROOF",
+      "severity": "low_or_none",
+      "request_id": "1389ead5-b701-4a3f-8680-098e7110810d"
+    }
+  ],
+  "evidence": {
+    "model": "deepseek-ai/DeepSeek-V4.1-Flash",
+    "tokens_read": 88934,
+    "claim": "A role provider can bypass the documented grantRole restriction (cannot lower another provider's credential expiry) by first granting a later expiry to become lastProvider, then lowering the expiry; the report's own PoC shows the resulting effect (deposit lockout) is already achievable by the borrower via blockFromDeposits and by a lastProvider via revokeRole.",
+    "root_cause_file": "src/access/FixedTermLoanHooks.sol",
+    "root_cause_line": 426,
+    "code_supports_claim": "yes",
+    "support_reason": "In _grantRole (FixedTermLoanHooks.sol:441-470), the guard at line 426 allows replacement when status.lastProvider == msg.sender OR newExpiry > oldExpiry. A provider B can first call grantRole with a later expiry (passes newExpiry > oldExpiry, sets lastProvider=B at line 469/792), then call again with a lower expiry (passes status.lastProvider == msg.sender). The two-step bypass is reachable. Same logic in AccessControlHooks.sol:426.",
+    "blocking_code": [],
+    "poc": "concrete_steps",
+    "impact": "accounting_error",
+    "preconditions": [
+      "Borrower has added at least two role providers (A and B) with B's TTL > A's TTL",
+      "Provider B acts maliciously (or is compromised)",
+      "Victim has not yet deposited (known lenders retain withdrawal access)"
+    ],
+    "trusted_role_required": true,
+    "known_issue_match": "",
+    "missing_evidence": [
+      {
+        "item": "Policy determination on whether a malicious/compromised borrower-appointed role provider is an allowed actor for this finding",
+        "category": "required",
+        "obligation": 2,
+        "why": "The attack requires a role provider (appointed by the borrower) to act maliciously. The policy lists Borrowers as trusted and describes providers as borrower-controlled; the report itself concedes the borrower can already achieve the same lockout via blockFromDeposits and a lastProvider can revokeRole outright. Without a policy basis treating a malicious provider as in-scope, the path is not reachable under allowed actors.",
+        "resolves_when": "The contest policy explicitly states that malicious or compromised role providers are in-scope actors, or the judge rules that borrower-appointed providers are not trusted."
+      },
+      {
+        "item": "Demonstration of an impact beyond what the borrower or a lastProvider can already do",
+        "category": "required",
+        "obligation": 3,
+        "why": "The report's own PoC shows the borrower can lock the victim out with blockFromDeposits and a lastProvider can revokeRole. The only novel effect is the two-call sequence, which does not produce a capability the trusted parties lack. Without a distinct impact, the severity claim is unsupported.",
+        "resolves_when": "A concrete scenario is shown where the two-call bypass causes harm that blockFromDeposits and revokeRole cannot, e.g. affecting a lender who is a known lender or affecting withdrawal access."
+      },
+      {
+        "item": "Confirmation that the PoC compiles and runs against the audited commit",
+        "category": "strengthens",
+        "obligation": 5,
+        "why": "The pasted forge output contains a compilation error (`unresolved symbol locals` in SphereXProtectedRegisteredBase.sol) yet reports PASS, which is internally contradictory. However, the code path is verifiable by reading _grantRole, so the claim does not depend on the test executing.",
+        "resolves_when": "A clean forge run without the compilation error is provided."
+      }
+    ]
+  },
+  "decision": {
+    "provider": "serv",
+    "model": "gpt-6-luna",
+    "prompt_guard_requested": true
+  },
+  "usd": 0.007766,
+  "certificate": {
+    "version": 1,
+    "seal_type": "sha256-checksum",
+    "pipeline": "obligations-v3",
+    "contest": "wildcat",
+    "audited_commit": "fe746cc0fbedc4447a981a50e6ba4c95f98b9fe1",
+    "finding_sha256": "958a491acc1e33cef79460c20ba0c85a1828f93e456daf7fa872f7e24b3ec22d",
+    "verdict": "NEEDS_PROOF",
+    "agreement": "unanimous",
+    "route": "automatic",
+    "votes": [
+      {
+        "verdict": "NEEDS_PROOF",
+        "serv_request_id": "51ad966f-9259-4360-b29a-26471cd553d6"
+      },
+      {
+        "verdict": "NEEDS_PROOF",
+        "serv_request_id": "08b2f563-1b50-499a-8949-8e5f9faf4a43"
+      },
+      {
+        "verdict": "NEEDS_PROOF",
+        "serv_request_id": "1389ead5-b701-4a3f-8680-098e7110810d"
+      }
+    ],
+    "decider": "serv/gpt-6-luna",
+    "evidence_model": "deepseek-ai/DeepSeek-V4.1-Flash",
+    "flags": [],
+    "usd": 0.007766,
+    "issued_at": "2026-11-15T15:19:10.199Z"
+  },
+  "seal": "f76edac0d8a1088f7381cda25cf6e388bcf20cbd2ae7798d354ba527bda0d187"
+}

@@ -1,0 +1,130 @@
+{
+  "verdict": "NEEDS_PROOF",
+  "agreement": "split",
+  "route": "human",
+  "severity_supported": "low_or_none",
+  "missing": [
+    {
+      "item": "Resolve whether malicious role providers are in scope despite being borrower-appointed.",
+      "category": "required",
+      "obligation": 2,
+      "why": "The path requires an approved provider to act maliciously. The evidence identifies policy ambiguity about whether providers are covered by the trusted-role treatment of borrowers.",
+      "resolves_when": "The policy or judge confirms role providers are not trusted for this conduct, or otherwise confirms a malicious provider is in scope."
+    },
+    {
+      "item": "Show a concrete consequence of shortening the credential expiry.",
+      "category": "required",
+      "obligation": 3,
+      "why": "The report demonstrates the expiry-change sequence, but does not establish a specific blocked action, resulting loss, or recoverability.",
+      "resolves_when": "Provide a step-by-step scenario showing the victim's credential expiring and a concrete blocked market action, with relevant state or values."
+    }
+  ],
+  "reason": "The passes disagreed (NEEDS_PROOF). Route this report to a human reviewer.",
+  "caps": [
+    "dropped obligation-1 items: code verified every citation resolves in scope"
+  ],
+  "flags": [],
+  "citations": [
+    {
+      "status": "OK",
+      "path": "src/access/FixedTermLoanHooks.sol",
+      "lines": [
+        413,
+        413
+      ],
+      "audited_lines": [
+        413,
+        413
+      ]
+    }
+  ],
+  "votes": [
+    {
+      "verdict": "GUARD_HELD",
+      "severity": null,
+      "request_id": null
+    },
+    {
+      "verdict": "GUARD_HELD",
+      "severity": null,
+      "request_id": null
+    },
+    {
+      "verdict": "NEEDS_PROOF",
+      "severity": "low_or_none",
+      "request_id": "8e314000-d61f-4a9e-acac-2147e6389cdf"
+    }
+  ],
+  "evidence": {
+    "model": "deepseek-ai/DeepSeek-V4.1-Flash",
+    "tokens_read": 86356,
+    "claim": "A role provider can replace another provider's credential by first granting a marginally later expiry (becoming lastProvider), then granting a shorter expiry, bypassing the 'new expiry must be later' restriction.",
+    "root_cause_file": "src/access/FixedTermLoanHooks.sol",
+    "root_cause_line": 426,
+    "code_supports_claim": "yes",
+    "support_reason": "In _grantRole, when status.hasCredential() and lastProvider is still supported, the only guard is `status.lastProvider == msg.sender || newExpiry > oldExpiry` (line 426). After a first grant with newExpiry > oldExpiry, _setCredentialAndEmitAccessGranted (line 469) sets status.lastProvider = msg.sender, so a second grant passes the `status.lastProvider == msg.sender` branch and can set any expiry, including a shorter one. The same logic exists in AccessControlHooks.sol:426.",
+    "blocking_code": [],
+    "poc": "narrative_only",
+    "impact": "accounting_error",
+    "preconditions": [
+      "Attacker is an approved role provider (added by borrower via addRoleProvider)",
+      "Victim account has an existing credential from another provider with a later expiry",
+      "Attacker's provider TTL allows a first grant with expiry > victim's current expiry"
+    ],
+    "trusted_role_required": true,
+    "known_issue_match": "",
+    "missing_evidence": [
+      {
+        "item": "Demonstration that a role provider is an untrusted actor under the contest policy, or that the policy's trusted-role list does not cover role providers acting maliciously",
+        "category": "required",
+        "obligation": 2,
+        "why": "The attack requires an approved role provider to act maliciously. The policy lists Borrowers as trusted and states borrowers determine the conditions/policies under which addresses engage as lenders; role providers are borrower-appointed. If role providers are treated as trusted, the path is excluded by the allowed-actor precondition. The policy does not explicitly name role providers, so this is a genuine ambiguity a judge must resolve.",
+        "resolves_when": "The policy or judge confirms role providers are not trusted actors (or that a malicious provider is in scope)."
+      },
+      {
+        "item": "Concrete impact of the shortened expiry: what the victim loses (e.g., inability to deposit/withdraw/transfer) and whether it is recoverable",
+        "category": "required",
+        "obligation": 3,
+        "why": "The report asserts a restriction bypass but does not show a material effect. A shorter expiry only matters if it blocks a specific market action; the report gives no scenario, amounts, or state showing harm. Without this, the severity/impact obligation is unsupported.",
+        "resolves_when": "A step-by-step scenario shows the victim's credential expiring and a concrete blocked action (deposit/withdraw/transfer) with values."
+      }
+    ]
+  },
+  "decision": {
+    "provider": "serv",
+    "model": "gpt-6-luna",
+    "prompt_guard_requested": true
+  },
+  "usd": 0.003515,
+  "certificate": {
+    "version": 1,
+    "seal_type": "sha256-checksum",
+    "pipeline": "obligations-v3",
+    "contest": "wildcat",
+    "audited_commit": "fe746cc0fbedc4447a981a50e6ba4c95f98b9fe1",
+    "finding_sha256": "69a9767090191616bc05abffcabde45731bcb93f9bc186e8177de88859763d4c",
+    "verdict": "NEEDS_PROOF",
+    "agreement": "split",
+    "route": "human",
+    "votes": [
+      {
+        "verdict": "GUARD_HELD",
+        "serv_request_id": null
+      },
+      {
+        "verdict": "GUARD_HELD",
+        "serv_request_id": null
+      },
+      {
+        "verdict": "NEEDS_PROOF",
+        "serv_request_id": "8e314000-d61f-4a9e-acac-2147e6389cdf"
+      }
+    ],
+    "decider": "serv/gpt-6-luna",
+    "evidence_model": "deepseek-ai/DeepSeek-V4.1-Flash",
+    "flags": [],
+    "usd": 0.003515,
+    "issued_at": "2026-11-15T14:54:20.900Z"
+  },
+  "seal": "83957be6762a7e91993022466640cf3c4f7733980afb22db3311aa51f024d7f4"
+}

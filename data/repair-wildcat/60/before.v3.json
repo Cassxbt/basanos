@@ -1,0 +1,113 @@
+{
+  "verdict": "NEEDS_PROOF",
+  "agreement": "majority",
+  "route": "human",
+  "severity_supported": "low_or_none",
+  "missing": [
+    {
+      "item": "Show that withdrawal should be executable at fixed-term end, or demonstrate a concrete loss caused by the additional wait.",
+      "category": "required",
+      "obligation": 3,
+      "why": "The code supports the extra wait, but the record does not establish that it violates intended behavior or causes an actionable impact.",
+      "resolves_when": "Provide a cited specification or code invariant showing withdrawals should be executable at fixed-term end, or demonstrate a concrete loss such as continued interest or a penalty."
+    }
+  ],
+  "reason": "The cited code supports the timing behavior, but the claimed defect and its impact remain unproven; the record identifies E1 as unresolved.",
+  "caps": [],
+  "flags": [],
+  "citations": [
+    {
+      "status": "OK",
+      "path": "src/access/FixedTermLoanHooks.sol",
+      "lines": [
+        848,
+        848
+      ],
+      "audited_lines": [
+        848,
+        848
+      ]
+    }
+  ],
+  "votes": [
+    {
+      "verdict": "NEEDS_PROOF",
+      "severity": "low_or_none",
+      "request_id": "24b26620-a1fd-4755-a1b8-230815f8a4f8"
+    },
+    {
+      "verdict": "GUARD_HELD",
+      "severity": null,
+      "request_id": null
+    },
+    {
+      "verdict": "NEEDS_PROOF",
+      "severity": "low_or_none",
+      "request_id": "9b9281cc-8f8a-4efa-ae39-94012d9f6480"
+    }
+  ],
+  "evidence": {
+    "model": "deepseek-ai/DeepSeek-V4.1-Flash",
+    "tokens_read": 86254,
+    "claim": "FixedTermLoanHooks.onQueueWithdrawal gates on block.timestamp rather than the batch expiry, forcing lenders to wait an extra withdrawalBatchDuration before withdrawing.",
+    "root_cause_file": "src/access/FixedTermLoanHooks.sol",
+    "root_cause_line": 857,
+    "code_supports_claim": "yes",
+    "support_reason": "onQueueWithdrawal reverts while fixedTermEndTime > block.timestamp (line 857), ignoring the expiry argument. The expiry is set to block.timestamp + withdrawalBatchDuration in _queueWithdrawal (WildcatMarketWithdrawals.sol:95-96), and executeWithdrawal reverts until expiry (line 239). So a lender queuing at term end must wait the batch duration before executing.",
+    "blocking_code": [],
+    "poc": "narrative_only",
+    "impact": "accounting_error",
+    "preconditions": [
+      "Market uses FixedTermLoanHooks with a nonzero withdrawalBatchDuration",
+      "Lender queues withdrawal at/after fixedTermEndTime"
+    ],
+    "trusted_role_required": false,
+    "known_issue_match": "",
+    "missing_evidence": [
+      {
+        "item": "Demonstration that the extra wait is a defect rather than intended fixed-term semantics (the term is a minimum lockup; the batch duration is the standard withdrawal cycle applied to all markets).",
+        "category": "required",
+        "obligation": 3,
+        "why": "The claim's impact is a timing inconvenience; without evidence that the design intends withdrawal to be executable at term end (not merely queueable), the effect does not establish a security impact or severity.",
+        "resolves_when": "A cited spec/doc statement or code invariant shows withdrawals should be executable at fixedTermEndTime, or a concrete loss (e.g., interest/penalty accrual or blocked exit) is shown."
+      }
+    ]
+  },
+  "decision": {
+    "provider": "serv",
+    "model": "gpt-6-luna",
+    "prompt_guard_requested": true
+  },
+  "usd": 0.003873,
+  "certificate": {
+    "version": 1,
+    "seal_type": "sha256-checksum",
+    "pipeline": "obligations-v3",
+    "contest": "wildcat",
+    "audited_commit": "fe746cc0fbedc4447a981a50e6ba4c95f98b9fe1",
+    "finding_sha256": "ba637400b78f0c5c3c79260ce5f17240d412f9dc47ede6841e3f1989bf68a383",
+    "verdict": "NEEDS_PROOF",
+    "agreement": "majority",
+    "route": "human",
+    "votes": [
+      {
+        "verdict": "NEEDS_PROOF",
+        "serv_request_id": "24b26620-a1fd-4755-a1b8-230815f8a4f8"
+      },
+      {
+        "verdict": "GUARD_HELD",
+        "serv_request_id": null
+      },
+      {
+        "verdict": "NEEDS_PROOF",
+        "serv_request_id": "9b9281cc-8f8a-4efa-ae39-94012d9f6480"
+      }
+    ],
+    "decider": "serv/gpt-6-luna",
+    "evidence_model": "deepseek-ai/DeepSeek-V4.1-Flash",
+    "flags": [],
+    "usd": 0.003873,
+    "issued_at": "2026-11-15T14:49:53.042Z"
+  },
+  "seal": "9a236a33728996e39ca820b525b7b44b45bacf30c42105572e899e353cd591a7"
+}
