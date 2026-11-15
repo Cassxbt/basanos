@@ -144,10 +144,10 @@ script: check
       <p class="lede" data-reveal>Basanos asks three times. It gives automatic advice only when all three agree, no code rule had to overrule a model, and the advice is not a “no”. Everything else needs your review. Every verdict is advice, not a guarantee.</p>
     </div>
     <div class="verdicts">
-      <div class="verdict-row" data-reveal><span class="vdot" style="--c:var(--gold)"></span><b>Ready</b><p>The code supports the claim, the proof is in the finding, and it is not a known issue.</p><span class="mono muted">Submit it.</span></div>
+      <div class="verdict-row" data-reveal><span class="vdot" style="--c:var(--gold)"></span><b>Ready</b><p>The code supports the claim, the proof is in the finding, and it is not a known issue.</p><span class="mono muted">Your call; it has not yet said this of a real finding.</span></div>
       <div class="verdict-row" data-reveal><span class="vdot" style="--c:var(--amber)"></span><b>Needs proof</b><p>Plausible, but something is still unshown. The verdict lists the suggested checks.</p><span class="mono muted">Add the listed proof.</span></div>
-      <div class="verdict-row" data-reveal><span class="vdot" style="--c:var(--ash)"></span><b>Blocked by code</b><p>Something in the audited code stops the attack. The verdict names the line.</p><span class="mono muted">Re-check that line.</span></div>
-      <div class="verdict-row" data-reveal><span class="vdot" style="--c:var(--ash)"></span><b>Known or out of scope</b><p>Already in the contest's known issues or bot report, needs a trusted admin to misbehave, or targets code outside scope.</p><span class="mono muted">Usually: don't submit.</span></div>
+      <div class="verdict-row" data-reveal><span class="vdot" style="--c:var(--ash)"></span><b>Blocked by code</b><p>It believes something in the audited code stops the attack, and names the line. Left to your review.</p><span class="mono muted">Re-check that line.</span></div>
+      <div class="verdict-row" data-reveal><span class="vdot" style="--c:var(--ash)"></span><b>Known or out of scope</b><p>It quotes a known issue, bot finding or scope rule it believes applies. Code checks the quote exists, not that it applies.</p><span class="mono muted">Check the quoted rule yourself.</span></div>
       <div class="verdict-row" data-reveal><span class="vdot" style="--c:var(--copper)"></span><b>Citation broken</b><p>No link points at audited code the finding actually talks about. Caught by code, at no cost.</p><span class="mono muted">Fix the links.</span></div>
       <div class="verdict-row" data-reveal><span class="vdot" style="--c:var(--sky)"></span><b>Held for your review</b><p>The text tried to instruct the reviewer, or a screen held it. Nothing was decided.</p><span class="mono muted">Read it yourself.</span></div>
     </div>
@@ -184,7 +184,7 @@ script: check
     <span class="eyebrow" data-reveal>Where to go next</span>
     <div class="directory">
       <a class="dir" href="/judges/" data-reveal><span class="mono gold">01 · Judges</span><b>Break it yourself</b><p>Four live attacks with the expected result written down first, and the rubric mapped to evidence.</p><span class="arrow">→</span></a>
-      <a class="dir" href="/proof/" data-reveal><span class="mono gold">02 · Proof</span><b>Every number, recomputed</b><p>Your browser recomputes each claim from the committed run data, including the results that went against us.</p><span class="arrow">→</span></a>
+      <a class="dir" href="/proof/" data-reveal><span class="mono gold">02 · Proof</span><b>Every claim, checked</b><p>The ledger and the finding tray recompute in your browser; the rest reproduces with npm run verify, including the results that went against us.</p><span class="arrow">→</span></a>
       <a class="dir" href="/how/" data-reveal><span class="mono gold">03 · How it works</span><b>The Touchstone Pass</b><p>What code decides, what Dolphin reads, what SERV guards, and what a check costs.</p><span class="arrow">→</span></a>
       <a class="dir" href="/agents/" data-reveal><span class="mono gold">04 · For agents</span><b>MCP, CLI and API</b><p>Give a bug-hunting agent one tool to call before it submits anything.</p><span class="arrow">→</span></a>
     </div>

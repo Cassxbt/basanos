@@ -18,12 +18,12 @@ Live: **[basanos-nu.vercel.app](https://basanos-nu.vercel.app)** · Judge path: 
 
 ## What a useful answer looks like
 
-Wildcat #11, an awarded finding, as submitted: anyone can call `onQueueWithdrawal` on the access-control hooks for any lender. One of Basanos's v3.1 suggested checks:
+Wildcat #11, an awarded finding: anyone can call `onQueueWithdrawal` on the access-control hooks for any lender. This is the exact checklist Basanos (v3) returned, and the one the repair agent was given:
 
-> **Required (obligation 3).** Evidence that the missing hooked-market check is the cause, rather than the lender's own call also consuming the one-time proof.
-> *Resolves when:* a sequence is shown where the lender's own call would succeed but the attacker's prior call makes it fail.
+> 1. **Required.** Demonstrate a concrete harmful effect from a direct call, such as a provider state change or revert that blocks a legitimate lender action.
+> 2. **Required.** Show that the harm depends on the missing hooked-market check, rather than ordinary front-running of a legitimate market call.
 
-That is the control test a repair agent then wrote. It passes against the unmodified audited code (`data/repair-wildcat/11/`). On Wildcat #49, the checklist asked for impact beyond a documentation mismatch. The agent's test showed there was none, which is the weakness a judge would find.
+The agent's Foundry test does both, against the unmodified audited code (`data/repair-wildcat/11/`). A direct call consumes the victim's one-time credential and their later withdrawal reverts, while a control without the attacker succeeds. The market's own path skips validation for known lenders, which the direct call bypasses. Basanos was then asked again, and it still did not say READY. It narrowed to whether the check is the enabler and whether the assumed provider is realistic. One illustration, not a measure of time saved.
 
 ## What you get
 
@@ -57,9 +57,9 @@ finding ──► 1. code      every GitHub link resolved at its commit against 
 
 1. Open [`/judges`](https://basanos-nu.vercel.app/judges/) and press **Run all four attacks**:
    - fabricated lines: `CITATION_BROKEN`, $0;
-   - a known issue: shown with the rule it relies on;
+   - a known issue: not READY, with bot finding M-1 named, either as the rule it matches or as the overlap to rule out;
    - an injection: left for review;
-   - a fixed bug: `BLOCKED_BY_CODE` at the fix line.
+   - a fixed bug: `BLOCKED_BY_CODE`, with the blocking code in the file the fix changed (a file match, not a line match).
 2. Open [`/proof`](https://basanos-nu.vercel.app/proof/). Your browser recomputes the claims ledger and the 94-finding tray from the committed rows. **Tamper with the data** turns the affected claims red. The held-out, repair and attack tables are computed by `npm run verify`, which the build refuses to skip.
 3. On the [home page](https://basanos-nu.vercel.app/#check), run an example and press **Tamper with it** on the receipt.
 
@@ -116,8 +116,8 @@ Zero unsafe READY is weak evidence while genuine findings never reach READY eith
 
 ### Nulls we publish anyway
 
-- **Outcome prediction.** On Karak, neither decider's AUROC interval excludes report length (SERV 0.683 [0.552, 0.802], Dolphin 0.796 [0.692, 0.916], length 0.661 [0.527, 0.786]). No demonstrated improvement. That is why the output is a checklist, not a score.
-- **SERV as decider.** It is not more accurate than Dolphin deciding on the same evidence.
+- **Outcome prediction.** On Karak, against report length on the same findings (a paired bootstrap resampling duplicate families): Dolphin deciding is ahead by 0.135 AUROC [0.017, 0.280]. SERV deciding is ahead by 0.022 [−0.142, 0.197], no demonstrated difference. Karak is development data, so neither says anything about other contests. That is why the output is a checklist, not a score.
+- **SERV as decider.** It shows no advantage over Dolphin deciding on the same evidence, and unlike Dolphin it shows no demonstrated improvement over report length.
 - **SERV's guard.** It holds clean decision passes, each of which becomes a review. The strict-v1 ablation found no attack that only the guard stopped.
 - **Reppo's evaluator.** It accepted 20/20 sampled verdicts, including every one the contest judge contradicted.
 
@@ -138,7 +138,7 @@ Zero unsafe READY is weak evidence while genuine findings never reach READY eith
 | Release binding | The build refuses unless `claims.json` equals a fresh computation, and the release runs' recorded code and input hashes (snapshots, reports), settings and rows match. Dependency versions are pinned by `package-lock.json` but not hashed. |
 | Repair proofs | Written and run by agents, re-run by us. Not reviewed by an independent auditor. |
 | Customers | None. Hypothesis: hunters paying per check, and platforms triaging intake. Not validated. |
-| Data | Contest source and findings are copied from public Code4rena repositories for research, with attribution in [NOTICE](NOTICE). SERV data collection is on for this workspace, so paste only public findings. |
+| Data | Contest source is copied from the audited commits under each contest's own license (BUSL-1.1 for Karak and Kleidi, Apache 2.0 with Commons Clause for Wildcat), with the license text beside each snapshot. Warden findings are copied from public Code4rena repositories that state no license, with attribution and removal on request. See [NOTICE](NOTICE). SERV data collection is on for this workspace, so paste only public findings. |
 
 ## Run it
 

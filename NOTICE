@@ -1,17 +1,25 @@
-Basanos code is MIT licensed (see LICENSE).
+Basanos code is MIT licensed (see LICENSE). That license does not cover the
+third-party material below, which keeps its own terms.
 
-Third-party material in this repository is not covered by that license. It is copied
-from public repositories for non-commercial research and evaluation, unchanged, and
-remains the property of its authors:
+Contest source code (data/<contest>/snapshot*.json)
+---------------------------------------------------
+Copied unchanged from the audited commit of each Code4rena contest repository for
+non-production research and evaluation. Each license text is kept beside its snapshot.
 
-- Contest source code and documentation in data/*/snapshot*.json and data/*/repo
-  (not committed), from the Code4rena contest repositories
-  code-423n4/2024-07-karak, code-423n4/2024-10-kleidi and code-423n4/2024-08-wildcat,
-  and the sponsor repository solidity-labs-io/kleidi.
-- Audit findings (titles, bodies, labels) in data/*/issues.json and data/*/reports.json,
-  written by the wardens who submitted them, from code-423n4/2024-07-karak-findings,
-  code-423n4/2024-10-kleidi-findings, code-423n4/2024-08-wildcat-findings and
-  code-423n4/2024-10-ronin-findings.
+  Karak    code-423n4/2024-07-karak @ f5e52fdc        Business Source License 1.1,
+           (c) 2024 Andalusia Labs Ltd                 data/karak/CONTEST_LICENSE.txt
+           Per-file identifiers in the snapshot: "SEE LICENSE IN LICENSE" (BUSL-1.1),
+           BUSL-1.1 and MIT.
+  Kleidi   code-423n4/2024-10-kleidi @ ab89bcb4        Business Source License 1.1,
+                                                       data/kleidi/CONTEST_LICENSE.txt
+  Wildcat  code-423n4/2024-08-wildcat @ fe746cc0       Apache 2.0 with Commons Clause,
+                                                       data/wildcat/CONTEST_LICENSE.txt
+           Per-file identifiers in the snapshot: Apache-2.0 and MIT.
 
-None of these repositories states a license. If you are an author and want material
-removed, open an issue and it will be removed.
+Audit findings (data/<contest>/issues.json, reports.json, repair*/original.md)
+-----------------------------------------------------------------------------
+Titles, bodies and labels written by the wardens who submitted them, copied from the
+public repositories code-423n4/2024-07-karak-findings, 2024-10-kleidi-findings,
+2024-08-wildcat-findings and 2024-10-ronin-findings. These repositories state no
+license; this is attribution, not a license grant. If you wrote a finding here and want
+it removed, open an issue and it will be removed.

@@ -2,7 +2,7 @@ import { readFileSync, writeFileSync, existsSync } from "node:fs";
 import type { Report } from "../data/karak.ts";
 import type { Row } from "./run.ts";
 import type { ConsensusRow } from "./consensus.ts";
-import { auroc, clusterBootstrap } from "./score.ts";
+import { auroc, clusterBootstrap, pairedClusterDiff } from "./score.ts";
 import { ordinal } from "../precheck.ts";
 import { route } from "../route.ts";
 import { PIPELINE_VERSION } from "../obligations.ts";
@@ -29,6 +29,8 @@ function policyCoverage(id: string, flatCap?: number) {
 
 // The amendment-7 definition, kept in one place so the published count and its parts cannot drift.
 export const discouraged = (arm: { verdict: string; score: number }) => arm.score === 0 || arm.verdict === "NEEDS_PROOF";
+
+export const forgePassed = (output: string) => /Suite result: ok\./.test(output) && !/Suite result: FAILED|\[FAIL/.test(output);
 
 export const automatic = (row: ConsensusRow, which: "serv" | "dolphin") => route({ ...row[which], flags: row.flags ?? [] }) === "automatic";
 
@@ -163,7 +165,8 @@ export function compute() {
         awarded: (reports.get(n) as Report).awarded,
         before: before.verdict,
         before_route: before.route,
-        poc_passed: status?.poc_passed ?? null,
+        // Whether the final test ran and passed, read from its committed forge output; separate from what it showed.
+        execution_passed: existsSync(`${dir}/${n}/forge-output.txt`) ? forgePassed(readFileSync(`${dir}/${n}/forge-output.txt`, "utf8")) : null,
         // A revision exists only when the executed test supports the finding's claim.
         supports_claim: status ? existsSync(`${dir}/${n}/revised.md`) : null,
         after: after?.verdict ?? null,
@@ -305,6 +308,13 @@ export function compute() {
     baseline_body_length: auc(reports.map((r) => r.body.length)),
     release,
     shipped: shipped.rows,
+    // Paired, family-clustered bootstrap of the AUROC difference against report length on the same Karak findings.
+    shipped_vs_length: shipped.rows && (() => {
+      const byId = new Map(jsonl<ConsensusRow>(`data/runs/${release.development_run}.jsonl`).map((r) => [r.id, r]));
+      const length = reports.map((r) => r.body.length);
+      const diff = (which: "serv" | "dolphin") => pairedClusterDiff(reports.map((r) => byId.get(r.id)![which].score), length, labels, clusters).map(r3);
+      return { serv: diff("serv"), dolphin: diff("dolphin") };
+    })(),
     shipped_source: shipped.source,
     strict_v1: consensusRun("run5"),
     defended_before_contract_fixes: consensusRun("run4"),

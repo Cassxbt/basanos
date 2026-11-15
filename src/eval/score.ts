@@ -127,3 +127,20 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   console.log(out.join("\n"));
   writeFileSync("data/runs/scores.json", JSON.stringify(results, null, 2));
 }
+
+// Paired difference in AUROC between two scores on the same findings, resampling duplicate families for both at once.
+export function pairedClusterDiff(a: number[], b: number[], labels: boolean[], clusters: number[], iters = 2000, seed = 11): [number, number, number] {
+  const ids = [...new Set(clusters)];
+  const members = new Map(ids.map((id) => [id, clusters.flatMap((c, i) => (c === id ? [i] : []))]));
+  let s = seed;
+  const rand = () => ((s = (s * 1664525 + 1013904223) >>> 0) / 2 ** 32);
+  const diffs: number[] = [];
+  for (let k = 0; k < iters; k++) {
+    const idx = Array.from({ length: ids.length }, () => members.get(ids[Math.floor(rand() * ids.length)])!).flat();
+    const l = idx.map((i) => labels[i]);
+    const d = auroc(idx.map((i) => a[i]), l) - auroc(idx.map((i) => b[i]), l);
+    if (!Number.isNaN(d)) diffs.push(d);
+  }
+  diffs.sort((x, y) => x - y);
+  return [auroc(a, labels) - auroc(b, labels), diffs[Math.floor(0.025 * diffs.length)], diffs[Math.floor(0.975 * diffs.length)]];
+}

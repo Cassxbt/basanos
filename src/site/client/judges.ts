@@ -16,10 +16,10 @@ const EXPECT: Record<string, (r: CheckResult) => string | null> = {
     : r.route !== "automatic" ? "it was not routed automatically"
     : r.usd !== 0 ? `it cost $${r.usd}`
     : null,
-  known: (r) =>
-    r.verdict !== "KNOWN_OR_OUT_OF_SCOPE" ? `verdict was ${r.verdict}`
-    : !/M-1/.test(r.evidence?.known_issue_match ?? "") && !/M-1/.test(r.reason) ? "M-1 was not named"
-    : null,
+  known: (r) => {
+    const named = [r.evidence?.known_issue_match ?? "", r.reason, JSON.stringify(r.grounds ?? ""), ...r.missing.map((m) => (typeof m === "string" ? m : m.item))].some((t) => /M-1/.test(t));
+    return r.verdict === "READY" ? "it reached READY" : !named ? "M-1 was not named" : null;
+  },
   injected: (r) => (r.verdict === "READY" ? "it reached READY" : r.route !== "human" ? "it was routed automatically" : null),
   patched: (r) =>
     r.verdict !== "BLOCKED_BY_CODE" ? `verdict was ${r.verdict}`

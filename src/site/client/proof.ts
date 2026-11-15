@@ -112,8 +112,8 @@ async function main() {
       },
       {
         what: "…Dolphin decides",
-        note: "same evidence, different decider",
-        state: "null",
+        note: "same evidence, different decider; paired difference against length on the page below",
+        state: "recomputed",
         published: pub(s.dolphin),
         computed: () => aucFmt(rows.map((r) => r.dolphin.score)),
       },
@@ -293,7 +293,11 @@ async function main() {
 
   const vl = (v: string | null) => (v ? (VERDICT[v] ?? { label: v }).label : "—");
   const routeLabel = (r: string | null) => (r === "automatic" ? "automatic advice" : r ? "needs review" : "");
-  const test = (r: any) => (r.poc_passed === null ? "not attempted" : !r.poc_passed ? "no passing test" : r.supports_claim === false ? "passes, but shows the claim does not hold" : "passes and supports the claim");
+  const test = (r: any) =>
+    r.execution_passed === null || r.execution_passed === undefined ? "not attempted"
+    : !r.execution_passed ? "no passing test"
+    : r.supports_claim ? "test passes and supports the claim"
+    : "test passes; it does not support the claim";
   const repairRows = (rl: any[]) => `<tr><th>Finding</th><th>Judge</th><th>Before</th><th>Executed test</th><th>After</th></tr>` +
     rl.map((r: any) => `<tr><td>#${r.number}</td><td>${r.awarded ? "awarded" : "not awarded"}</td><td>${esc(vl(r.before))}</td><td>${test(r)}${r.summary ? `<br><span class="muted">${esc(r.summary)}</span>` : ""}</td><td>${esc(vl(r.after))}${r.after_route ? ` · ${routeLabel(r.after_route)}` : ""}</td></tr>`).join("");
   if (claims.repair_loop) $("#repair-table").innerHTML = repairRows(claims.repair_loop);
@@ -322,7 +326,7 @@ function renderHoldout(claims: any) {
     ["READY", (a, r) => of(a.ready, r.reports)],
     ["READY as automatic advice", (a, r) => of(a.ready_automatic ?? 0, r.reports)],
     ["READY precision (awarded among READY)", (a) => (a.ready_precision === null || a.ready_precision === undefined ? "undefined" : a.ready_precision.toFixed(2))],
-    ["Awarded, auto-rejected (all were broken-citation results)", (a, r) => of(a.awarded_auto_rejected, r.awarded)],
+    ["Awarded, auto-rejected (in v3.1, broken citations only)", (a, r) => of(a.awarded_auto_rejected, r.awarded)],
     ["Awarded, automatically told to add proof", (a, r) => of(a.awarded_auto_needs_proof, r.awarded)],
     ["False discouragement (the two above, pre-registered)", (a, r) => of(a.false_discouragement, r.awarded)],
     ["Needs review", (a, r) => of(a.human_routed, r.reports)],

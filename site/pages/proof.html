@@ -138,10 +138,10 @@ script: proof
   <div class="wrap">
     <div class="section-head">
       <div>
-        <span class="eyebrow" data-reveal>Held-out contest</span>
-        <h2 class="display h2" data-split style="margin-top:22px">A contest it was never tuned on.</h2>
+        <span class="eyebrow" data-reveal>Wildcat · blind for v3 · diagnostic for v3.1</span>
+        <h2 class="display h2" data-split style="margin-top:22px">A contest v3 was never tuned on.</h2>
       </div>
-      <p class="lede" data-reveal>We froze the pipeline, then picked the next contest by a rule written down first: Code4rena 2024-08 Wildcat, <span data-claim="amendment7.holdout_wildcat.reports">106</span> findings, <span data-claim="amendment7.holdout_wildcat.awarded">22</span> awarded in <span data-claim="amendment7.holdout_wildcat.awarded_families">9</span> duplicate families. The previous version ran on the same findings, so the change is measured on data neither version saw.</p>
+      <p class="lede" data-reveal>We froze the pipeline, then picked the next contest by a rule written down first: Code4rena 2024-08 Wildcat, <span data-claim="amendment7.holdout_wildcat.reports">106</span> findings, <span data-claim="amendment7.holdout_wildcat.awarded">22</span> awarded in <span data-claim="amendment7.holdout_wildcat.awarded_families">9</span> duplicate families. v2 ran on the same findings as a baseline. v3.1, the released version, was built after seeing v3's problems here, so its column is diagnostic, not a holdout.</p>
     </div>
     <div class="panel" style="padding:8px 28px" data-reveal><table class="data" id="holdout-table"></table></div>
     <p class="fine" style="margin-top:16px" data-reveal>Every routing number comes from the production router. Awarded findings in one family are duplicates, not independent tests, so each family is shown below. Labels are contest outcomes.</p>
@@ -173,7 +173,7 @@ script: proof
     </div>
     <div class="crit" data-reveal>
       <h4>Outcomes</h4>
-      <p>As a predictor of the contest outcome, the shipped check shows no demonstrated improvement over report length: AUROC <span data-claim="shipped.serv.auroc" data-format="auc">0.711</span> against <span data-claim="baseline_body_length.auroc" data-format="auc">0.661</span>, intervals overlapping. That is why it gives a missing-evidence checklist, not a score.</p>
+      <p>Against report length on the same Karak findings, with a paired bootstrap that resamples duplicate families for both scores: Dolphin deciding is ahead by <span data-claim="shipped_vs_length.dolphin.0">0.135</span> AUROC [<span data-claim="shipped_vs_length.dolphin.1">0.017</span>, <span data-claim="shipped_vs_length.dolphin.2">0.28</span>]; SERV deciding by <span data-claim="shipped_vs_length.serv.0">0.022</span> [<span data-claim="shipped_vs_length.serv.1">-0.142</span>, <span data-claim="shipped_vs_length.serv.2">0.197</span>], no demonstrated difference. Karak is the development contest, so this says nothing about other contests, and labels are contest outcomes. That is why the output is a checklist, not a score.</p>
       <p class="muted">Labels are contest outcomes. A valid bug can lose as a duplicate or a downgrade.</p>
     </div>
     <div class="crit" data-reveal>
@@ -188,7 +188,7 @@ script: proof
     </div>
     <div class="crit" data-reveal>
       <h4>Scope</h4>
-      <p>Two closed contests. Karak, <span data-claim="dataset.reports">94</span> findings in <span data-claim="dataset.families">47</span> duplicate families, was used to develop the pipeline. Kleidi, <span data-claim="amendment6.holdout_kleidi.reports">52</span> findings with only <span data-claim="amendment6.holdout_kleidi.awarded_families">3</span> awarded families, is the holdout. Suggestive, not general.</p>
+      <p>Three closed contests. Karak, <span data-claim="dataset.reports">94</span> findings in <span data-claim="dataset.families">47</span> duplicate families, was used to develop the pipeline. Kleidi, <span data-claim="amendment6.holdout_kleidi.reports">52</span> findings, was the v2 holdout and is now diagnostic. Wildcat, <span data-claim="amendment7.holdout_wildcat.reports">106</span> findings, was the v3 holdout and is diagnostic for v3.1. Suggestive, not general.</p>
       <p class="muted"><a class="gold" href="https://github.com/Cassxbt/basanos/blob/main/EVAL.md">EVAL.md</a> has the plan and every amendment.</p>
     </div>
   </div>
