@@ -13,34 +13,34 @@
   },
   "shipped": {
     "serv": {
-      "auroc": 0.716,
+      "auroc": 0.653,
       "ci95": [
-        0.592,
-        0.839
+        0.56,
+        0.78
       ],
-      "unanimous": 48,
-      "automatic_rejects": 10,
-      "automatic_rejects_not_awarded": 10,
+      "unanimous": 10,
+      "automatic_rejects": 0,
+      "automatic_rejects_not_awarded": 0,
       "ready": 0,
-      "decision_usd": 0.15242
+      "decision_usd": 0.15764
     },
     "dolphin": {
-      "auroc": 0.784,
+      "auroc": 0.705,
       "ci95": [
-        0.658,
-        0.916
+        0.562,
+        0.852
       ],
-      "unanimous": 57,
-      "automatic_rejects": 17,
-      "automatic_rejects_not_awarded": 15,
+      "unanimous": 62,
+      "automatic_rejects": 11,
+      "automatic_rejects_not_awarded": 9,
       "ready": 0,
-      "decision_usd": 0.00763
+      "decision_usd": 0.01507
     },
-    "front_door_held": 7,
+    "front_door_held": 2,
     "flagged": 0,
-    "usd_per_check": 0.00309
+    "usd_per_check": 0.00331
   },
-  "shipped_source": "run5",
+  "shipped_source": "karak-v2",
   "strict_v1": {
     "serv": {
       "auroc": 0.716,

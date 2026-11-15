@@ -183,5 +183,30 @@
       "src/citations.ts": "1fdec5a4b12e2d63",
       "src/obligations.ts": "4284e598368f0d03"
     }
+  },
+  "karak-v2": {
+    "started": "2026-11-15T11:25:16.593Z",
+    "git": "e581e03fec8d7992bbec409e51bd8a44b563134c",
+    "dirty": true,
+    "ablation": "none",
+    "contest": "karak",
+    "pipeline": "obligations-v2",
+    "passes": 3,
+    "models": {
+      "evidence": "deepseek-ai/DeepSeek-V4.1-Flash",
+      "deciders": [
+        "gpt-6-luna",
+        "deepseek-ai/DeepSeek-V4.1-Flash"
+      ]
+    },
+    "sources": {
+      "src/evidence.ts": "8dd3c94bf49351d9",
+      "src/verdict.ts": "30bdd454b17688de",
+      "src/caps.ts": "1d4db18b7b533ed5",
+      "src/defenses.ts": "1a4ae0c8ce4d675c",
+      "src/precheck.ts": "ffd8dd367d2ca73e",
+      "src/citations.ts": "1fdec5a4b12e2d63",
+      "src/obligations.ts": "4284e598368f0d03"
+    }
   }
 }

@@ -65,12 +65,22 @@ export function toReport(issue: Issue, submitted: Severity | null, prefix: strin
   };
 }
 
+function withRetry<T>(fn: () => T, attempts = 4): T {
+  for (let i = 1; ; i++) {
+    try {
+      return fn();
+    } catch (err) {
+      if (i === attempts) throw err;
+    }
+  }
+}
+
 // Reads each issue's label history once and caches it; GitHub only exposes the submitted severity there.
 export function submittedSeverities(findingsRepo: string, issues: Issue[], cachePath: string): Record<string, Severity | null> {
   if (existsSync(cachePath)) return JSON.parse(readFileSync(cachePath, "utf8"));
   const out: Record<string, Severity | null> = {};
   for (const issue of issues) {
-    const raw = execFileSync("gh", ["api", "--paginate", `repos/${findingsRepo}/issues/${issue.number}/events?per_page=100`], { encoding: "utf8" });
+    const raw = withRetry(() => execFileSync("gh", ["api", "--paginate", `repos/${findingsRepo}/issues/${issue.number}/events?per_page=100`], { encoding: "utf8" }));
     const events: { event: string; label?: { name: string } }[] = JSON.parse(`[${raw.replace(/\]\s*\[/g, ",").slice(1, -1)}]`);
     out[issue.number] = events.filter((e) => e.event === "labeled").map((e) => SEVERITY_LABELS[e.label?.name ?? ""]).find(Boolean) ?? null;
   }
