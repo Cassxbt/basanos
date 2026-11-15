@@ -1,7 +1,7 @@
 <!--
 slug:
-title: Basanos — know what the judge will ask before you submit
-description: Paste a smart-contract audit finding. Basanos checks its code links, reads the whole codebase and the contest's rules, lists the evidence a judge would still ask for, and leaves uncertain calls to your review.
+title: Basanos — review an audit finding against its source and contest rules
+description: Paste a smart-contract audit finding. Basanos checks its code links, reads the whole codebase and the contest's rules, suggests the checks the finding still needs, and leaves uncertain calls to your review.
 nav: home
 script: check
 -->
@@ -34,8 +34,8 @@ script: check
     <div class="hero-grid">
       <div>
         <span class="eyebrow" data-reveal>For smart-contract audit contests</span>
-        <h1 class="display h1" data-split>Know what the judge will ask, <em>before</em> you submit.</h1>
-        <p class="lede" data-reveal>Paste an audit finding. Basanos checks that its code links are real, reads the whole codebase and the contest's rules, and lists the evidence a judge would still ask for. When it is not sure, it says so and leaves the call to you, with what it found.</p>
+        <h1 class="display h1" data-split>Review your finding against its <em>source</em> and the contest rules.</h1>
+        <p class="lede" data-reveal>Paste an audit finding. Basanos checks that its code links are real, reads the whole codebase and the contest's rules, and suggests the checks the finding still needs, each tied to what acceptance depends on. When it is not sure, it says so and leaves the call to you, with what it found.</p>
         <div class="hero-cta" data-reveal>
           <a class="btn" href="#check" data-magnetic>Try it now <span class="arrow">→</span></a>
           <a class="btn ghost" href="#how" data-magnetic>How it works <span class="arrow">↓</span></a>
@@ -44,7 +44,7 @@ script: check
       </div>
       <aside class="hero-aside" data-stagger>
         <div class="fact"><b>≈20s</b><span>per check, about a third of a cent</span></div>
-        <div class="fact"><b>1</b><span>checklist, each item tied to what a judge needs to accept it</span></div>
+        <div class="fact"><b>1</b><span>checklist of suggested checks, each saying what would resolve it</span></div>
         <div class="fact"><b>0</b><span>things submitted for you. It only advises.</span></div>
       </aside>
     </div>
@@ -53,8 +53,8 @@ script: check
 
 <div class="ticker" aria-hidden="true">
   <div class="ticker-track">
-    <span>Code4rena 2024-07 Karak</span><span>94 real findings tested</span><span>checks every code link</span><span>reads every in-scope file</span><span>quotes the contest rule it relies on</span><span>lists the missing proof</span><span>checksummed receipt for every check</span><span>never rejects for you</span>
-    <span>Code4rena 2024-07 Karak</span><span>94 real findings tested</span><span>checks every code link</span><span>reads every in-scope file</span><span>quotes the contest rule it relies on</span><span>lists the missing proof</span><span>checksummed receipt for every check</span><span>never rejects for you</span>
+    <span>Code4rena 2024-07 Karak</span><span>94 real findings tested</span><span>checks every code link</span><span>reads every in-scope file</span><span>quotes the contest rule it relies on</span><span>lists the missing proof</span><span>checksummed receipt for every check</span><span>never submits for you</span>
+    <span>Code4rena 2024-07 Karak</span><span>94 real findings tested</span><span>checks every code link</span><span>reads every in-scope file</span><span>quotes the contest rule it relies on</span><span>lists the missing proof</span><span>checksummed receipt for every check</span><span>never submits for you</span>
   </div>
 </div>
 
@@ -83,7 +83,7 @@ script: check
       <article class="panel plain-step" data-reveal>
         <span class="plain-num">3</span>
         <h3 class="display h3">Get a checklist</h3>
-        <p>The specific evidence a judge would still ask for, a verdict, and whether it needs your review. Every “no”, anything uncertain, and anything where its own two layers disagree is left to you.</p>
+        <p>Suggested checks, a verdict, and whether it needs your review. Every model “no”, anything uncertain, and anything where its own two layers disagree is left to you. A broken code link is flagged automatically, as a link to repair.</p>
         <div class="mini"><span class="c-ash">KNOWN OR OUT OF SCOPE</span><br><span class="muted">missing: a test showing loss beyond M-1</span></div>
       </article>
     </div>
@@ -145,7 +145,7 @@ script: check
     </div>
     <div class="verdicts">
       <div class="verdict-row" data-reveal><span class="vdot" style="--c:var(--gold)"></span><b>Ready</b><p>The code supports the claim, the proof is in the finding, and it is not a known issue.</p><span class="mono muted">Submit it.</span></div>
-      <div class="verdict-row" data-reveal><span class="vdot" style="--c:var(--amber)"></span><b>Needs proof</b><p>Plausible, but a judge would still ask for something. The verdict lists exactly what.</p><span class="mono muted">Add the listed proof.</span></div>
+      <div class="verdict-row" data-reveal><span class="vdot" style="--c:var(--amber)"></span><b>Needs proof</b><p>Plausible, but something is still unshown. The verdict lists the suggested checks.</p><span class="mono muted">Add the listed proof.</span></div>
       <div class="verdict-row" data-reveal><span class="vdot" style="--c:var(--ash)"></span><b>Blocked by code</b><p>Something in the audited code stops the attack. The verdict names the line.</p><span class="mono muted">Re-check that line.</span></div>
       <div class="verdict-row" data-reveal><span class="vdot" style="--c:var(--ash)"></span><b>Known or out of scope</b><p>Already in the contest's known issues or bot report, needs a trusted admin to misbehave, or targets code outside scope.</p><span class="mono muted">Usually: don't submit.</span></div>
       <div class="verdict-row" data-reveal><span class="vdot" style="--c:var(--copper)"></span><b>Citation broken</b><p>No link points at audited code the finding actually talks about. Caught by code, at no cost.</p><span class="mono muted">Fix the links.</span></div>

@@ -55,7 +55,7 @@ export function renderVerdict(r: CheckResult, compact = false): string {
     return `${streakSVG(v.color, 64)}<p class="verdict-word" style="color:${v.color}">${esc(v.label)}</p><div class="verdict-meta">${meta}</div><p class="reason">${esc(r.reason)}</p>`;
   }
   const missing = r.missing.length
-    ? `<div class="block-title">What a judge would still need</div>${checklist(r.missing)}`
+    ? `<div class="block-title">Suggested checks</div>${checklist(r.missing)}`
     : "";
   const g = r.grounds;
   const groundsBlock = !g

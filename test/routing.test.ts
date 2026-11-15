@@ -32,3 +32,11 @@ test("published holdout routing equals production routing on the stored rows", (
     assert.equal(claims.amendment6.holdout_kleidi[which].human_routed, human, which);
   }
 });
+
+test("false discouragement counts an automatic NEEDS_PROOF at any severity, as amendment 7 defines it", async () => {
+  const { discouraged } = await import("../src/eval/claims.ts");
+  assert.equal(discouraged({ verdict: "NEEDS_PROOF", score: 2 }), true);
+  assert.equal(discouraged({ verdict: "NEEDS_PROOF", score: 1 }), true);
+  assert.equal(discouraged({ verdict: "BLOCKED_BY_CODE", score: 0 }), true);
+  assert.equal(discouraged({ verdict: "READY", score: 3 }), false);
+});

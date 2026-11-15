@@ -408,3 +408,11 @@ The copy says "needs your review" instead of "goes to a human". The browser-reco
 ### Amendment 8.1, freeze, 2026-11-15, before any v3.1 check
 
 `obligations-v3.1` is frozen at this commit. Policy coverage under the new budget: every priority document is included whole for Karak, Kleidi and Wildcat. The only shortened document is Karak's `slither.md`, at 12,000 of 24,052 characters. Manifests now also hash `src/source.ts` and `src/eval/consensus.ts`. The partner's four offline probes are regression tests (`test/probes.test.ts`).
+
+### Amendment 8.2, corrections, 2026-11-15, after the milestone-3 v3.1 partner review (no pipeline change)
+
+- **Coverage.** 8.1 was incomplete. Wildcat's `docs/hooks/templates/Access Control Hooks.md` is also shortened, to 12,000 of 18,238 characters, because its file name matches no priority pattern. Every priority document is included whole; not every relevant rule is.
+- **False discouragement** was computed as "automatic and score ≤ 1". That drops `NEEDS_PROOF` at medium or high severity, which scores 2. It is now computed exactly as amendment 7 defines it: awarded findings auto-rejected plus awarded findings automatically told to add proof. Every table was recomputed.
+- **Trusted role.** v3.1 adds an actionable item when the trusted-role cap fires. The cap itself is unchanged: such a finding can never be READY, even if it shows the defense it defeats. Reported as a limitation, not a fix.
+- **Citation relevance.** One awarded Wildcat finding (#121) is automatically `CITATION_BROKEN`. Its link resolves, but the relevance heuristic marked it UNRELATED. A broken-citation result is a request to repair a link, not a rejection of the vulnerability, and it is the one automatic result that bypasses policy review.
+- **Release gate** now also binds the recorded input hashes (snapshot, reports), passes, ablation and pipeline, and checks that each release run has exactly one row per report.

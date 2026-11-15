@@ -27,6 +27,9 @@ function policyCoverage(id: string, flatCap?: number) {
   });
 }
 
+// The amendment-7 definition, kept in one place so the published count and its parts cannot drift.
+export const discouraged = (arm: { verdict: string; score: number }) => arm.score === 0 || arm.verdict === "NEEDS_PROOF";
+
 export const automatic = (row: ConsensusRow, which: "serv" | "dolphin") => route({ ...row[which], flags: row.flags ?? [] }) === "automatic";
 
 export function compute() {
@@ -193,9 +196,11 @@ export function compute() {
         ready_precision: ready.length ? r3(ready.filter(({ r }) => r.awarded).length / ready.length) : null,
         awarded: awarded.length,
         awarded_ready: awarded.filter(({ row }) => row[which].verdict === "READY").length,
-        false_discouragement: awarded.filter(({ row }) => auto(row) && row[which].score <= 1).length,
-        // The two parts of false discouragement: a hard rejection, or an automatic request for more proof.
+        // As defined in amendment 7: awarded findings auto-rejected plus awarded findings automatically told to add proof.
+        false_discouragement: awarded.filter(({ row }) => auto(row) && discouraged(row[which])).length,
         awarded_auto_rejected: awarded.filter(({ row }) => auto(row) && row[which].score === 0).length,
+        // A broken-citation verdict asks for a link repair; it is reported apart from model rejections.
+        awarded_auto_citation: awarded.filter(({ row }) => auto(row) && row[which].verdict === "CITATION_BROKEN").map(({ r }) => r.number),
         awarded_auto_needs_proof: awarded.filter(({ row }) => auto(row) && row[which].verdict === "NEEDS_PROOF").length,
         awarded_known: awarded.filter(({ row }) => row[which].verdict === "KNOWN_OR_OUT_OF_SCOPE").length,
         human_routed: pairs.filter(({ row }) => !auto(row)).length,
