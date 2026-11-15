@@ -1,0 +1,187 @@
+{
+  "run5": {
+    "started": "2026-11-15T10:30:51.917Z",
+    "git": "582cba239dd3fc35e4a9451c84588b12ebbd2f6e",
+    "dirty": false,
+    "ablation": "none",
+    "passes": 3,
+    "models": {
+      "evidence": "deepseek-ai/DeepSeek-V4.1-Flash",
+      "deciders": [
+        "gpt-6-luna",
+        "deepseek-ai/DeepSeek-V4.1-Flash"
+      ]
+    },
+    "sources": {
+      "src/evidence.ts": "12f4fdb5e429336f",
+      "src/verdict.ts": "f73fd25d8a54a4e9",
+      "src/caps.ts": "a305efae47794094",
+      "src/defenses.ts": "1a4ae0c8ce4d675c",
+      "src/precheck.ts": "dee5fb9d5ebd5ba3",
+      "src/citations.ts": "f97ccaf9767bf742"
+    }
+  },
+  "frozen": {
+    "started": "2026-11-15T09:52:02.101Z",
+    "git": "cf52762c39b35a0b3ba197ac6f1a6d22aee85502",
+    "dirty": false,
+    "ablation": "none",
+    "passes": 3,
+    "models": {
+      "evidence": "deepseek-ai/DeepSeek-V4.1-Flash",
+      "deciders": [
+        "gpt-6-luna",
+        "deepseek-ai/DeepSeek-V4.1-Flash"
+      ]
+    },
+    "sources": {
+      "src/evidence.ts": "12f4fdb5e429336f",
+      "src/verdict.ts": "f73fd25d8a54a4e9",
+      "src/caps.ts": "a305efae47794094",
+      "src/defenses.ts": "1a4ae0c8ce4d675c",
+      "src/precheck.ts": "dee5fb9d5ebd5ba3",
+      "src/citations.ts": "f97ccaf9767bf742"
+    }
+  },
+  "frozen-no-front-door": {
+    "started": "2026-11-15T10:31:11.805Z",
+    "git": "582cba239dd3fc35e4a9451c84588b12ebbd2f6e",
+    "dirty": false,
+    "ablation": "no-front-door",
+    "passes": 3,
+    "models": {
+      "evidence": "deepseek-ai/DeepSeek-V4.1-Flash",
+      "deciders": [
+        "gpt-6-luna",
+        "deepseek-ai/DeepSeek-V4.1-Flash"
+      ]
+    },
+    "sources": {
+      "src/evidence.ts": "12f4fdb5e429336f",
+      "src/verdict.ts": "f73fd25d8a54a4e9",
+      "src/caps.ts": "a305efae47794094",
+      "src/defenses.ts": "1a4ae0c8ce4d675c",
+      "src/precheck.ts": "dee5fb9d5ebd5ba3",
+      "src/citations.ts": "f97ccaf9767bf742"
+    }
+  },
+  "frozen-no-scan": {
+    "started": "2026-11-15T10:09:31.231Z",
+    "git": "582cba239dd3fc35e4a9451c84588b12ebbd2f6e",
+    "dirty": false,
+    "ablation": "no-scan",
+    "passes": 3,
+    "models": {
+      "evidence": "deepseek-ai/DeepSeek-V4.1-Flash",
+      "deciders": [
+        "gpt-6-luna",
+        "deepseek-ai/DeepSeek-V4.1-Flash"
+      ]
+    },
+    "sources": {
+      "src/evidence.ts": "12f4fdb5e429336f",
+      "src/verdict.ts": "f73fd25d8a54a4e9",
+      "src/caps.ts": "a305efae47794094",
+      "src/defenses.ts": "1a4ae0c8ce4d675c",
+      "src/precheck.ts": "dee5fb9d5ebd5ba3",
+      "src/citations.ts": "f97ccaf9767bf742"
+    }
+  },
+  "frozen-no-proof-cap": {
+    "started": "2026-11-15T10:31:45.468Z",
+    "git": "582cba239dd3fc35e4a9451c84588b12ebbd2f6e",
+    "dirty": false,
+    "ablation": "no-proof-cap",
+    "passes": 3,
+    "models": {
+      "evidence": "deepseek-ai/DeepSeek-V4.1-Flash",
+      "deciders": [
+        "gpt-6-luna",
+        "deepseek-ai/DeepSeek-V4.1-Flash"
+      ]
+    },
+    "sources": {
+      "src/evidence.ts": "12f4fdb5e429336f",
+      "src/verdict.ts": "f73fd25d8a54a4e9",
+      "src/caps.ts": "a305efae47794094",
+      "src/defenses.ts": "1a4ae0c8ce4d675c",
+      "src/precheck.ts": "dee5fb9d5ebd5ba3",
+      "src/citations.ts": "f97ccaf9767bf742"
+    }
+  },
+  "holdout-kleidi": {
+    "started": "2026-11-15T10:43:49.140Z",
+    "git": "f495836443996bb15ee5f41f70a9e8d5e4fa4c5a",
+    "dirty": true,
+    "ablation": "none",
+    "contest": "kleidi",
+    "pipeline": "obligations-v2",
+    "passes": 3,
+    "models": {
+      "evidence": "deepseek-ai/DeepSeek-V4.1-Flash",
+      "deciders": [
+        "gpt-6-luna",
+        "deepseek-ai/DeepSeek-V4.1-Flash"
+      ]
+    },
+    "sources": {
+      "src/evidence.ts": "8dd3c94bf49351d9",
+      "src/verdict.ts": "30bdd454b17688de",
+      "src/caps.ts": "1d4db18b7b533ed5",
+      "src/defenses.ts": "1a4ae0c8ce4d675c",
+      "src/precheck.ts": "ffd8dd367d2ca73e",
+      "src/citations.ts": "1fdec5a4b12e2d63",
+      "src/obligations.ts": "4284e598368f0d03"
+    }
+  },
+  "attacks-v4-kleidi": {
+    "started": "2026-11-15T10:44:07.619Z",
+    "git": "f495836443996bb15ee5f41f70a9e8d5e4fa4c5a",
+    "dirty": true,
+    "ablation": "none",
+    "contest": "kleidi",
+    "pipeline": "obligations-v2",
+    "passes": 3,
+    "models": {
+      "evidence": "deepseek-ai/DeepSeek-V4.1-Flash",
+      "deciders": [
+        "gpt-6-luna",
+        "deepseek-ai/DeepSeek-V4.1-Flash"
+      ]
+    },
+    "sources": {
+      "src/evidence.ts": "8dd3c94bf49351d9",
+      "src/verdict.ts": "30bdd454b17688de",
+      "src/caps.ts": "1d4db18b7b533ed5",
+      "src/defenses.ts": "1a4ae0c8ce4d675c",
+      "src/precheck.ts": "ffd8dd367d2ca73e",
+      "src/citations.ts": "1fdec5a4b12e2d63",
+      "src/obligations.ts": "4284e598368f0d03"
+    }
+  },
+  "frozen-v2": {
+    "started": "2026-11-15T10:49:53.024Z",
+    "git": "f495836443996bb15ee5f41f70a9e8d5e4fa4c5a",
+    "dirty": true,
+    "ablation": "none",
+    "contest": "karak",
+    "pipeline": "obligations-v2",
+    "passes": 3,
+    "models": {
+      "evidence": "deepseek-ai/DeepSeek-V4.1-Flash",
+      "deciders": [
+        "gpt-6-luna",
+        "deepseek-ai/DeepSeek-V4.1-Flash"
+      ]
+    },
+    "sources": {
+      "src/evidence.ts": "8dd3c94bf49351d9",
+      "src/verdict.ts": "30bdd454b17688de",
+      "src/caps.ts": "1d4db18b7b533ed5",
+      "src/defenses.ts": "1a4ae0c8ce4d675c",
+      "src/precheck.ts": "ffd8dd367d2ca73e",
+      "src/citations.ts": "1fdec5a4b12e2d63",
+      "src/obligations.ts": "4284e598368f0d03"
+    }
+  }
+}
