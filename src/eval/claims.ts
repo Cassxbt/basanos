@@ -5,6 +5,7 @@ import type { ConsensusRow } from "./consensus.ts";
 import { auroc, clusterBootstrap } from "./score.ts";
 import { ordinal } from "../precheck.ts";
 import { route } from "../route.ts";
+import { PIPELINE_VERSION } from "../obligations.ts";
 
 const CLAIMS = "data/claims.json";
 const jsonl = <T>(path: string): T[] => (existsSync(path) ? readFileSync(path, "utf8").trim().split("\n").filter(Boolean).map((l) => JSON.parse(l)) : []);
@@ -153,7 +154,7 @@ export function compute() {
     return rows.length ? rows : null;
   })();
 
-  // Amendment 6 (obligations-v2), reported separately from the strict-v1 history above.
+  // Obligation-based pipelines (amendments 6 and 7), each reported under its own version.
   const v2Run = (file: string, reportsFile: string) => {
     const rows = jsonl<ConsensusRow>(file);
     const reps: Report[] = JSON.parse(readFileSync(reportsFile, "utf8"));
@@ -164,9 +165,13 @@ export function compute() {
       const ready = pairs.filter(({ row }) => row[which].verdict === "READY");
       const awarded = pairs.filter(({ r }) => r.awarded);
       const auto = (row: ConsensusRow) => automatic(row, which);
+      const votes = pairs.flatMap(({ row }) => row[which].votes);
       return {
         ready: ready.length,
+        ready_automatic: ready.filter(({ row }) => auto(row)).length,
         ready_awarded: ready.filter(({ r }) => r.awarded).length,
+        // Undefined, not perfect, when nothing was READY.
+        ready_precision: ready.length ? r3(ready.filter(({ r }) => r.awarded).length / ready.length) : null,
         awarded: awarded.length,
         awarded_ready: awarded.filter(({ row }) => row[which].verdict === "READY").length,
         false_discouragement: awarded.filter(({ row }) => auto(row) && row[which].score <= 1).length,
@@ -177,6 +182,22 @@ export function compute() {
         human_routed: pairs.filter(({ row }) => !auto(row)).length,
         auto_reject_not_awarded: pairs.filter(({ r, row }) => auto(row) && row[which].score === 0 && !r.awarded).length,
         auto_reject: pairs.filter(({ row }) => auto(row) && row[which].score === 0).length,
+        decision_votes: votes.length,
+        decision_votes_guard_held: votes.filter((v) => v.verdict === "GUARD_HELD").length,
+        exclusions_grounded: votes.filter((v) => v.verdict === "KNOWN_OR_OUT_OF_SCOPE").length,
+        exclusions_ungrounded: pairs.flatMap(({ r, row }) => row[which].votes.flatMap((v, i) => (v.caps.some((c) => c.includes("exclusion does not quote")) ? [`${r.id}#${i + 1}`] : []))),
+        // Awarded duplicates are not independent, so each awarded family is also reported on its own.
+        awarded_families: [...new Set(awarded.map(({ r }) => r.family))].sort((a, b) => a - b).map((family) => {
+          const members = awarded.filter(({ r }) => r.family === family);
+          return {
+            family,
+            awarded: members.length,
+            ready: members.filter(({ row }) => row[which].verdict === "READY").length,
+            auto_rejected: members.filter(({ row }) => auto(row) && row[which].score === 0).length,
+            auto_needs_proof: members.filter(({ row }) => auto(row) && row[which].verdict === "NEEDS_PROOF").length,
+            human: members.filter(({ row }) => !auto(row)).length,
+          };
+        }),
       };
     };
     return {
@@ -211,17 +232,34 @@ export function compute() {
     holdout_kleidi: v2Run("data/runs/holdout-kleidi.jsonl", "data/kleidi/reports.json"),
     attacks_v4_kleidi: v2Attacks("data/runs/attacks-v4-kleidi.jsonl"),
     frozen_v3_regression: v2Attacks("data/runs/frozen-v2.jsonl"),
+    karak_regression: v2Run("data/runs/karak-v2.jsonl", "data/karak/reports.json"),
+  };
+  const amendment7 = {
+    pipeline: "obligations-v3",
+    holdout_wildcat: v2Run("data/runs/wildcat-v3.jsonl", "data/wildcat/reports.json"),
+    holdout_wildcat_v2_baseline: v2Run("data/runs/wildcat-v2.jsonl", "data/wildcat/reports.json"),
+    diagnostic_kleidi: v2Run("data/runs/kleidi-v3.jsonl", "data/kleidi/reports.json"),
+    karak_regression: v2Run("data/runs/karak-v3.jsonl", "data/karak/reports.json"),
+    attacks_v5_wildcat: v2Attacks("data/runs/attacks-v5-wildcat.jsonl"),
+    frozen_v3_regression: v2Attacks("data/runs/frozen-v3.jsonl"),
   };
 
   const audit = jsonl<any>("data/runs/reppo-audit.jsonl").filter((a) => a.status === "COMPLETED");
-  const shipped = ["karak-v2", "run5", "run4"].map((source) => ({ source, rows: consensusRun(source) })).find((c) => c.rows)!;
+  // The release names its evidence explicitly; a run from another pipeline version fails the build instead of being relabeled.
+  const release = JSON.parse(readFileSync("data/release.json", "utf8"));
+  const manifest = JSON.parse(readFileSync("data/runs/manifest.json", "utf8"));
+  if (release.pipeline !== PIPELINE_VERSION) throw new Error(`release names ${release.pipeline}, the code is ${PIPELINE_VERSION}`);
+  for (const run of [release.development_run, release.holdout_run]) {
+    if (manifest[run]?.pipeline !== release.pipeline) throw new Error(`release ${release.pipeline} cites ${run}, recorded as ${manifest[run]?.pipeline}`);
+  }
+  const shipped = { source: release.development_run, rows: consensusRun(release.development_run) };
   const run1 = single("run1");
   const run2 = single("run2");
 
   return {
     dataset: { reports: reports.length, awarded: labels.filter(Boolean).length, families: new Set(clusters).size },
     baseline_body_length: auc(reports.map((r) => r.body.length)),
-    // The shipped pipeline is the newest complete run; earlier pipelines stay published under their own names.
+    release,
     shipped: shipped.rows,
     shipped_source: shipped.source,
     strict_v1: consensusRun("run5"),
@@ -253,6 +291,7 @@ export function compute() {
     ablation,
     repair_loop: repair,
     amendment6,
+    amendment7,
     reppo_audit: {
       completed: audit.length,
       accepted: audit.filter((a) => a.decision === "accept").length,
