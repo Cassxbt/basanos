@@ -32,11 +32,12 @@ function mockProviders(evidence: Record<string, unknown>, judgment: Record<strin
 const lyingEvidence = {
   claim: "unsupported", root_cause_file: "missing.sol", root_cause_line: 999999, code_supports_claim: "yes",
   support_reason: "because", blocking_code: [], poc: "runnable_test", impact: "funds_loss", preconditions: [],
-  trusted_role_required: false, known_issue_match: "", missing_evidence: ["No reproduction of the exploit"],
+  trusted_role_required: false, known_issue_match: "",
+  missing_evidence: [{ item: "No reproduction of the exploit", category: "required", obligation: 5, why: "w", resolves_when: "r" }],
 };
 
 test("contradictory READY claims never become READY or route automatically", async () => {
-  mockProviders(lyingEvidence, { verdict: "READY", severity_supported: "high", missing: ["No reproduction of the exploit"], reason: "ready" });
+  mockProviders(lyingEvidence, { verdict: "READY", severity_supported: "high", missing: [{ item: "No reproduction of the exploit", category: "required", obligation: 5, why: "w", resolves_when: "r" }], reason: "ready" });
   const { contest, policy } = loadContest("karak");
   const p = await precheck({ title: "deposit", body }, contest, policy);
   assert.notEqual(p.verdict, "READY");

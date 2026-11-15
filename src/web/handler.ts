@@ -1,6 +1,6 @@
 import type { IncomingMessage, ServerResponse } from "node:http";
 import { CONTESTS, loadContest } from "../contests.ts";
-import { precheck } from "../precheck.ts";
+import { precheck, worstCaseUsd } from "../precheck.ts";
 import { toReport } from "../format.ts";
 import { configureClients } from "../llm.ts";
 
@@ -8,10 +8,9 @@ const MAX_REPORT = 60_000;
 const MAX_TITLE = 300;
 const WINDOW_MS = 10 * 60_000;
 const PER_ADDRESS = 12;
-// Per warm instance, not global: every concurrent request reserves its worst case up front, so one instance
-// cannot overrun this in a window. Cold starts and parallel instances each get their own allowance.
+// Per warm instance, not global: every concurrent request reserves its computed worst case up front, so one
+// instance cannot overrun this in a window. Cold starts and parallel instances each get their own allowance.
 const INSTANCE_BUDGET_USD = 0.5;
-const RESERVE_USD = 0.01;
 const DEADLINE_MS = 52_000;
 
 configureClients({ timeout: 16_000, maxRetries: 0 });
@@ -31,10 +30,10 @@ function overLimit(address: string, now: number): boolean {
   return recent.length > PER_ADDRESS;
 }
 
-function reserve(now: number): { usd: number; at: number } | null {
+function reserve(now: number, usd: number): { usd: number; at: number } | null {
   spent = spent.filter((s) => now - s.at < WINDOW_MS);
-  if (spent.reduce((sum, s) => sum + s.usd, 0) + RESERVE_USD > INSTANCE_BUDGET_USD) return null;
-  const entry = { at: now, usd: RESERVE_USD };
+  if (spent.reduce((sum, s) => sum + s.usd, 0) + usd > INSTANCE_BUDGET_USD) return null;
+  const entry = { at: now, usd };
   spent.push(entry);
   return entry;
 }
@@ -73,17 +72,22 @@ export default async function handler(req: IncomingMessage & { body?: unknown },
     return send(res, 400, { error: `Unknown contest. Known: ${CONTESTS.map((c) => c.id).join(", ")}.` });
   }
 
-  const held = reserve(now);
+  const { contest: c, policy } = loadContest(contest);
+  const held = reserve(now, worstCaseUsd(title.length + report.length, c, policy));
   if (!held) return send(res, 503, { error: "The public demo has reached its spending limit for now. Try again shortly, or run it locally." });
+  const abort = new AbortController();
+  const timer = setTimeout(() => abort.abort(new Error("deadline")), DEADLINE_MS);
   try {
-    const { contest: c, policy } = loadContest(contest);
-    const deadline = new Promise<never>((_, reject) => setTimeout(() => reject(new Error("deadline")), DEADLINE_MS));
-    const result = await Promise.race([precheck({ title, body: report }, c, policy), deadline]);
-    held.usd = result.usd;
+    const result = await precheck({ title, body: report }, c, policy, { signal: abort.signal });
+    // A guard hold reports no usage for the guard's own inference, so the reservation stands.
+    const guardTouched = result.verdict === "GUARD_HELD" || result.votes.some((v) => v.verdict === "GUARD_HELD");
+    if (!guardTouched) held.usd = result.usd;
     return send(res, 200, { ...toReport(result, contest, c.auditedCommit, title, report), ms: Date.now() - now });
   } catch (err) {
     console.error(err);
-    if ((err as Error).message === "deadline") return send(res, 504, { error: "The check took too long. The providers may be slow; try again in a minute." });
+    if (abort.signal.aborted) return send(res, 504, { error: "The check took too long and was cancelled. The providers may be slow; try again in a minute." });
     return send(res, 502, { error: "The check failed upstream. Nothing was stored here; try again." });
+  } finally {
+    clearTimeout(timer);
   }
 }

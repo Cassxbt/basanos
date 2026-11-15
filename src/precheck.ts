@@ -1,9 +1,10 @@
 import { parseCitations, resolveCitation, markUnrelated, type Contest, type ResolvedCitation } from "./citations.ts";
-import { extractEvidence, DOLPHIN_MODEL, type Evidence } from "./evidence.ts";
-import { judge, screen, SERV_MODEL, type Judgment, type ModelVerdict } from "./verdict.ts";
+import { extractEvidence, scopeBundle, DOLPHIN_MODEL, EVIDENCE_MAX_TOKENS, type Evidence } from "./evidence.ts";
+import { judge, screen, SERV_MODEL, JUDGE_MAX_TOKENS, SCREEN_MAX_TOKENS, type Judgment, type ModelVerdict } from "./verdict.ts";
 import { applyCaps } from "./caps.ts";
 import { scanInstructions, proofInReport, capProof } from "./defenses.ts";
-import { GuardBlocked, type Call, type Provider } from "./llm.ts";
+import type { MissingItem } from "./obligations.ts";
+import { GuardBlocked, price, type Call, type Provider } from "./llm.ts";
 
 // GUARD_HELD is not a rejection: Prompt Guard also holds some clean reports, so a human decides.
 export type Verdict = ModelVerdict | "CITATION_BROKEN" | "GUARD_HELD";
@@ -13,7 +14,7 @@ export type Severity = Judgment["severity_supported"];
 export interface Vote {
   verdict: ModelVerdict | "GUARD_HELD";
   severity: Severity | null;
-  missing: string[];
+  missing: MissingItem[];
   reason: string;
   caps: string[];
   evidence: Call<Evidence>;
@@ -24,7 +25,7 @@ export interface Precheck {
   verdict: Verdict;
   agreement: Agreement | null;
   severitySupported: Severity | null;
-  missing: string[];
+  missing: MissingItem[];
   reason: string;
   citations: ResolvedCitation[];
   flags: string[];
@@ -125,9 +126,10 @@ async function vote(
   p: Prepared,
   evidence: Call<Evidence>,
   decider: { provider: Provider; model: string },
+  signal?: AbortSignal,
 ): Promise<Vote> {
   try {
-    const judgment = await judge(decider.provider, decider.model, p.report, summarizeCitations(p.citations), evidence.value);
+    const judgment = await judge(decider.provider, decider.model, p.report, summarizeCitations(p.citations), evidence.value, signal);
     const capped = applyCaps(judgment.value, evidence.value, { flags: p.flags, citations: p.citations, locationExists: p.locationExists });
     return {
       verdict: capped.verdict,
@@ -161,6 +163,7 @@ export async function prepare(
   policy: string,
   k = 3,
   defenses: Defenses = ALL_DEFENSES,
+  signal?: AbortSignal,
 ): Promise<Prepared> {
   const citations = checkCitations(report.body, report.title, contest);
   const locationExists = (file: string, line: number) => {
@@ -176,7 +179,7 @@ export async function prepare(
   let screenUsd = 0;
   if (defenses.frontDoor) {
     try {
-      screenUsd = (await screen(report)).usd;
+      screenUsd = (await screen(report, signal)).usd;
     } catch (err) {
       if (!(err instanceof GuardBlocked)) throw err;
       return { ...base, veto: null, flags, held: err.message };
@@ -184,13 +187,13 @@ export async function prepare(
   }
 
   const shown = proofInReport(report.body);
-  const evidence = (await Promise.all(Array.from({ length: k }, () => extractEvidence(report, citations, contest, policy)))).map(
+  const evidence = (await Promise.all(Array.from({ length: k }, () => extractEvidence(report, citations, contest, policy, signal)))).map(
     (e) => (defenses.proofCap ? { ...e, value: { ...e.value, poc: capProof(e.value.poc, shown) } } : e),
   );
   return { ...base, veto: null, flags, held: null, evidence, usd: screenUsd + evidence.reduce((t, e) => t + e.usd, 0) };
 }
 
-export async function decide(p: Prepared, decider = DEFAULT_DECIDER): Promise<Precheck> {
+export async function decide(p: Prepared, decider = DEFAULT_DECIDER, signal?: AbortSignal): Promise<Precheck> {
   const shared = { citations: p.citations, flags: p.flags, decider, usd: p.usd };
   if (p.veto) return { ...p.veto, ...shared, agreement: null, severitySupported: null, missing: [], votes: [], decider: null };
   if (p.held) {
@@ -204,7 +207,7 @@ export async function decide(p: Prepared, decider = DEFAULT_DECIDER): Promise<Pr
       reason: `SERV Prompt Guard held the finding at the front door (${p.held}). Route it to a human reviewer.`,
     };
   }
-  const votes = await Promise.all(p.evidence.map((e) => vote(p, e, decider)));
+  const votes = await Promise.all(p.evidence.map((e) => vote(p, e, decider, signal)));
   return { ...consensus(votes), ...shared, votes, usd: p.usd + votes.reduce((t, v) => t + (v.judgment?.usd ?? 0), 0) };
 }
 
@@ -212,9 +215,23 @@ export async function precheck(
   report: { title: string; body: string },
   contest: Contest,
   policy: string,
-  opts: { k?: number; decider?: { provider: Provider; model: string } } = {},
+  opts: { k?: number; decider?: { provider: Provider; model: string }; signal?: AbortSignal } = {},
 ): Promise<Precheck> {
-  return decide(await prepare(report, contest, policy, opts.k ?? 3), opts.decider ?? DEFAULT_DECIDER);
+  const p = await prepare(report, contest, policy, opts.k ?? 3, ALL_DEFENSES, opts.signal);
+  return decide(p, opts.decider ?? DEFAULT_DECIDER, opts.signal);
+}
+
+// Upper bound on what one check can bill for the requested models, from max output tokens and a generous
+// input estimate (3 characters per token). Prompt Guard's own inference is not reported in usage, so it is
+// not covered by this bound.
+export function worstCaseUsd(reportChars: number, contest: Contest, policy: string, k = 3): number {
+  const report = reportChars / 3;
+  const evidenceIn = (scopeBundle(contest).length + policy.length) / 3 + report + 2000;
+  const ev = price(DOLPHIN_MODEL), sv = price(SERV_MODEL);
+  const screenUsd = ((report + 3000) * sv.input + SCREEN_MAX_TOKENS * sv.output) / 1e6;
+  const evidenceUsd = k * (evidenceIn * ev.input + EVIDENCE_MAX_TOKENS * ev.output) / 1e6;
+  const judgeUsd = k * ((report + 8000) * sv.input + JUDGE_MAX_TOKENS.serv * sv.output) / 1e6;
+  return screenUsd + evidenceUsd + judgeUsd;
 }
 
 export { DOLPHIN_MODEL, SERV_MODEL };

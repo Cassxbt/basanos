@@ -9,7 +9,7 @@ export interface ArmResult {
   verdict: string;
   severity: string | null;
   reason: string;
-  missing: string[];
+  missing: unknown[];
   requestId: string | null;
   usd: number;
   inputTokens: number;

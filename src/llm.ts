@@ -31,6 +31,7 @@ export interface JsonRequest {
   maxTokens: number;
   promptGuard?: boolean;
   parse: (value: unknown) => unknown;
+  signal?: AbortSignal;
 }
 
 const clients: Partial<Record<Provider, OpenAI>> = {};
@@ -53,6 +54,12 @@ function client(provider: Provider): OpenAI {
     });
   }
   return clients[provider]!;
+}
+
+export function price(model: string) {
+  const p = PRICES[model];
+  if (!p) throw new Error(`no price for ${model}`);
+  return p;
 }
 
 export function cost(model: string, inputTokens: number, outputTokens: number): number {
@@ -89,7 +96,7 @@ export async function callJson<T>(req: JsonRequest): Promise<Call<T>> {
   }
 
   const { data, response } = await client(req.provider)
-    .chat.completions.create(body as unknown as OpenAI.ChatCompletionCreateParamsNonStreaming)
+    .chat.completions.create(body as unknown as OpenAI.ChatCompletionCreateParamsNonStreaming, { signal: req.signal })
     .withResponse();
 
   const message = data.choices[0]?.message;

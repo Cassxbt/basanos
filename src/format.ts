@@ -3,7 +3,7 @@ import { issue } from "./certificate.ts";
 
 // Only a unanimous verdict on text that addresses no one but the reader is routed without a human.
 // A decider that claimed READY and was overruled by code is exactly the case a person should see.
-const overruled = (p: Precheck) => p.votes.some((v) => v.caps.some((c) => c.startsWith("READY capped")));
+const overruled = (p: Precheck) => p.votes.some((v) => v.caps.some((c) => c.startsWith("READY capped") || c.startsWith("layers disagree")));
 
 export const route = (p: Precheck): "automatic" | "human" =>
   p.verdict === "CITATION_BROKEN" || (p.agreement === "unanimous" && p.flags.length === 0 && !overruled(p)) ? "automatic" : "human";
@@ -60,7 +60,7 @@ export function toText(p: Precheck): string {
   if (j.flags.length) lines.push(`(text addressed to the reviewer: ${j.flags.join(", ")})`);
   if (j.missing.length) {
     lines.push("", "Missing before you submit:");
-    j.missing.forEach((m, i) => lines.push(`  ${i + 1}. ${m}`));
+    j.missing.forEach((m, i) => lines.push(`  ${i + 1}. [${m.category}, obligation ${m.obligation}] ${m.item}${m.category === "required" ? `\n     resolves when: ${m.resolves_when}` : ""}`));
   }
   const counts = new Map<string, number>();
   for (const c of j.citations) counts.set(c.status, (counts.get(c.status) ?? 0) + 1);

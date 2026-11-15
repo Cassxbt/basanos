@@ -4,6 +4,10 @@ import { applyCaps } from "../src/caps.ts";
 import { consensus, consensusScore, type Vote } from "../src/precheck.ts";
 import type { Evidence } from "../src/evidence.ts";
 import type { Judgment } from "../src/verdict.ts";
+import type { MissingItem } from "../src/obligations.ts";
+
+const req = (item: string, obligation: MissingItem["obligation"] = 5): MissingItem => ({ item, category: "required", obligation, why: "w", resolves_when: "r" });
+const opt = (item: string, obligation: MissingItem["obligation"] = 3): MissingItem => ({ item, category: "strengthens", obligation, why: "w", resolves_when: "r" });
 
 const evidence: Evidence = {
   claim: "c",
@@ -35,18 +39,29 @@ test("each weakness in the evidence caps READY to NEEDS_PROOF", () => {
     { trusted_role_required: true },
     { poc: "none" },
     { poc: "narrative_only" },
-    { missing_evidence: ["no reproduction"] },
+    { missing_evidence: [req("no reproduction")] },
     { root_cause_file: "missing.sol", root_cause_line: 999999 },
   ];
   for (const w of weak) {
     const r = applyCaps(ready, { ...evidence, ...w }, ctx);
     assert.equal(r.verdict, "NEEDS_PROOF", JSON.stringify(w));
-    assert.equal(r.caps.length, 1);
+    assert.ok(r.caps.some((c) => c.startsWith("READY capped")), JSON.stringify(w));
   }
 });
 
 test("READY is capped when the decision itself lists missing proof", () => {
-  assert.equal(applyCaps({ ...ready, missing: ["a test"] }, evidence, ctx).verdict, "NEEDS_PROOF");
+  assert.equal(applyCaps({ ...ready, missing: [req("a test")] }, evidence, ctx).verdict, "NEEDS_PROOF");
+});
+
+test("items that only strengthen a supported claim do not block READY", () => {
+  const r = applyCaps({ ...ready, missing: [opt("a boundary-case regression test")] }, { ...evidence, missing_evidence: [opt("gas numbers")] }, ctx);
+  assert.equal(r.verdict, "READY");
+  assert.deepEqual(r.caps, []);
+});
+
+test("the decision may not silently drop an obligation the evidence layer requires", () => {
+  const r = applyCaps({ ...ready, verdict: "NEEDS_PROOF", missing: [req("numbers", 3)] }, { ...evidence, missing_evidence: [req("trust model clause", 4)] }, ctx);
+  assert.match(r.caps.join(" "), /layers disagree: evidence requires obligation 4/);
 });
 
 test("READY is capped when any citation does not resolve, even if another does", () => {
@@ -68,7 +83,7 @@ test("informational impact caps severity", () => {
 });
 
 const v = (verdict: Vote["verdict"], severity: Vote["severity"] = "medium") =>
-  ({ verdict, severity, missing: [verdict], reason: verdict, caps: [] }) as unknown as Vote;
+  ({ verdict, severity, missing: [], reason: verdict, caps: [] }) as unknown as Vote;
 
 test("consensus: unanimous, majority, split, all held", () => {
   assert.equal(consensus([v("BLOCKED_BY_CODE"), v("BLOCKED_BY_CODE"), v("BLOCKED_BY_CODE")]).agreement, "unanimous");

@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { callJson, type Call } from "./llm.ts";
+import { MissingItemZ, MISSING_ITEM_SCHEMA, OBLIGATIONS_PROMPT, type MissingItem } from "./obligations.ts";
 import { auditedSnippet, type Contest, type ResolvedCitation } from "./citations.ts";
 
 export const DOLPHIN_MODEL = "deepseek-ai/DeepSeek-V4.1-Flash";
@@ -16,7 +17,7 @@ export interface Evidence {
   preconditions: string[];
   trusted_role_required: boolean;
   known_issue_match: string;
-  missing_evidence: string[];
+  missing_evidence: MissingItem[];
 }
 
 export const EvidenceZ = z.object({
@@ -31,7 +32,7 @@ export const EvidenceZ = z.object({
   preconditions: z.array(z.string()),
   trusted_role_required: z.boolean(),
   known_issue_match: z.string(),
-  missing_evidence: z.array(z.string()),
+  missing_evidence: z.array(MissingItemZ),
 });
 
 const str = { type: "string" };
@@ -65,7 +66,7 @@ export const EVIDENCE_SCHEMA = {
     preconditions: { type: "array", items: str },
     trusted_role_required: { type: "boolean" },
     known_issue_match: str,
-    missing_evidence: { type: "array", items: str },
+    missing_evidence: { type: "array", items: MISSING_ITEM_SCHEMA },
   },
 };
 
@@ -78,8 +79,12 @@ Read the full in-scope source. For the report's central claim:
 - poc: runnable_test only if the report includes executable test code; concrete_steps if it gives specific call sequences and values; narrative_only otherwise.
 - known_issue_match: the bot-report id (e.g. "M-1") or the README known-issue sentence the claim duplicates, or "" if none. Match on root cause, not wording.
 - trusted_role_required: true if the attack needs an owner, admin, or other role the README lists as trusted.
-- missing_evidence: concrete items a judge would still need (e.g. "test showing withdraw succeeds after slashing", "values showing loss exceeds dust"). Empty if nothing is missing.
-Cite line numbers from the numbered source exactly. Be terse.`;
+- missing_evidence: what a judge would still need, each item classified as below. Empty if nothing is missing.
+Cite line numbers from the numbered source exactly. Be terse.
+
+${OBLIGATIONS_PROMPT}`;
+
+export const EVIDENCE_MAX_TOKENS = 3000;
 
 const scopeCache = new WeakMap<Contest, string>();
 
@@ -112,6 +117,7 @@ export async function extractEvidence(
   citations: ResolvedCitation[] | null,
   contest: Contest,
   policy: string,
+  signal?: AbortSignal,
 ): Promise<Call<Evidence>> {
   const user = [
     `# CONTEST POLICY\n${policy}`,
@@ -127,6 +133,7 @@ export async function extractEvidence(
     schemaName: "evidence",
     schema: EVIDENCE_SCHEMA,
     parse: (v) => EvidenceZ.parse(v),
-    maxTokens: 2000,
+    maxTokens: EVIDENCE_MAX_TOKENS,
+    signal,
   });
 }

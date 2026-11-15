@@ -21,9 +21,9 @@ interface Arm {
   verdict: string;
   agreement: string | null;
   score: number;
-  votes: { verdict: string; severity: string | null; requestId: string | null; caps: string[]; usd: number; reason?: string; missing?: string[] }[];
+  votes: { verdict: string; severity: string | null; requestId: string | null; caps: string[]; usd: number; reason?: string; missing?: unknown[] }[];
   reason?: string;
-  missing?: string[];
+  missing?: unknown[];
 }
 
 export interface ConsensusRow {
