@@ -1,0 +1,45 @@
+{
+  "verdict": "CITATION_BROKEN",
+  "agreement": null,
+  "route": "automatic",
+  "severity_supported": null,
+  "missing": [],
+  "reason": "No citation points at audited code the report actually discusses (src/RecoverySpell.sol#L1-L1: UNRELATED).",
+  "caps": [],
+  "flags": [],
+  "citations": [
+    {
+      "status": "UNRELATED",
+      "path": "src/RecoverySpell.sol",
+      "lines": [
+        1,
+        1
+      ],
+      "audited_lines": [
+        1,
+        1
+      ]
+    }
+  ],
+  "votes": [],
+  "decision": null,
+  "usd": 0,
+  "certificate": {
+    "version": 1,
+    "seal_type": "sha256-checksum",
+    "pipeline": "obligations-v2",
+    "contest": "kleidi",
+    "audited_commit": "ab89bcb443249e1524496b694ddb19e298dca799",
+    "finding_sha256": "026884e6793f242f2a01f36ccce41565358f82ae2b83df27c8d69a295bfcb117",
+    "verdict": "CITATION_BROKEN",
+    "agreement": null,
+    "route": "automatic",
+    "votes": [],
+    "decider": null,
+    "evidence_model": null,
+    "flags": [],
+    "usd": 0,
+    "issued_at": "2026-11-15T10:14:13.925Z"
+  },
+  "seal": "e7c7a135bd6b89c195ee0299a38c79f8bb6ed9ca9c693b78bd3f9a1ce6dbda82"
+}

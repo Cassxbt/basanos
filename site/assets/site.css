@@ -647,3 +647,6 @@ table.data td:first-child { color: var(--ink); }
 .flow .spark { filter: drop-shadow(0 0 6px #f2d38e); }
 
 .section + .section { padding-top: clamp(20px, 3vw, 44px); }
+
+.missing li.soft { color: var(--ink-2); }
+.missing .resolves { display: block; margin-top: 6px; font: 400 12px/1.5 var(--mono); color: var(--muted); }

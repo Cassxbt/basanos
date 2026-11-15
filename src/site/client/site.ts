@@ -319,6 +319,19 @@ export const VERDICT = {
   GUARD_HELD: { label: "Held for a human", color: "#86a3c6", chip: "c-sky" },
 } as Record<string, { label: string; color: string; chip: string }>;
 
+export interface Item { item: string; category: "required" | "strengthens"; obligation: number; why: string; resolves_when: string }
+
+const OBLIGATION_LABEL: Record<number, string> = { 1: "scope", 2: "reachability", 3: "impact", 4: "known or excluded", 5: "reproduction" };
+
+// Checklist items are typed from amendment 6 on; earlier runs stored plain strings.
+export function checklist(items: (string | Item)[]): string {
+  const typed = items.map((m) => (typeof m === "string" ? { item: m } as Partial<Item> : m));
+  const ordered = [...typed.filter((m) => m.category === "required"), ...typed.filter((m) => m.category !== "required")];
+  return `<ol class="missing">${ordered.map((m) => `<li${m.category === "strengthens" ? ' class="soft"' : ""}>${
+    m.category ? `<span class="chip ${m.category === "required" ? "c-amber" : "c-ash"}" style="margin-right:8px">${m.category}${m.obligation ? ` · ${OBLIGATION_LABEL[m.obligation] ?? m.obligation}` : ""}</span>` : ""
+  }${esc(m.item)}${m.category === "required" && m.resolves_when ? `<span class="resolves">resolves when: ${esc(m.resolves_when)}</span>` : ""}</li>`).join("")}</ol>`;
+}
+
 export const esc = (s: unknown) =>
   String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]!);
 

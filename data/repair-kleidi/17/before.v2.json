@@ -1,0 +1,157 @@
+{
+  "verdict": "KNOWN_OR_OUT_OF_SCOPE",
+  "agreement": "majority",
+  "route": "human",
+  "severity_supported": "low_or_none",
+  "missing": [
+    {
+      "item": "Demonstrate that the intended index semantics are inclusive (end index = last byte), not exclusive (end index = one past last byte). The audited code (Timelock.sol:1136, BytesHelper.sol:50) and the report's own 'correct' test are mutually inconsistent: the report's fix would break the audited code's own length check, and the audited code's semantics make the report's 'correct' test revert.",
+      "category": "required",
+      "obligation": 5,
+      "why": "The claim rests on an unresolved contradictory premise about whether endIndex is inclusive. If exclusive (as the code implements), the 'bug' is a misconfiguration by the cold signer, not a code defect, and the demonstrated revert is expected behavior. Without resolving this, the reproduction does not support the stated claim.",
+      "resolves_when": "A test on the audited commit shows a calldata check that the code's own length rule accepts (data[i].length == endIndex - startIndex) yet still reverts at BytesHelper.sol:50, or docs/README state endIndex is inclusive."
+    },
+    {
+      "item": "Show a concrete impact beyond 'the whitelisted call reverts': e.g. funds locked, a required whitelist impossible to configure, or a security-relevant denial. A revert of a misconfigured whitelist is a usability/DoS-by-misconfiguration issue.",
+      "category": "required",
+      "obligation": 3,
+      "why": "The demonstrated effect is a revert of a call the cold signer chose to configure with (per the code) wrong indices. That does not by itself support a security impact; the report must show the code forces an unavoidable revert for a legitimate configuration.",
+      "resolves_when": "A test shows a configuration that satisfies all audited require checks (including Timelock.sol:1136) but still reverts in executeWhitelisted, or a documented impact of the misconfiguration."
+    },
+    {
+      "item": "Confirm the cold-signer configuration is not itself the trusted-role action that the README treats as trusted (cold signers are trusted).",
+      "category": "strengthens",
+      "obligation": 2,
+      "why": "Cold signers are listed as trusted; if the only trigger is a cold signer passing wrong indices, the path is a trusted-role misconfiguration, which weakens but does not by itself defeat a code-defect claim if the code truly forces the revert.",
+      "resolves_when": "Report states whether the revert occurs for a configuration the code's own checks accept."
+    }
+  ],
+  "reason": "The reported scenario depends on cold signers configuring the calldata checks, and the evidence identifies cold signers as trusted. The cited code uses exclusive-end length semantics; the PoC’s proposed corrected indices conflict with that rule.",
+  "caps": [
+    "layers disagree: evidence requires obligation 5, 3, the decision does not",
+    "layers disagree: evidence requires obligation 3, the decision does not",
+    "layers disagree: evidence requires obligation 3, 4, the decision does not"
+  ],
+  "flags": [],
+  "citations": [
+    {
+      "status": "OK",
+      "path": "src/Timelock.sol",
+      "lines": [
+        1136,
+        1136
+      ],
+      "audited_lines": [
+        1136,
+        1136
+      ]
+    },
+    {
+      "status": "OK",
+      "path": "src/BytesHelper.sol",
+      "lines": [
+        50,
+        50
+      ],
+      "audited_lines": [
+        50,
+        50
+      ]
+    }
+  ],
+  "votes": [
+    {
+      "verdict": "KNOWN_OR_OUT_OF_SCOPE",
+      "severity": "low_or_none",
+      "request_id": "7a1c35e1-c8c9-4363-9ad7-6e4426ab51d9"
+    },
+    {
+      "verdict": "BLOCKED_BY_CODE",
+      "severity": "low_or_none",
+      "request_id": "513cddcd-f143-433a-82b6-a83950aed807"
+    },
+    {
+      "verdict": "KNOWN_OR_OUT_OF_SCOPE",
+      "severity": "low_or_none",
+      "request_id": "74e6cea7-eaba-4723-ae8a-0ef8755315d7"
+    }
+  ],
+  "evidence": {
+    "model": "deepseek-ai/DeepSeek-V4.1-Flash",
+    "tokens_read": 36199,
+    "claim": "Calldata-check index handling treats (endIndex - startIndex) as a length without +1, so a check covering a full 32-byte parameter (e.g. uint256 max) cannot be configured correctly and the whitelisted call reverts.",
+    "root_cause_file": "src/Timelock.sol",
+    "root_cause_line": 1136,
+    "code_supports_claim": "yes",
+    "support_reason": "Timelock.sol:1136 requires data[i].length == endIndex - startIndex, and BytesHelper.sol:50 computes length = end - start; both treat the end index as exclusive. The report's own 'correct' test uses endIdx=35 for a 20-byte address (16..35 inclusive) and endIdx=67 for a 32-byte word (36..67 inclusive), which under the audited code would fail the length check (35-16=19 != 20; 67-36=31 != 32). So the audited code is internally consistent with exclusive-end semantics, and the report's premise that indices are inclusive is contradicted by the code it cites.",
+    "blocking_code": [],
+    "poc": "runnable_test",
+    "impact": "accounting_error",
+    "preconditions": [
+      "cold signers (timelock/safe) configure a calldata check whose covered segment is a full 32-byte parameter",
+      "hot signer executes the whitelisted call"
+    ],
+    "trusted_role_required": true,
+    "known_issue_match": "",
+    "missing_evidence": [
+      {
+        "item": "Demonstrate that the intended index semantics are inclusive (end index = last byte), not exclusive (end index = one past last byte). The audited code (Timelock.sol:1136, BytesHelper.sol:50) and the report's own 'correct' test are mutually inconsistent: the report's fix would break the audited code's own length check, and the audited code's semantics make the report's 'correct' test revert.",
+        "category": "required",
+        "obligation": 5,
+        "why": "The claim rests on an unresolved contradictory premise about whether endIndex is inclusive. If exclusive (as the code implements), the 'bug' is a misconfiguration by the cold signer, not a code defect, and the demonstrated revert is expected behavior. Without resolving this, the reproduction does not support the stated claim.",
+        "resolves_when": "A test on the audited commit shows a calldata check that the code's own length rule accepts (data[i].length == endIndex - startIndex) yet still reverts at BytesHelper.sol:50, or docs/README state endIndex is inclusive."
+      },
+      {
+        "item": "Show a concrete impact beyond 'the whitelisted call reverts': e.g. funds locked, a required whitelist impossible to configure, or a security-relevant denial. A revert of a misconfigured whitelist is a usability/DoS-by-misconfiguration issue.",
+        "category": "required",
+        "obligation": 3,
+        "why": "The demonstrated effect is a revert of a call the cold signer chose to configure with (per the code) wrong indices. That does not by itself support a security impact; the report must show the code forces an unavoidable revert for a legitimate configuration.",
+        "resolves_when": "A test shows a configuration that satisfies all audited require checks (including Timelock.sol:1136) but still reverts in executeWhitelisted, or a documented impact of the misconfiguration."
+      },
+      {
+        "item": "Confirm the cold-signer configuration is not itself the trusted-role action that the README treats as trusted (cold signers are trusted).",
+        "category": "strengthens",
+        "obligation": 2,
+        "why": "Cold signers are listed as trusted; if the only trigger is a cold signer passing wrong indices, the path is a trusted-role misconfiguration, which weakens but does not by itself defeat a code-defect claim if the code truly forces the revert.",
+        "resolves_when": "Report states whether the revert occurs for a configuration the code's own checks accept."
+      }
+    ]
+  },
+  "decision": {
+    "provider": "serv",
+    "model": "gpt-6-luna",
+    "prompt_guard_requested": true
+  },
+  "usd": 0.003552,
+  "certificate": {
+    "version": 1,
+    "seal_type": "sha256-checksum",
+    "pipeline": "obligations-v2",
+    "contest": "kleidi",
+    "audited_commit": "ab89bcb443249e1524496b694ddb19e298dca799",
+    "finding_sha256": "532ab9bb036d6283603d212af1c42ff1265ec0ad4d2713beb700eb2d86542c27",
+    "verdict": "KNOWN_OR_OUT_OF_SCOPE",
+    "agreement": "majority",
+    "route": "human",
+    "votes": [
+      {
+        "verdict": "KNOWN_OR_OUT_OF_SCOPE",
+        "serv_request_id": "7a1c35e1-c8c9-4363-9ad7-6e4426ab51d9"
+      },
+      {
+        "verdict": "BLOCKED_BY_CODE",
+        "serv_request_id": "513cddcd-f143-433a-82b6-a83950aed807"
+      },
+      {
+        "verdict": "KNOWN_OR_OUT_OF_SCOPE",
+        "serv_request_id": "74e6cea7-eaba-4723-ae8a-0ef8755315d7"
+      }
+    ],
+    "decider": "serv/gpt-6-luna",
+    "evidence_model": "deepseek-ai/DeepSeek-V4.1-Flash",
+    "flags": [],
+    "usd": 0.003552,
+    "issued_at": "2026-11-15T10:14:35.485Z"
+  },
+  "seal": "25a5ed05a901fc9e8a34cee2f3fb82b49a828e377020ea3e0a87bd4d91f9b9f7"
+}

@@ -1,0 +1,169 @@
+{
+  "verdict": "KNOWN_OR_OUT_OF_SCOPE",
+  "agreement": "majority",
+  "route": "human",
+  "severity_supported": "low_or_none",
+  "missing": [
+    {
+      "item": "Reachability under allowed actors: the attack requires compromised cold signers (safe owners) to call schedule(), which is onlySafe (Timelock.sol:527). The README lists cold signers as trusted and states that malicious/compromised cold signers can compromise the system.",
+      "category": "required",
+      "obligation": 2,
+      "why": "The only actor able to create proposals is the safe (trusted cold signers). The contest policy treats compromised cold signers as a known, out-of-scope condition, so the demonstrated path is not reachable by an untrusted actor.",
+      "resolves_when": "A path is shown where an untrusted actor (not the safe, not a hot signer, not the guardian) can create proposals, or the policy is shown to allow compromised cold signers as an attack actor."
+    },
+    {
+      "item": "Impact/severity: the report's economic argument assumes the victim cannot use Kleidi funds for gas and holds ~95% of liquidity inside; no on-chain effect (loss of funds) is demonstrated, only relative gas costs.",
+      "category": "required",
+      "obligation": 3,
+      "why": "The stated impact (drain of 0.95*F) depends on an unproven off-chain assumption about the victim's gas reserves; the code itself does not lose funds, and the report concedes the attack is only profitable under that assumption. Without it the effect is at most a gas-cost griefing, not a fund loss.",
+      "resolves_when": "A concrete scenario is shown where the victim provably cannot pay to cancel (e.g., a protocol-level constraint forcing gas from outside funds) and funds are actually lost."
+    },
+    {
+      "item": "Known-issue overlap: the README known issues include 'a malicious pauser can cancel all in flight proposals ... effectively locking funds' and 'if the cold signers are malicious or compromised, they can execute transactions to compromise the system'.",
+      "category": "required",
+      "obligation": 4,
+      "why": "The griefing relies on compromised cold signers and on the pause/cancel clearing mechanism, both of which are explicitly listed as known issues in the contest policy, making the finding ineligible.",
+      "resolves_when": "The claim is shown to have a root cause distinct from the listed known issues (e.g., an untrusted actor path or a mechanism not covered by the known-issue text)."
+    },
+    {
+      "item": "Executed reproduction: the provided test is a gas-measurement snippet, not an executed end-to-end exploit, and it does not demonstrate any fund loss.",
+      "category": "strengthens",
+      "obligation": 5,
+      "why": "The code path (schedule spam + pause/cancel) is evident from the source, so a runnable exploit is not strictly needed to see the mechanism; it would only strengthen the impact argument.",
+      "resolves_when": "A runnable test shows the full attack and a resulting loss."
+    }
+  ],
+  "reason": "Creating proposals requires the safe, whose cold signers are identified as trusted. The report’s attack depends on their compromise, and the evidence record identifies that condition and the pause/cancellation mechanism as covered by known issues.",
+  "caps": [
+    "layers disagree: evidence requires obligation 2, 3, 4, the decision does not"
+  ],
+  "flags": [],
+  "citations": [
+    {
+      "status": "OK",
+      "path": "src/Timelock.sol",
+      "lines": [
+        512,
+        539
+      ],
+      "audited_lines": [
+        512,
+        539
+      ]
+    },
+    {
+      "status": "OK",
+      "path": "src/Timelock.sol",
+      "lines": [
+        652,
+        665
+      ],
+      "audited_lines": [
+        652,
+        665
+      ]
+    }
+  ],
+  "votes": [
+    {
+      "verdict": "KNOWN_OR_OUT_OF_SCOPE",
+      "severity": "low_or_none",
+      "request_id": "f6ea38e1-a8a9-4e6a-856f-be6453a64775"
+    },
+    {
+      "verdict": "KNOWN_OR_OUT_OF_SCOPE",
+      "severity": "low_or_none",
+      "request_id": "d8e5964e-e180-4434-b438-578e8d5a81d2"
+    },
+    {
+      "verdict": "GUARD_HELD",
+      "severity": null,
+      "request_id": null
+    }
+  ],
+  "evidence": {
+    "model": "deepseek-ai/DeepSeek-V4.1-Flash",
+    "tokens_read": 35834,
+    "claim": "Compromised safe owners can spam schedule() with many salts; cancelling (via pause guardian pause() or safe cancel()) costs the victim gas, enabling a gas-griefing/drain when most funds are locked in Kleidi.",
+    "root_cause_file": "src/Timelock.sol",
+    "root_cause_line": 521,
+    "code_supports_claim": "yes",
+    "support_reason": "schedule() is onlySafe (line 527) and each unique salt yields a distinct id (line 528) added to _liveProposals (line 532); pause() (line 687) iterates and deletes all live proposals (lines 691-699), and cancel() (line 657) is per-id. So a safe owner can create unbounded proposals and the victim must pay gas to clear them. The path is reachable, but only by the safe (i.e., threshold of cold signers), which the README lists as trusted.",
+    "blocking_code": [],
+    "poc": "narrative_only",
+    "impact": "unclear",
+    "preconditions": [
+      "threshold cold signers compromised (trusted role)",
+      "victim holds most liquidity inside Kleidi and little gas outside"
+    ],
+    "trusted_role_required": true,
+    "known_issue_match": "",
+    "missing_evidence": [
+      {
+        "item": "Reachability under allowed actors: the attack requires compromised cold signers (safe owners) to call schedule(), which is onlySafe (Timelock.sol:527). The README lists cold signers as trusted and states that malicious/compromised cold signers can compromise the system.",
+        "category": "required",
+        "obligation": 2,
+        "why": "The only actor able to create proposals is the safe (trusted cold signers). The contest policy treats compromised cold signers as a known, out-of-scope condition, so the demonstrated path is not reachable by an untrusted actor.",
+        "resolves_when": "A path is shown where an untrusted actor (not the safe, not a hot signer, not the guardian) can create proposals, or the policy is shown to allow compromised cold signers as an attack actor."
+      },
+      {
+        "item": "Impact/severity: the report's economic argument assumes the victim cannot use Kleidi funds for gas and holds ~95% of liquidity inside; no on-chain effect (loss of funds) is demonstrated, only relative gas costs.",
+        "category": "required",
+        "obligation": 3,
+        "why": "The stated impact (drain of 0.95*F) depends on an unproven off-chain assumption about the victim's gas reserves; the code itself does not lose funds, and the report concedes the attack is only profitable under that assumption. Without it the effect is at most a gas-cost griefing, not a fund loss.",
+        "resolves_when": "A concrete scenario is shown where the victim provably cannot pay to cancel (e.g., a protocol-level constraint forcing gas from outside funds) and funds are actually lost."
+      },
+      {
+        "item": "Known-issue overlap: the README known issues include 'a malicious pauser can cancel all in flight proposals ... effectively locking funds' and 'if the cold signers are malicious or compromised, they can execute transactions to compromise the system'.",
+        "category": "required",
+        "obligation": 4,
+        "why": "The griefing relies on compromised cold signers and on the pause/cancel clearing mechanism, both of which are explicitly listed as known issues in the contest policy, making the finding ineligible.",
+        "resolves_when": "The claim is shown to have a root cause distinct from the listed known issues (e.g., an untrusted actor path or a mechanism not covered by the known-issue text)."
+      },
+      {
+        "item": "Executed reproduction: the provided test is a gas-measurement snippet, not an executed end-to-end exploit, and it does not demonstrate any fund loss.",
+        "category": "strengthens",
+        "obligation": 5,
+        "why": "The code path (schedule spam + pause/cancel) is evident from the source, so a runnable exploit is not strictly needed to see the mechanism; it would only strengthen the impact argument.",
+        "resolves_when": "A runnable test shows the full attack and a resulting loss."
+      }
+    ]
+  },
+  "decision": {
+    "provider": "serv",
+    "model": "gpt-6-luna",
+    "prompt_guard_requested": true
+  },
+  "usd": 0.002479,
+  "certificate": {
+    "version": 1,
+    "seal_type": "sha256-checksum",
+    "pipeline": "obligations-v2",
+    "contest": "kleidi",
+    "audited_commit": "ab89bcb443249e1524496b694ddb19e298dca799",
+    "finding_sha256": "99d8a67506b89dca9189667c37dea2c876f502902450923f6ce43c564ad4dbbc",
+    "verdict": "KNOWN_OR_OUT_OF_SCOPE",
+    "agreement": "majority",
+    "route": "human",
+    "votes": [
+      {
+        "verdict": "KNOWN_OR_OUT_OF_SCOPE",
+        "serv_request_id": "f6ea38e1-a8a9-4e6a-856f-be6453a64775"
+      },
+      {
+        "verdict": "KNOWN_OR_OUT_OF_SCOPE",
+        "serv_request_id": "d8e5964e-e180-4434-b438-578e8d5a81d2"
+      },
+      {
+        "verdict": "GUARD_HELD",
+        "serv_request_id": null
+      }
+    ],
+    "decider": "serv/gpt-6-luna",
+    "evidence_model": "deepseek-ai/DeepSeek-V4.1-Flash",
+    "flags": [],
+    "usd": 0.002479,
+    "issued_at": "2026-11-15T10:14:35.260Z"
+  },
+  "seal": "4b33e105320d2ea4e0dacc5029bf4de51cfb23f0473e7224244f9c477fb7f257"
+}

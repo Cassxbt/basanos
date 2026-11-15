@@ -158,6 +158,62 @@ export function compute() {
     return rows.length ? rows : null;
   })();
 
+  // Amendment 6 (obligations-v2), reported separately from the strict-v1 history above.
+  const v2Run = (file: string, reportsFile: string) => {
+    const rows = jsonl<ConsensusRow>(file);
+    const reps: Report[] = JSON.parse(readFileSync(reportsFile, "utf8"));
+    if (!rows.length || rows.length !== reps.length) return null;
+    const byId = new Map(rows.map((r) => [r.id, r]));
+    const arm = (which: "serv" | "dolphin") => {
+      const pairs = reps.map((r) => ({ r, row: byId.get(r.id)! }));
+      const ready = pairs.filter(({ row }) => row[which].verdict === "READY");
+      const awarded = pairs.filter(({ r }) => r.awarded);
+      const auto = (row: ConsensusRow) => !!row.vetoed || automatic(row, which);
+      return {
+        ready: ready.length,
+        ready_awarded: ready.filter(({ r }) => r.awarded).length,
+        awarded: awarded.length,
+        awarded_ready: awarded.filter(({ row }) => row[which].verdict === "READY").length,
+        false_discouragement: awarded.filter(({ row }) => auto(row) && row[which].score <= 1).length,
+        human_routed: pairs.filter(({ row }) => !auto(row)).length,
+        auto_reject_not_awarded: pairs.filter(({ r, row }) => auto(row) && row[which].score === 0 && !r.awarded).length,
+        auto_reject: pairs.filter(({ row }) => auto(row) && row[which].score === 0).length,
+      };
+    };
+    return {
+      reports: reps.length,
+      awarded: reps.filter((r) => r.awarded).length,
+      awarded_families: new Set(reps.filter((r) => r.awarded).map((r) => r.family)).size,
+      families: new Set(reps.map((r) => r.family)).size,
+      front_door_held: rows.filter((r) => r.frontDoorHeld).length,
+      flagged: rows.filter((r) => r.flags?.length).length,
+      serv: arm("serv"),
+      dolphin: arm("dolphin"),
+      usd_per_check: r5(rows.reduce((t, r) => t + r.evidenceUsd + r.serv.votes.reduce((u, v) => u + v.usd, 0), 0) / rows.length),
+    };
+  };
+  const v2Attacks = (file: string) => {
+    const rows = jsonl<ConsensusRow>(file);
+    if (rows.length !== 70) return null;
+    const injected = rows.filter((r) => r.id.split("-").length > 2);
+    const clean = rows.filter((r) => r.id.split("-").length === 2);
+    return {
+      injected: injected.length,
+      unsafe: { serv: injected.filter((r) => unsafe(r, "serv")).length, dolphin: injected.filter((r) => unsafe(r, "dolphin")).length },
+      ready: { serv: injected.filter((r) => r.serv.verdict === "READY").length, dolphin: injected.filter((r) => r.dolphin.verdict === "READY").length },
+      front_door_held: injected.filter((r) => r.frontDoorHeld).length,
+      flagged: injected.filter((r) => r.flags?.length).length,
+      clean: clean.length,
+      clean_held_or_flagged: clean.filter((r) => r.frontDoorHeld || r.flags?.length).length,
+    };
+  };
+  const amendment6 = {
+    pipeline: "obligations-v2",
+    holdout_kleidi: v2Run("data/runs/holdout-kleidi.jsonl", "data/kleidi/reports.json"),
+    attacks_v4_kleidi: v2Attacks("data/runs/attacks-v4-kleidi.jsonl"),
+    frozen_v3_regression: v2Attacks("data/runs/frozen-v2.jsonl"),
+  };
+
   const audit = jsonl<any>("data/runs/reppo-audit.jsonl").filter((a) => a.status === "COMPLETED");
   const run1 = single("run1");
   const run2 = single("run2");
@@ -194,6 +250,7 @@ export function compute() {
     hostile_v3_defended_blind: hostile("hostile3"),
     ablation,
     repair_loop: repair,
+    amendment6,
     reppo_audit: {
       completed: audit.length,
       accepted: audit.filter((a) => a.decision === "accept").length,

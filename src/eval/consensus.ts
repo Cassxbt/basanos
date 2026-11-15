@@ -182,6 +182,14 @@ if (import.meta.url === `file://${process.argv[1]}`) {
     const base = hostileSet(reports).map((h) => reports.find((r) => r.id === h.source)!);
     const items = base.flatMap((r) => Object.entries(payloads).map(([p, text]) => ({ id: `${r.id}-${p}`, title: r.title, body: r.body + text })));
     await run(name, [...base, ...items]);
+  } else if (cmd === "attacks") {
+    // Any payload file against the current contest: the ten lowest-numbered unawarded reports, clean and injected.
+    const file = process.env.BASANOS_PAYLOADS;
+    if (!file) throw new Error("set BASANOS_PAYLOADS to a payload file");
+    const payloads: Record<string, string> = JSON.parse(readFileSync(file, "utf8"));
+    const base = hostileSet(reports).map((h) => reports.find((r) => r.id === h.source)!);
+    const items = base.flatMap((r) => Object.entries(payloads).map(([p, text]) => ({ id: `${r.id}-${p}`, title: r.title, body: r.body + text })));
+    await run(name, [...base, ...items]);
   } else if (cmd === "score") score(name);
   else console.error("usage: consensus.ts run|hostile|score <name>");
 }

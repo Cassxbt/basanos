@@ -1,8 +1,8 @@
 .env
 .keys/
-node_modules/
+node_modules
 dist/
 .vercel/
-data/*/repo/
+data/*/repo
 scratch/
 .vercel

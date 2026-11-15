@@ -1,0 +1,180 @@
+{
+  "verdict": "KNOWN_OR_OUT_OF_SCOPE",
+  "agreement": "unanimous",
+  "route": "human",
+  "severity_supported": "low_or_none",
+  "missing": [
+    {
+      "item": "Demonstration that a paused contract can reach `updatePauseDuration` at all: `pause()` (Timelock.sol:687-700) clears all live proposals, and `schedule`/`execute` are `whenNotPaused` (Timelock.sol:527, 594), so no timelocked call can be pending or executed while paused.",
+      "category": "required",
+      "obligation": 2,
+      "why": "The only external path to `_updatePauseDuration` is `updatePauseDuration` (onlyTimelock), which requires a proposal to be scheduled and executed; both are blocked while paused, so the claimed 'unpause while paused' path appears unreachable under the allowed actors.",
+      "resolves_when": "A concrete sequence is shown where `updatePauseDuration` executes while `paused()` is true (e.g. a proposal scheduled before pause that survives, or another reachable path)."
+    },
+    {
+      "item": "Stated security impact of the unconditional `_setPauseTime(0)` (e.g. funds at risk, invariant broken).",
+      "category": "required",
+      "obligation": 3,
+      "why": "The report only asserts a missing check; it does not show any harm. Since the caller is the timelock (trusted, self-administered) and the reset is documented behavior, no severity is supported.",
+      "resolves_when": "A concrete loss or broken invariant is demonstrated, or the finding is downgraded to informational."
+    },
+    {
+      "item": "Reconciliation with the documented intent at ConfigurablePause.sol:111-113 and Timelock.sol:815-820 (`setGuardian` also resets pause time), which indicate the reset is deliberate.",
+      "category": "strengthens",
+      "obligation": 4,
+      "why": "Not required for acceptance since the claim already fails on reachability/impact, but relevant to whether this is intended behavior.",
+      "resolves_when": "Report addresses the documented intent or shows the reset is unintended."
+    }
+  ],
+  "reason": "The only external path requires the trusted timelock, and scheduling and execution are blocked while paused. The report shows no reachable paused-state call or concrete impact.",
+  "caps": [
+    "layers disagree: evidence requires obligation 2, 3, the decision does not",
+    "layers disagree: evidence requires obligation 2, 3, 4, the decision does not"
+  ],
+  "flags": [],
+  "citations": [
+    {
+      "status": "OK",
+      "path": "src/ConfigurablePause.sol",
+      "lines": [
+        104,
+        104
+      ],
+      "audited_lines": [
+        104,
+        104
+      ]
+    },
+    {
+      "status": "OK",
+      "path": "src/Timelock.sol",
+      "lines": [
+        297,
+        297
+      ],
+      "audited_lines": [
+        297,
+        297
+      ]
+    },
+    {
+      "status": "OK",
+      "path": "src/Timelock.sol",
+      "lines": [
+        987,
+        987
+      ],
+      "audited_lines": [
+        987,
+        987
+      ]
+    },
+    {
+      "status": "OK",
+      "path": "src/ConfigurablePause.sol",
+      "lines": [
+        111,
+        111
+      ],
+      "audited_lines": [
+        111,
+        111
+      ]
+    }
+  ],
+  "votes": [
+    {
+      "verdict": "KNOWN_OR_OUT_OF_SCOPE",
+      "severity": "low_or_none",
+      "request_id": "2f1149bc-93c6-430b-a952-bcefe631280e"
+    },
+    {
+      "verdict": "KNOWN_OR_OUT_OF_SCOPE",
+      "severity": "low_or_none",
+      "request_id": "8da1d346-c886-495b-ac68-ced7a5bdca84"
+    },
+    {
+      "verdict": "KNOWN_OR_OUT_OF_SCOPE",
+      "severity": "low_or_none",
+      "request_id": "16ec1798-98ac-4d6e-a78c-a220e20665fe"
+    }
+  ],
+  "evidence": {
+    "model": "deepseek-ai/DeepSeek-V4.1-Flash",
+    "tokens_read": 34739,
+    "claim": "`_updatePauseDuration` lacks a paused-state check and unconditionally resets pauseStartTime to 0, so calling it while paused silently unpauses the contract.",
+    "root_cause_file": "src/ConfigurablePause.sol",
+    "root_cause_line": 104,
+    "code_supports_claim": "yes",
+    "support_reason": "`_updatePauseDuration` (ConfigurablePause.sol:104-119) has no `whenNotPaused`/`paused()` check and calls `_setPauseTime(0)` at line 113 unconditionally, which clears `pauseStartTime` and thus unpauses (paused() at line 70 returns false). It is reachable via the constructor (Timelock.sol:297) and via `updatePauseDuration` (Timelock.sol:982-988), which is `onlyTimelock`.",
+    "blocking_code": [],
+    "poc": "narrative_only",
+    "impact": "unclear",
+    "preconditions": [
+      "caller is the timelock itself (onlyTimelock) — i.e. a timelocked proposal executed by the safe",
+      "contract is currently paused"
+    ],
+    "trusted_role_required": true,
+    "known_issue_match": "",
+    "missing_evidence": [
+      {
+        "item": "Demonstration that a paused contract can reach `updatePauseDuration` at all: `pause()` (Timelock.sol:687-700) clears all live proposals, and `schedule`/`execute` are `whenNotPaused` (Timelock.sol:527, 594), so no timelocked call can be pending or executed while paused.",
+        "category": "required",
+        "obligation": 2,
+        "why": "The only external path to `_updatePauseDuration` is `updatePauseDuration` (onlyTimelock), which requires a proposal to be scheduled and executed; both are blocked while paused, so the claimed 'unpause while paused' path appears unreachable under the allowed actors.",
+        "resolves_when": "A concrete sequence is shown where `updatePauseDuration` executes while `paused()` is true (e.g. a proposal scheduled before pause that survives, or another reachable path)."
+      },
+      {
+        "item": "Stated security impact of the unconditional `_setPauseTime(0)` (e.g. funds at risk, invariant broken).",
+        "category": "required",
+        "obligation": 3,
+        "why": "The report only asserts a missing check; it does not show any harm. Since the caller is the timelock (trusted, self-administered) and the reset is documented behavior, no severity is supported.",
+        "resolves_when": "A concrete loss or broken invariant is demonstrated, or the finding is downgraded to informational."
+      },
+      {
+        "item": "Reconciliation with the documented intent at ConfigurablePause.sol:111-113 and Timelock.sol:815-820 (`setGuardian` also resets pause time), which indicate the reset is deliberate.",
+        "category": "strengthens",
+        "obligation": 4,
+        "why": "Not required for acceptance since the claim already fails on reachability/impact, but relevant to whether this is intended behavior.",
+        "resolves_when": "Report addresses the documented intent or shows the reset is unintended."
+      }
+    ]
+  },
+  "decision": {
+    "provider": "serv",
+    "model": "gpt-6-luna",
+    "prompt_guard_requested": true
+  },
+  "usd": 0.002794,
+  "certificate": {
+    "version": 1,
+    "seal_type": "sha256-checksum",
+    "pipeline": "obligations-v2",
+    "contest": "kleidi",
+    "audited_commit": "ab89bcb443249e1524496b694ddb19e298dca799",
+    "finding_sha256": "465aecd41430ed7e5552c0f51ff4533c1c3d990694a365488534ebc69fe836db",
+    "verdict": "KNOWN_OR_OUT_OF_SCOPE",
+    "agreement": "unanimous",
+    "route": "human",
+    "votes": [
+      {
+        "verdict": "KNOWN_OR_OUT_OF_SCOPE",
+        "serv_request_id": "2f1149bc-93c6-430b-a952-bcefe631280e"
+      },
+      {
+        "verdict": "KNOWN_OR_OUT_OF_SCOPE",
+        "serv_request_id": "8da1d346-c886-495b-ac68-ced7a5bdca84"
+      },
+      {
+        "verdict": "KNOWN_OR_OUT_OF_SCOPE",
+        "serv_request_id": "16ec1798-98ac-4d6e-a78c-a220e20665fe"
+      }
+    ],
+    "decider": "serv/gpt-6-luna",
+    "evidence_model": "deepseek-ai/DeepSeek-V4.1-Flash",
+    "flags": [],
+    "usd": 0.002794,
+    "issued_at": "2026-11-15T10:14:35.105Z"
+  },
+  "seal": "12c3a62825a829315c2733ccdf5eceb700a097a2a879773d5ec13b3b60d99e0d"
+}

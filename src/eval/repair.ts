@@ -9,17 +9,20 @@ import { PIPELINE_VERSION } from "../obligations.ts";
 const tag = (stage: string) => (PIPELINE_VERSION === "obligations-v2" ? `${stage}.v2.json` : `${stage}.json`);
 
 // The repair loop: check a finding, hand its checklist to a repair agent, check the revised finding again.
-export const REPAIR_SET = [7, 49, 28, 41, 55, 4, 26];
+const CONTEST = process.env.BASANOS_CONTEST ?? "karak";
+// Karak's set was the development set; Kleidi's was chosen by rule before any holdout check (EVAL.md 6.1).
+export const REPAIR_SETS: Record<string, number[]> = { karak: [7, 49, 28, 41, 55, 4, 26], kleidi: [9, 17, 24, 7, 8, 10] };
+const ROOT = CONTEST === "karak" ? "data/repair" : `data/repair-${CONTEST}`;
 
 async function check(n: number, stage: "before" | "after") {
-  const reports: Report[] = JSON.parse(readFileSync("data/karak/reports.json", "utf8"));
+  const reports: Report[] = JSON.parse(readFileSync(`data/${CONTEST}/reports.json`, "utf8"));
   const r = reports.find((x) => x.number === n)!;
-  const dir = `data/repair/${n}`;
+  const dir = `${ROOT}/${n}`;
   mkdirSync(dir, { recursive: true });
   const body = stage === "before" ? r.body : readFileSync(`${dir}/revised.md`, "utf8");
-  const { contest, policy } = loadContest("karak");
+  const { contest, policy } = loadContest(CONTEST);
   const result = await precheck({ title: r.title, body }, contest, policy);
-  const report = toReport(result, "karak", contest.auditedCommit, r.title, body);
+  const report = toReport(result, CONTEST, contest.auditedCommit, r.title, body);
   writeFileSync(`${dir}/${tag(stage)}`, JSON.stringify(report, null, 2));
   console.log(`#${n} ${stage}: ${report.verdict} (${report.agreement}, ${report.route})`);
 }
@@ -27,6 +30,6 @@ async function check(n: number, stage: "before" | "after") {
 if (import.meta.url === `file://${process.argv[1]}`) {
   const stage = process.argv[2] as "before" | "after";
   const only = process.argv.slice(3).map(Number);
-  const set = (only.length ? only : REPAIR_SET).filter((n) => stage === "before" || existsSync(`data/repair/${n}/revised.md`));
+  const set = (only.length ? only : REPAIR_SETS[CONTEST]).filter((n) => stage === "before" || existsSync(`${ROOT}/${n}/revised.md`));
   await Promise.all(set.map((n) => check(n, stage)));
 }

@@ -1,11 +1,11 @@
-import { $, $$, esc, enter, drawStreak, streakSVG, VERDICT, ready } from "./site.ts";
+import { $, $$, esc, enter, drawStreak, streakSVG, checklist, VERDICT, ready, type Item } from "./site.ts";
 
 export interface CheckResult {
   verdict: string;
   agreement: string | null;
   route: "automatic" | "human";
   severity_supported: string | null;
-  missing: string[];
+  missing: (string | Item)[];
   reason: string;
   caps: string[];
   flags: string[];
@@ -54,7 +54,7 @@ export function renderVerdict(r: CheckResult, compact = false): string {
     return `${streakSVG(v.color, 64)}<p class="verdict-word" style="color:${v.color}">${esc(v.label)}</p><div class="verdict-meta">${meta}</div><p class="reason">${esc(r.reason)}</p>`;
   }
   const missing = r.missing.length
-    ? `<div class="block-title">Missing before you submit</div><ol class="missing">${r.missing.map((m) => `<li>${esc(m)}</li>`).join("")}</ol>`
+    ? `<div class="block-title">What a judge would still need</div>${checklist(r.missing)}`
     : "";
   const notes = [...r.caps, ...(r.flags.length ? [`text addressed to the reviewer: ${r.flags.join(", ")}`] : [])];
   const cites = r.citations.length

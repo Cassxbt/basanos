@@ -1,0 +1,241 @@
+{
+  "verdict": "KNOWN_OR_OUT_OF_SCOPE",
+  "agreement": "unanimous",
+  "route": "human",
+  "severity_supported": "low_or_none",
+  "missing": [
+    {
+      "item": "Demonstration that a hot signer can cause loss/compromise beyond what the trusted-role policy already concedes (README: malicious hot signers can compromise the system; Timelock.sol:36-39 known issue on incorrectly formed whitelisted calldata)",
+      "category": "required",
+      "obligation": 4,
+      "why": "The claim's only actor is a trusted hot signer and the effect is exactly the documented 'incorrectly formed whitelisted calldata' / malicious-hot-signer scenario, so no known-issue exclusion is overcome.",
+      "resolves_when": "Report shows an untrusted actor or a non-trusted precondition producing the effect, or a concrete loss that the README/Timelock known-issue text does not already cover."
+    },
+    {
+      "item": "Concrete target contract and parameter where uncovered arbitrary data yields fund loss or state compromise (not just 'arbitrary value')",
+      "category": "required",
+      "obligation": 3,
+      "why": "The report only asserts 'arbitrary values for uncovered parameters'; without a concrete target/parameter the stated impact (theft/compromise) is not established, and the effect is indistinguishable from the acknowledged design where uncovered params are unrestricted.",
+      "resolves_when": "Report names a specific whitelisted function and shows an uncovered parameter whose arbitrary value lets a hot signer move funds or change privileged state."
+    },
+    {
+      "item": "Confirmation that partial coverage is not the intended design (report itself concedes 'maybe this is a design choice')",
+      "category": "required",
+      "obligation": 4,
+      "why": "The report admits the behavior may be intended; if uncovered parameters are by design unrestricted, the finding is a design note, not a vulnerability.",
+      "resolves_when": "A cited policy clause or docs statement (INVARIANTS/REQUIREMENTS) requires full-parameter coverage for whitelisted functions."
+    }
+  ],
+  "reason": "The path requires a trusted hot signer and partial calldata coverage, which the evidence identifies as an acknowledged risk involving malicious signers and incorrectly formed whitelisted calldata.",
+  "caps": [
+    "layers disagree: evidence requires obligation 4, 3, the decision does not",
+    "layers disagree: evidence requires obligation 3, 4, the decision does not"
+  ],
+  "flags": [],
+  "citations": [
+    {
+      "status": "OK",
+      "path": "src/Timelock.sol",
+      "lines": [
+        1028,
+        1155
+      ],
+      "audited_lines": [
+        1028,
+        1155
+      ]
+    },
+    {
+      "status": "OK",
+      "path": "src/Timelock.sol",
+      "lines": [
+        1189,
+        1243
+      ],
+      "audited_lines": [
+        1189,
+        1243
+      ]
+    },
+    {
+      "status": "OK",
+      "path": "src/Timelock.sol",
+      "lines": [
+        708,
+        726
+      ],
+      "audited_lines": [
+        708,
+        726
+      ]
+    },
+    {
+      "status": "OK",
+      "path": "src/Timelock.sol",
+      "lines": [
+        728,
+        755
+      ],
+      "audited_lines": [
+        728,
+        755
+      ]
+    },
+    {
+      "status": "OK",
+      "path": "src/Timelock.sol",
+      "lines": [
+        841,
+        855
+      ],
+      "audited_lines": [
+        841,
+        855
+      ]
+    },
+    {
+      "status": "OK",
+      "path": "src/Timelock.sol",
+      "lines": [
+        857,
+        869
+      ],
+      "audited_lines": [
+        857,
+        869
+      ]
+    },
+    {
+      "status": "OK",
+      "path": "src/Timelock.sol",
+      "lines": [
+        1102,
+        1108
+      ],
+      "audited_lines": [
+        1102,
+        1108
+      ]
+    },
+    {
+      "status": "OK",
+      "path": "src/Timelock.sol",
+      "lines": [
+        512,
+        539
+      ],
+      "audited_lines": [
+        512,
+        539
+      ]
+    },
+    {
+      "status": "OK",
+      "path": "src/Timelock.sol",
+      "lines": [
+        247,
+        255
+      ],
+      "audited_lines": [
+        247,
+        255
+      ]
+    }
+  ],
+  "votes": [
+    {
+      "verdict": "KNOWN_OR_OUT_OF_SCOPE",
+      "severity": "low_or_none",
+      "request_id": "c369441d-74c4-4546-9e4d-da332e8f6ed4"
+    },
+    {
+      "verdict": "KNOWN_OR_OUT_OF_SCOPE",
+      "severity": "low_or_none",
+      "request_id": "21f28b10-51c8-4d13-8e9f-57b223a95d4a"
+    },
+    {
+      "verdict": "KNOWN_OR_OUT_OF_SCOPE",
+      "severity": "low_or_none",
+      "request_id": "79eb08e2-cc49-4434-9a97-80fc889d5122"
+    }
+  ],
+  "evidence": {
+    "model": "deepseek-ai/DeepSeek-V4.1-Flash",
+    "tokens_read": 39212,
+    "claim": "Hot signers can pass arbitrary values for function parameters that have no calldata-check coverage, because checkCalldata only validates the index ranges that were explicitly whitelisted.",
+    "root_cause_file": "src/Timelock.sol",
+    "root_cause_line": 475,
+    "code_supports_claim": "yes",
+    "support_reason": "checkCalldata (475-504) only iterates the stored Index ranges for (target, selector) and requires each stored slice hash to match; any calldata bytes outside those ranges are never inspected. executeWhitelisted (715-726) and executeWhitelistedBatch (733-755) call checkCalldata then _execute, so a hot signer can supply arbitrary values in uncovered parameter slots. _addCalldataCheck (1034-1155) permits adding a single narrow range (e.g. startIndex 4, endIndex 36) without requiring full coverage, and _removeCalldataCheck (1193-1243) can drop a range, leaving the parameter unconstrained.",
+    "blocking_code": [],
+    "poc": "narrative_only",
+    "impact": "unclear",
+    "preconditions": [
+      "hot signer holds HOT_SIGNER_ROLE (trusted role per README)",
+      "safe owners whitelisted a function with only partial parameter coverage (or removed a range)",
+      "target contract's uncovered parameter is security-relevant (e.g. recipient, amount, spender)"
+    ],
+    "trusted_role_required": true,
+    "known_issue_match": "If the hot signers are malicious or compromised, they can execute transactions to compromise the system if neither recovery spells or the guardian are used; also Timelock.sol:36-39 'incorrectly formed whitelisted calldata can allow safe owners the ability to steal funds'",
+    "missing_evidence": [
+      {
+        "item": "Demonstration that a hot signer can cause loss/compromise beyond what the trusted-role policy already concedes (README: malicious hot signers can compromise the system; Timelock.sol:36-39 known issue on incorrectly formed whitelisted calldata)",
+        "category": "required",
+        "obligation": 4,
+        "why": "The claim's only actor is a trusted hot signer and the effect is exactly the documented 'incorrectly formed whitelisted calldata' / malicious-hot-signer scenario, so no known-issue exclusion is overcome.",
+        "resolves_when": "Report shows an untrusted actor or a non-trusted precondition producing the effect, or a concrete loss that the README/Timelock known-issue text does not already cover."
+      },
+      {
+        "item": "Concrete target contract and parameter where uncovered arbitrary data yields fund loss or state compromise (not just 'arbitrary value')",
+        "category": "required",
+        "obligation": 3,
+        "why": "The report only asserts 'arbitrary values for uncovered parameters'; without a concrete target/parameter the stated impact (theft/compromise) is not established, and the effect is indistinguishable from the acknowledged design where uncovered params are unrestricted.",
+        "resolves_when": "Report names a specific whitelisted function and shows an uncovered parameter whose arbitrary value lets a hot signer move funds or change privileged state."
+      },
+      {
+        "item": "Confirmation that partial coverage is not the intended design (report itself concedes 'maybe this is a design choice')",
+        "category": "required",
+        "obligation": 4,
+        "why": "The report admits the behavior may be intended; if uncovered parameters are by design unrestricted, the finding is a design note, not a vulnerability.",
+        "resolves_when": "A cited policy clause or docs statement (INVARIANTS/REQUIREMENTS) requires full-parameter coverage for whitelisted functions."
+      }
+    ]
+  },
+  "decision": {
+    "provider": "serv",
+    "model": "gpt-6-luna",
+    "prompt_guard_requested": true
+  },
+  "usd": 0.003245,
+  "certificate": {
+    "version": 1,
+    "seal_type": "sha256-checksum",
+    "pipeline": "obligations-v2",
+    "contest": "kleidi",
+    "audited_commit": "ab89bcb443249e1524496b694ddb19e298dca799",
+    "finding_sha256": "646a40c92253f6217c45a03eb63955ca50cbb210f47a540893b881e5adb4b684",
+    "verdict": "KNOWN_OR_OUT_OF_SCOPE",
+    "agreement": "unanimous",
+    "route": "human",
+    "votes": [
+      {
+        "verdict": "KNOWN_OR_OUT_OF_SCOPE",
+        "serv_request_id": "c369441d-74c4-4546-9e4d-da332e8f6ed4"
+      },
+      {
+        "verdict": "KNOWN_OR_OUT_OF_SCOPE",
+        "serv_request_id": "21f28b10-51c8-4d13-8e9f-57b223a95d4a"
+      },
+      {
+        "verdict": "KNOWN_OR_OUT_OF_SCOPE",
+        "serv_request_id": "79eb08e2-cc49-4434-9a97-80fc889d5122"
+      }
+    ],
+    "decider": "serv/gpt-6-luna",
+    "evidence_model": "deepseek-ai/DeepSeek-V4.1-Flash",
+    "flags": [],
+    "usd": 0.003245,
+    "issued_at": "2026-11-15T10:14:34.340Z"
+  },
+  "seal": "09819a10231db431ccf4bbf5b6a079f93535a9791b5333b3b03d1caa6e2ff644"
+}

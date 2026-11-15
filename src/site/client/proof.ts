@@ -1,8 +1,8 @@
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { $, $$, esc, getClaims, streakSVG, VERDICT, ready } from "./site.ts";
+import { $, $$, esc, getClaims, streakSVG, checklist, VERDICT, ready, type Item } from "./site.ts";
 
-interface Arm { score: number; verdict: string; agreement: string | null; reason: string | null; missing: string[]; overruled: boolean; votes: { verdict: string; id: string | null; caps: string[] }[] }
+interface Arm { score: number; verdict: string; agreement: string | null; reason: string | null; missing: (string | Item)[]; overruled: boolean; votes: { verdict: string; id: string | null; caps: string[] }[] }
 interface Row { id: string; n: number; title: string; family: number; awarded: boolean; final: string | null; len: number; flags: string[]; held: boolean; vetoed: boolean; serv: Arm; dolphin: Arm }
 
 // Same estimator, same seed and same resampling order as src/eval/score.ts, so results match to the digit.
@@ -233,7 +233,7 @@ async function main() {
       return `<div class="block-title">${name}</div>${streakSVG(v.color, 48)}
         <p style="font:500 28px/1 var(--display);color:${v.color};margin:4px 0 12px">${esc(v.label)}</p>
         ${a.reason ? `<p class="reason" style="font-size:15px;margin:0 0 12px">${esc(a.reason)}</p>` : ""}
-        ${a.missing.length ? `<ol class="missing">${a.missing.map((m) => `<li>${esc(m)}</li>`).join("")}</ol>` : ""}
+        ${a.missing.length ? checklist(a.missing) : ""}
         ${a.votes.map((x, i) => `<div class="leader"><span>pass ${i + 1}: ${esc((VERDICT[x.verdict] ?? { label: x.verdict }).label)}</span><span class="dots"></span><span class="mono" style="user-select:all">${esc(x.id ?? "—")}</span></div>`).join("")}
         <div class="leader"><span>agreement</span><span class="dots"></span><span>${esc(a.agreement ?? "code veto")}${a.overruled ? " · code overruled a READY" : ""}</span></div>`;
     };

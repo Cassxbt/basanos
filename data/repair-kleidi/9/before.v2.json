@@ -1,0 +1,154 @@
+{
+  "verdict": "KNOWN_OR_OUT_OF_SCOPE",
+  "agreement": "unanimous",
+  "route": "human",
+  "severity_supported": "low_or_none",
+  "missing": [
+    {
+      "item": "Demonstration that the revert is not recoverable by the safe (e.g., cancel + reschedule with a longer delay, or execute earlier within the new window)",
+      "category": "required",
+      "obligation": 3,
+      "why": "The claim is a DoS, but the safe can cancel (L657) and reschedule, or simply execute before timestamp+newPeriod. Without showing the state is unrecoverable, the effect does not support a DoS severity; at most it is a griefing/UX bug.",
+      "resolves_when": "Report shows a concrete sequence where the safe cannot cancel/reschedule or execute within the new window, or the impact is downgraded to a non-DoS severity."
+    },
+    {
+      "item": "Confirmation that the safe (trusted role) is the only actor able to trigger this path and that this is not an accepted admin-only misconfiguration",
+      "category": "required",
+      "obligation": 2,
+      "why": "updateExpirationPeriod is onlyTimelock (L972), reachable only via a safe-scheduled proposal. The README lists cold/hot signers as trusted; if the only trigger is a trusted safe action, the path may fall under trusted-role assumptions and the finding is not a valid in-scope bug.",
+      "resolves_when": "Report identifies an untrusted actor who can cause the revert, or the contest policy is clarified to treat safe-only self-DoS as in scope."
+    }
+  ],
+  "reason": "The update is reachable only through a proposal scheduled by the trusted Safe. The evidence identifies no untrusted actor who can trigger the path, so the claim depends on trusted-role behavior.",
+  "caps": [
+    "layers disagree: evidence requires obligation 3, 2, the decision does not",
+    "layers disagree: evidence requires obligation 3, the decision does not"
+  ],
+  "flags": [],
+  "citations": [
+    {
+      "status": "OK",
+      "path": "src/Timelock.sol",
+      "lines": [
+        608,
+        608
+      ],
+      "audited_lines": [
+        608,
+        608
+      ]
+    },
+    {
+      "status": "OK",
+      "path": "src/Timelock.sol",
+      "lines": [
+        1009,
+        1015
+      ],
+      "audited_lines": [
+        1009,
+        1015
+      ]
+    },
+    {
+      "status": "OK",
+      "path": "src/Timelock.sol",
+      "lines": [
+        399,
+        404
+      ],
+      "audited_lines": [
+        399,
+        404
+      ]
+    }
+  ],
+  "votes": [
+    {
+      "verdict": "KNOWN_OR_OUT_OF_SCOPE",
+      "severity": "low_or_none",
+      "request_id": "f6d4bb60-899e-4e57-b6f1-006ad55a6dd5"
+    },
+    {
+      "verdict": "KNOWN_OR_OUT_OF_SCOPE",
+      "severity": "low_or_none",
+      "request_id": "6e98bbe5-05ba-48e1-9674-a163e1cfb32a"
+    },
+    {
+      "verdict": "KNOWN_OR_OUT_OF_SCOPE",
+      "severity": "low_or_none",
+      "request_id": "7616e395-2e9c-484e-badd-c9cf8112a029"
+    }
+  ],
+  "evidence": {
+    "model": "deepseek-ai/DeepSeek-V4.1-Flash",
+    "tokens_read": 35450,
+    "claim": "Reducing expirationPeriod via updateExpirationPeriod reverts in _afterCall because isOperationReady re-evaluates with the new (shorter) period, so the operation appears expired after execution.",
+    "root_cause_file": "src/Timelock.sol",
+    "root_cause_line": 1013,
+    "code_supports_claim": "yes",
+    "support_reason": "updateExpirationPeriod (L972-977) sets expirationPeriod before _afterCall runs; _afterCall (L1009-1015) re-checks isOperationReady (L399-404) which uses the new expirationPeriod, so a proposal executed in the window [timestamp+newPeriod, timestamp+oldPeriod) reverts. The pre-execution check at L600 uses the old period and passes, so the tx reverts only at L1013.",
+    "blocking_code": [],
+    "poc": "narrative_only",
+    "impact": "protocol_dos",
+    "preconditions": [
+      "Safe schedules updateExpirationPeriod with newPeriod < current expirationPeriod",
+      "Execution occurs after timestamp+newPeriod but before timestamp+oldPeriod"
+    ],
+    "trusted_role_required": true,
+    "known_issue_match": "",
+    "missing_evidence": [
+      {
+        "item": "Demonstration that the revert is not recoverable by the safe (e.g., cancel + reschedule with a longer delay, or execute earlier within the new window)",
+        "category": "required",
+        "obligation": 3,
+        "why": "The claim is a DoS, but the safe can cancel (L657) and reschedule, or simply execute before timestamp+newPeriod. Without showing the state is unrecoverable, the effect does not support a DoS severity; at most it is a griefing/UX bug.",
+        "resolves_when": "Report shows a concrete sequence where the safe cannot cancel/reschedule or execute within the new window, or the impact is downgraded to a non-DoS severity."
+      },
+      {
+        "item": "Confirmation that the safe (trusted role) is the only actor able to trigger this path and that this is not an accepted admin-only misconfiguration",
+        "category": "required",
+        "obligation": 2,
+        "why": "updateExpirationPeriod is onlyTimelock (L972), reachable only via a safe-scheduled proposal. The README lists cold/hot signers as trusted; if the only trigger is a trusted safe action, the path may fall under trusted-role assumptions and the finding is not a valid in-scope bug.",
+        "resolves_when": "Report identifies an untrusted actor who can cause the revert, or the contest policy is clarified to treat safe-only self-DoS as in scope."
+      }
+    ]
+  },
+  "decision": {
+    "provider": "serv",
+    "model": "gpt-6-luna",
+    "prompt_guard_requested": true
+  },
+  "usd": 0.002843,
+  "certificate": {
+    "version": 1,
+    "seal_type": "sha256-checksum",
+    "pipeline": "obligations-v2",
+    "contest": "kleidi",
+    "audited_commit": "ab89bcb443249e1524496b694ddb19e298dca799",
+    "finding_sha256": "ce53f64a38d1799441f9b42d62ca8c1bf5dba7ee463d212e4d382014a799fab6",
+    "verdict": "KNOWN_OR_OUT_OF_SCOPE",
+    "agreement": "unanimous",
+    "route": "human",
+    "votes": [
+      {
+        "verdict": "KNOWN_OR_OUT_OF_SCOPE",
+        "serv_request_id": "f6d4bb60-899e-4e57-b6f1-006ad55a6dd5"
+      },
+      {
+        "verdict": "KNOWN_OR_OUT_OF_SCOPE",
+        "serv_request_id": "6e98bbe5-05ba-48e1-9674-a163e1cfb32a"
+      },
+      {
+        "verdict": "KNOWN_OR_OUT_OF_SCOPE",
+        "serv_request_id": "7616e395-2e9c-484e-badd-c9cf8112a029"
+      }
+    ],
+    "decider": "serv/gpt-6-luna",
+    "evidence_model": "deepseek-ai/DeepSeek-V4.1-Flash",
+    "flags": [],
+    "usd": 0.002843,
+    "issued_at": "2026-11-15T10:14:33.724Z"
+  },
+  "seal": "f6539ca0b5b9b9a13d896bc7717f9ddad9fed59a98f6abcf994311c3390a03ae"
+}
