@@ -1,12 +1,16 @@
 import { readFileSync, writeFileSync } from "node:fs";
 import { parseCitations, resolveCitation, loadScope, type Contest, type ResolvedCitation } from "../citations.ts";
+import { GitSource, type CodeSource } from "../source.ts";
+import { loadPolicy, renderPolicy } from "../policy.ts";
 
-export const KARAK: Contest = {
-  repoDir: "data/karak/repo",
-  githubRepo: "code-423n4/2024-07-karak",
-  auditedCommit: "f5e52fdcb4c20c4318d532a9f08f7876e9afb321",
-  scope: new Set(),
-};
+const AUDITED = "f5e52fdcb4c20c4318d532a9f08f7876e9afb321";
+
+export function karak(source: CodeSource = new GitSource("data/karak/repo"), auditedCommit = AUDITED): Contest {
+  return { source, githubRepo: "code-423n4/2024-07-karak", auditedCommit, scope: loadScope(source, auditedCommit) };
+}
+
+export const KARAK = karak();
+export const KARAK_POLICY = renderPolicy(loadPolicy(KARAK.source, AUDITED));
 
 interface Issue {
   number: number;
@@ -68,7 +72,6 @@ function toReport(issue: Issue, submitted: Severity | null): Report | { excluded
 }
 
 if (import.meta.url === `file://${process.argv[1]}`) {
-  KARAK.scope = loadScope(KARAK.repoDir, KARAK.auditedCommit);
   const issues: Issue[] = JSON.parse(readFileSync("data/karak/issues.json", "utf8"));
   const submitted: Record<string, Severity | null> = JSON.parse(
     readFileSync("data/karak/events/submitted_severity.json", "utf8"),

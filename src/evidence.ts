@@ -1,4 +1,3 @@
-import { execFileSync } from "node:child_process";
 import { callJson, type Call } from "./llm.ts";
 import { auditedSnippet, type Contest, type ResolvedCitation } from "./citations.ts";
 
@@ -66,22 +65,18 @@ Read the full in-scope source. For the report's central claim:
 - missing_evidence: concrete items a judge would still need (e.g. "test showing withdraw succeeds after slashing", "values showing loss exceeds dust"). Empty if nothing is missing.
 Cite line numbers from the numbered source exactly. Be terse.`;
 
-let scopeCache = new Map<string, string>();
+const scopeCache = new WeakMap<Contest, string>();
 
 export function scopeBundle(contest: Contest): string {
-  const key = `${contest.repoDir}@${contest.auditedCommit}`;
-  if (!scopeCache.has(key)) {
+  if (!scopeCache.has(contest)) {
     const files = [...contest.scope].sort().map((path) => {
-      const src = execFileSync("git", ["-C", contest.repoDir, "show", `${contest.auditedCommit}:${path}`], {
-        encoding: "utf8",
-        maxBuffer: 64 * 1024 * 1024,
-      });
-      const numbered = src.split("\n").map((l, i) => `${String(i + 1).padStart(4)}  ${l}`).join("\n");
+      const lines = contest.source.read(contest.auditedCommit, path) ?? [];
+      const numbered = lines.map((l, i) => `${String(i + 1).padStart(4)}  ${l}`).join("\n");
       return `===== ${path} =====\n${numbered}`;
     });
-    scopeCache.set(key, files.join("\n\n"));
+    scopeCache.set(contest, files.join("\n\n"));
   }
-  return scopeCache.get(key)!;
+  return scopeCache.get(contest)!;
 }
 
 export function renderCitations(citations: ResolvedCitation[], contest: Contest): string {

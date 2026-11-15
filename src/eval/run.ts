@@ -1,7 +1,5 @@
 import { readFileSync, writeFileSync, existsSync, mkdirSync, appendFileSync } from "node:fs";
-import { KARAK, type Report } from "../data/karak.ts";
-import { loadScope } from "../citations.ts";
-import { loadPolicy, renderPolicy } from "../policy.ts";
+import { KARAK, KARAK_POLICY, type Report } from "../data/karak.ts";
 import { extractEvidence, DOLPHIN_MODEL } from "../evidence.ts";
 import { judge, SERV_MODEL } from "../verdict.ts";
 import { citationVeto, summarizeCitations } from "../precheck.ts";
@@ -75,8 +73,7 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   const run = process.argv[2] ?? "run1";
   const input = process.argv[3] ?? "data/karak/reports.json";
   const out = process.argv[4] ?? `data/runs/${run}.jsonl`;
-  KARAK.scope = loadScope(KARAK.repoDir, KARAK.auditedCommit);
-  const policy = renderPolicy(loadPolicy(KARAK.repoDir));
+  const policy = KARAK_POLICY;
   const reports: Report[] = JSON.parse(readFileSync(input, "utf8"));
   mkdirSync("data/runs", { recursive: true });
   const done = new Set(

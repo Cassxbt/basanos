@@ -1,5 +1,4 @@
-import { readFileSync, existsSync } from "node:fs";
-import { join } from "node:path";
+import type { CodeSource } from "./source.ts";
 
 export interface BotFinding {
   id: string;
@@ -50,12 +49,12 @@ function botFindings(report: string): BotFinding[] {
   return out;
 }
 
-export function loadPolicy(repoDir: string): Policy {
-  const readme = readFileSync(join(repoDir, "README.md"), "utf8");
-  const botPath = join(repoDir, "4naly3er-report.md");
+export function loadPolicy(source: CodeSource, commit: string): Policy {
+  const readme = source.read(commit, "README.md")?.join("\n") ?? "";
+  const bot = source.read(commit, "4naly3er-report.md")?.join("\n");
   return {
     readmeSections: sections(readme, README_SECTIONS),
-    botFindings: existsSync(botPath) ? botFindings(readFileSync(botPath, "utf8")) : [],
+    botFindings: bot ? botFindings(bot) : [],
   };
 }
 

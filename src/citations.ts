@@ -1,4 +1,4 @@
-import { execFileSync } from "node:child_process";
+import type { CodeSource } from "./source.ts";
 
 export type CitationStatus =
   | "OK"
@@ -25,7 +25,7 @@ export interface ResolvedCitation extends Citation {
 }
 
 export interface Contest {
-  repoDir: string;
+  source: CodeSource;
   githubRepo: string;
   auditedCommit: string;
   scope: Set<string>;
@@ -53,34 +53,6 @@ export function parseCitations(body: string, githubRepo: string, auditedCommit: 
   return out;
 }
 
-const fileCache = new Map<string, string[] | null>();
-
-function readAt(repoDir: string, commit: string, path: string): string[] | null {
-  const key = `${repoDir}\0${commit}\0${path}`;
-  if (!fileCache.has(key)) {
-    try {
-      const text = execFileSync("git", ["-C", repoDir, "show", `${commit}:${path}`], {
-        encoding: "utf8",
-        stdio: ["ignore", "pipe", "ignore"],
-        maxBuffer: 64 * 1024 * 1024,
-      });
-      fileCache.set(key, text.split("\n"));
-    } catch {
-      fileCache.set(key, null);
-    }
-  }
-  return fileCache.get(key)!;
-}
-
-function commitExists(repoDir: string, commit: string): boolean {
-  try {
-    execFileSync("git", ["-C", repoDir, "cat-file", "-e", `${commit}^{commit}`], { stdio: "ignore" });
-    return true;
-  } catch {
-    return false;
-  }
-}
-
 const normalize = (lines: string[]) => lines.map((l) => l.trim()).join("\n");
 
 const TRIVIAL = /^[\s{}();]*$/;
@@ -100,13 +72,13 @@ function locate(haystack: string[], needle: string[]): number {
 
 export function resolveCitation(c: Citation, contest: Contest): ResolvedCitation {
   if (!contest.scope.has(c.path)) return { ...c, status: "OUT_OF_SCOPE" };
-  if (!commitExists(contest.repoDir, c.commit)) return { ...c, status: "NO_COMMIT" };
+  if (!contest.source.hasCommit(c.commit)) return { ...c, status: "NO_COMMIT" };
 
-  const cited = readAt(contest.repoDir, c.commit, c.path);
+  const cited = contest.source.read(c.commit, c.path);
   if (!cited) return { ...c, status: "NO_FILE" };
   if (c.start < 1 || c.end < c.start || c.end > cited.length) return { ...c, status: "BAD_LINES" };
 
-  const audited = readAt(contest.repoDir, contest.auditedCommit, c.path);
+  const audited = contest.source.read(contest.auditedCommit, c.path);
   if (!audited) return { ...c, status: "NO_FILE" };
 
   const snippet = cited.slice(c.start - 1, c.end);
@@ -119,14 +91,14 @@ export function resolveCitation(c: Citation, contest: Contest): ResolvedCitation
   return { ...c, status: "CHANGED" };
 }
 
-export function loadScope(repoDir: string, commit: string): Set<string> {
-  const lines = readAt(repoDir, commit, "scope.txt") ?? [];
+export function loadScope(source: CodeSource, commit: string): Set<string> {
+  const lines = source.read(commit, "scope.txt") ?? [];
   return new Set(lines.map((l) => l.trim()).filter(Boolean));
 }
 
 export function auditedSnippet(c: ResolvedCitation, contest: Contest, context = 0): string | null {
   if (c.auditedStart === undefined || c.auditedEnd === undefined) return null;
-  const lines = readAt(contest.repoDir, contest.auditedCommit, c.path);
+  const lines = contest.source.read(contest.auditedCommit, c.path);
   if (!lines) return null;
   const from = Math.max(1, c.auditedStart - context);
   const to = Math.min(lines.length, c.auditedEnd + context);

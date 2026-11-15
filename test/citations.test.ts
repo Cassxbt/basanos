@@ -1,9 +1,8 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { parseCitations, resolveCitation, loadScope } from "../src/citations.ts";
+import { parseCitations, resolveCitation } from "../src/citations.ts";
 import { KARAK } from "../src/data/karak.ts";
 
-KARAK.scope = loadScope(KARAK.repoDir, KARAK.auditedCommit);
 const base = "https://github.com/code-423n4/2024-07-karak/blob";
 const INIT = "d19a4de35bcaf31ccec8bccd36e2d26594d05aad";
 
