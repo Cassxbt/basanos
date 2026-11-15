@@ -13,7 +13,7 @@
     "score": "tsx src/eval/score.ts",
     "build:web": "tsx src/web/build.ts",
     "verify": "tsx src/eval/claims.ts",
-    "deploy": "npm run build:web && vercel deploy --prebuilt --prod"
+    "deploy": "npm test && npm run typecheck && npm run build:web && vercel deploy --prebuilt --prod"
   },
   "author": "",
   "license": "MIT",

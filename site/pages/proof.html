@@ -1,15 +1,15 @@
 <!--
 slug: proof
-title: Proof — every number, recomputed in your browser
-description: The claims ledger, the 94-finding specimen tray, bug/fix pairs, hostile-text results and the null results, all recomputed from the committed run data.
+title: Proof — every claim, checked against the committed rows
+description: The claims ledger and the 94-finding specimen tray recomputed in your browser; the held-out contest, attacks and null results computed from the same committed run data by npm run verify.
 nav: proof
 script: proof
 -->
 <section class="page-intro">
   <div class="wrap">
     <span class="eyebrow" data-reveal>Proof</span>
-    <h1 class="display h1" data-split>Every number, <em>recomputed</em> in your browser.</h1>
-    <p class="lede" data-reveal>The rows behind this page are the committed run files. Your browser recomputes each claim, including the clustered bootstrap with the same seed, and compares it with what we published. Change the data and the ledger turns red.</p>
+    <h1 class="display h1" data-split>Every claim, <em>checked</em> against the rows.</h1>
+    <p class="lede" data-reveal>The rows behind this page are the committed run files. Your browser recomputes the ledger and the specimen tray from them, including the clustered bootstrap with the same seed, and compares each claim with what we published. Change the data and the ledger turns red. The held-out and attack tables further down are computed from the same files by <span class="mono">npm run verify</span>, which the build refuses to skip.</p>
     <div class="hero-cta" data-reveal>
       <button class="btn" id="recompute" data-magnetic>Recompute <span class="arrow">↻</span></button>
       <button class="btn ghost" id="tamper" data-magnetic>Tamper with the data</button>

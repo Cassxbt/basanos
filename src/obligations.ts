@@ -9,7 +9,7 @@ export const OBLIGATIONS: Record<number, string> = {
   5: "the reproduction evidence supports this particular claim, with no unresolved contradictory premise",
 };
 
-export const PIPELINE_VERSION = "obligations-v3";
+export const PIPELINE_VERSION = "obligations-v3.1";
 
 export const MissingItemZ = z.object({
   item: z.string(),

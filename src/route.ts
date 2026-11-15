@@ -8,7 +8,7 @@ export interface Routable {
   votes: { caps: string[] }[];
 }
 
-const overruled = (p: Routable) => p.votes.some((v) => v.caps.some((c) => c.startsWith("READY capped") || c.startsWith("layers disagree") || c.startsWith("verdict capped")));
+const overruled = (p: Routable) => p.votes.some((v) => v.caps.some((c) => c.startsWith("READY capped") || c.startsWith("layers disagree") || c.startsWith("verdict capped") || c.startsWith("review required")));
 
 export const route = (p: Routable): "automatic" | "human" =>
   p.verdict === "CITATION_BROKEN" || (p.agreement === "unanimous" && p.flags.length === 0 && !overruled(p)) ? "automatic" : "human";

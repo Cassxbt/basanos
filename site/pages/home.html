@@ -1,7 +1,7 @@
 <!--
 slug:
 title: Basanos — know what the judge will ask before you submit
-description: Paste a smart-contract audit finding. Basanos checks its code links, reads the whole codebase and the contest's rules, lists the evidence a judge would still ask for, and hands uncertain calls to a person.
+description: Paste a smart-contract audit finding. Basanos checks its code links, reads the whole codebase and the contest's rules, lists the evidence a judge would still ask for, and leaves uncertain calls to your review.
 nav: home
 script: check
 -->
@@ -35,7 +35,7 @@ script: check
       <div>
         <span class="eyebrow" data-reveal>For smart-contract audit contests</span>
         <h1 class="display h1" data-split>Know what the judge will ask, <em>before</em> you submit.</h1>
-        <p class="lede" data-reveal>Paste an audit finding. Basanos checks that its code links are real, reads the whole codebase and the contest's rules, and lists the evidence a judge would still ask for. When it is not sure, it says so and hands the call to a person.</p>
+        <p class="lede" data-reveal>Paste an audit finding. Basanos checks that its code links are real, reads the whole codebase and the contest's rules, and lists the evidence a judge would still ask for. When it is not sure, it says so and leaves the call to you, with what it found.</p>
         <div class="hero-cta" data-reveal>
           <a class="btn" href="#check" data-magnetic>Try it now <span class="arrow">→</span></a>
           <a class="btn ghost" href="#how" data-magnetic>How it works <span class="arrow">↓</span></a>
@@ -53,8 +53,8 @@ script: check
 
 <div class="ticker" aria-hidden="true">
   <div class="ticker-track">
-    <span>Code4rena 2024-07 Karak</span><span>94 real findings tested</span><span>checks every code link</span><span>reads every in-scope file</span><span>quotes the contest rule it relies on</span><span>lists the missing proof</span><span>checksummed receipt for every check</span><span>sends uncertain calls to a person</span>
-    <span>Code4rena 2024-07 Karak</span><span>94 real findings tested</span><span>checks every code link</span><span>reads every in-scope file</span><span>quotes the contest rule it relies on</span><span>lists the missing proof</span><span>checksummed receipt for every check</span><span>sends uncertain calls to a person</span>
+    <span>Code4rena 2024-07 Karak</span><span>94 real findings tested</span><span>checks every code link</span><span>reads every in-scope file</span><span>quotes the contest rule it relies on</span><span>lists the missing proof</span><span>checksummed receipt for every check</span><span>never rejects for you</span>
+    <span>Code4rena 2024-07 Karak</span><span>94 real findings tested</span><span>checks every code link</span><span>reads every in-scope file</span><span>quotes the contest rule it relies on</span><span>lists the missing proof</span><span>checksummed receipt for every check</span><span>never rejects for you</span>
   </div>
 </div>
 
@@ -83,7 +83,7 @@ script: check
       <article class="panel plain-step" data-reveal>
         <span class="plain-num">3</span>
         <h3 class="display h3">Get a checklist</h3>
-        <p>The specific evidence a judge would still ask for, a verdict, and whether a person should look. Anything uncertain, or where its own two layers disagree, goes to a person.</p>
+        <p>The specific evidence a judge would still ask for, a verdict, and whether it needs your review. Every “no”, anything uncertain, and anything where its own two layers disagree is left to you.</p>
         <div class="mini"><span class="c-ash">KNOWN OR OUT OF SCOPE</span><br><span class="muted">missing: a test showing loss beyond M-1</span></div>
       </article>
     </div>
@@ -126,7 +126,7 @@ script: check
             <span style="color:var(--amber)"><i></i>needs proof</span>
             <span style="color:var(--ash)"><i></i>blocked or known</span>
             <span style="color:var(--copper)"><i></i>citation broken</span>
-            <span style="color:var(--sky)"><i></i>held for a human</span>
+            <span style="color:var(--sky)"><i></i>held for your review</span>
           </div>
         </div>
       </div>
@@ -141,7 +141,7 @@ script: check
         <span class="eyebrow" data-reveal>The verdicts</span>
         <h2 class="display h2" data-split style="margin-top:22px">Six answers, each with a next step.</h2>
       </div>
-      <p class="lede" data-reveal>Basanos asks three times and only routes on its own when all three agree and no code rule had to overrule a model. Anything uncertain goes to a person. Every verdict is advice, not a guarantee.</p>
+      <p class="lede" data-reveal>Basanos asks three times. It gives automatic advice only when all three agree, no code rule had to overrule a model, and the advice is not a “no”. Everything else needs your review. Every verdict is advice, not a guarantee.</p>
     </div>
     <div class="verdicts">
       <div class="verdict-row" data-reveal><span class="vdot" style="--c:var(--gold)"></span><b>Ready</b><p>The code supports the claim, the proof is in the finding, and it is not a known issue.</p><span class="mono muted">Submit it.</span></div>
@@ -149,7 +149,7 @@ script: check
       <div class="verdict-row" data-reveal><span class="vdot" style="--c:var(--ash)"></span><b>Blocked by code</b><p>Something in the audited code stops the attack. The verdict names the line.</p><span class="mono muted">Re-check that line.</span></div>
       <div class="verdict-row" data-reveal><span class="vdot" style="--c:var(--ash)"></span><b>Known or out of scope</b><p>Already in the contest's known issues or bot report, needs a trusted admin to misbehave, or targets code outside scope.</p><span class="mono muted">Usually: don't submit.</span></div>
       <div class="verdict-row" data-reveal><span class="vdot" style="--c:var(--copper)"></span><b>Citation broken</b><p>No link points at audited code the finding actually talks about. Caught by code, at no cost.</p><span class="mono muted">Fix the links.</span></div>
-      <div class="verdict-row" data-reveal><span class="vdot" style="--c:var(--sky)"></span><b>Held for a human</b><p>The text tried to instruct the reviewer, or the passes disagreed. A person decides.</p><span class="mono muted">Wait for review.</span></div>
+      <div class="verdict-row" data-reveal><span class="vdot" style="--c:var(--sky)"></span><b>Held for your review</b><p>The text tried to instruct the reviewer, or a screen held it. Nothing was decided.</p><span class="mono muted">Read it yourself.</span></div>
     </div>
   </div>
 </section>

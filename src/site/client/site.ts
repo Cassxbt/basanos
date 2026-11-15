@@ -316,7 +316,7 @@ export const VERDICT = {
   BLOCKED_BY_CODE: { label: "Blocked by code", color: "#8e8c86", chip: "c-ash" },
   KNOWN_OR_OUT_OF_SCOPE: { label: "Known or out of scope", color: "#8e8c86", chip: "c-ash" },
   CITATION_BROKEN: { label: "Citation broken", color: "#c75a40", chip: "c-bad" },
-  GUARD_HELD: { label: "Held for a human", color: "#86a3c6", chip: "c-sky" },
+  GUARD_HELD: { label: "Held for review", color: "#86a3c6", chip: "c-sky" },
 } as Record<string, { label: string; color: string; chip: string }>;
 
 export interface Item { item: string; category: "required" | "strengthens"; obligation: number; why: string; resolves_when: string }

@@ -5,6 +5,15 @@ import { route } from "./route.ts";
 
 export { route };
 
+// Negative advice is shown with what it rests on. Code verified that the clause or line exists; whether it applies is the model's reading.
+function grounds(p: Precheck) {
+  const lead = p.votes.find((v) => v.verdict === p.verdict);
+  if (!lead) return null;
+  if (p.verdict === "KNOWN_OR_OUT_OF_SCOPE" && lead.judgment) return { kind: "policy clause", ...lead.judgment.value.exclusion };
+  if (p.verdict === "BLOCKED_BY_CODE") return { kind: "blocking code", code: lead.evidence.value.blocking_code };
+  return null;
+}
+
 export function toJson(p: Precheck) {
   const lead = p.votes.find((v) => v.verdict === p.verdict) ?? p.votes[0];
   return {
@@ -14,6 +23,7 @@ export function toJson(p: Precheck) {
     severity_supported: p.severitySupported,
     missing: p.missing,
     reason: p.reason,
+    grounds: grounds(p),
     caps: [...new Set(p.votes.flatMap((v) => v.caps))],
     flags: p.flags,
     citations: p.citations.map((c) => ({

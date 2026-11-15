@@ -12,7 +12,12 @@ export interface Policy {
   botFindings: BotFinding[];
 }
 
-export const POLICY_MAX_CHARS = 40_000;
+export const POLICY_MAX_CHARS = 72_000;
+export const DOCUMENT_MAX_CHARS = 12_000;
+export const POLICY_INCOMPLETE = "[POLICY INCOMPLETE";
+
+// Documents that can decide whether a finding is excluded are never shortened.
+const PRIORITY = /known|issue|trust|scope|edge|invariant|requirement|security|threat|acl|role/i;
 
 const NOT_POLICY = /running tests|coverage/i;
 
@@ -77,8 +82,15 @@ export function loadPolicy(source: CodeSource, commit: string): Policy {
   };
 }
 
-// README first, then the bot findings, then the documents, so a long document is what gets truncated.
-export function renderPolicy(p: Policy, maxInstances = 6): string {
+export interface Coverage {
+  path: string;
+  priority: boolean;
+  chars: number;
+  included: number;
+}
+
+// README and bot findings first, then priority documents whole, then the rest, each shortened to a fixed share.
+export function budgetPolicy(p: Policy, maxInstances = 6): { text: string; coverage: Coverage[] } {
   const bot = p.botFindings
     .map((b) => {
       const shown = b.instances.slice(0, maxInstances).join(", ");
@@ -86,14 +98,28 @@ export function renderPolicy(p: Policy, maxInstances = 6): string {
       return `- [${b.id}] ${b.title}: ${shown}${more}`;
     })
     .join("\n");
-  const full = [
-    `## README.md\n${p.readme}`,
-    `## Bot report findings (publicly known, ineligible for awards)\n${bot}`,
-    ...p.documents.map((d) => `## ${d.path}\n${d.text}`),
-  ].join("\n\n");
-  if (full.length <= POLICY_MAX_CHARS) return full;
-  return `${full.slice(0, POLICY_MAX_CHARS)}\n\n[POLICY TRUNCATED at ${POLICY_MAX_CHARS} of ${full.length} characters]`;
+  const parts = [`## README.md\n${p.readme}`, `## Bot report findings (publicly known, ineligible for awards)\n${bot}`];
+  let used = parts.join("\n\n").length;
+  const coverage: Coverage[] = [];
+  const priority = p.documents.filter((d) => PRIORITY.test(d.path.split("/").pop()!));
+  const rest = p.documents.filter((d) => !priority.includes(d));
+  for (const d of [...priority, ...rest]) {
+    const isPriority = priority.includes(d);
+    const room = POLICY_MAX_CHARS - used - d.path.length - 8;
+    const wanted = isPriority ? d.text.length : Math.min(d.text.length, DOCUMENT_MAX_CHARS);
+    const take = Math.max(0, Math.min(wanted, room));
+    coverage.push({ path: d.path, priority: isPriority, chars: d.text.length, included: take });
+    if (!take) continue;
+    const cut = take < d.text.length ? `\n[shortened to ${take} of ${d.text.length} characters]` : "";
+    parts.push(`## ${d.path}\n${d.text.slice(0, take)}${cut}`);
+    used += parts[parts.length - 1].length + 2;
+  }
+  const missing = coverage.filter((c) => c.priority && c.included < c.chars).map((c) => c.path);
+  if (missing.length) parts.push(`${POLICY_INCOMPLETE}: ${missing.join(", ")} could not be included whole]`);
+  return { text: parts.join("\n\n"), coverage };
 }
+
+export const renderPolicy = (p: Policy, maxInstances = 6) => budgetPolicy(p, maxInstances).text;
 
 const squash = (s: string) => s.replace(/\s+/g, " ").trim().toLowerCase();
 

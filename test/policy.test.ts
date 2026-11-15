@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { loadPolicy, renderPolicy, groundedClause, POLICY_MAX_CHARS } from "../src/policy.ts";
+import { loadPolicy, renderPolicy, budgetPolicy, groundedClause, POLICY_MAX_CHARS, DOCUMENT_MAX_CHARS } from "../src/policy.ts";
 import { SnapshotSource } from "../src/source.ts";
 import { loadContest } from "../src/contests.ts";
 
@@ -21,11 +21,24 @@ test("the bundle carries every Markdown file the README mentions, in order, and 
   assert.match(renderPolicy(p), /\[M-1\] Centralization/);
 });
 
-test("an oversized bundle is truncated at the cap and says so", () => {
-  const source = snapshot({ "README.md": `see BIG.md`, "BIG.md": "x".repeat(POLICY_MAX_CHARS * 2) });
-  const text = renderPolicy(loadPolicy(source, "c0ffee"));
-  assert.match(text, /POLICY TRUNCATED/);
-  assert.ok(text.length < POLICY_MAX_CHARS + 200);
+test("ordinary documents are shortened; a priority document that cannot fit whole marks the policy incomplete", () => {
+  const big = "x".repeat(POLICY_MAX_CHARS);
+  const ordinary = budgetPolicy(loadPolicy(snapshot({ "README.md": "see BIG.md", "BIG.md": big }), "c0ffee"));
+  assert.deepEqual(ordinary.coverage, [{ path: "BIG.md", priority: false, chars: big.length, included: DOCUMENT_MAX_CHARS }]);
+  assert.doesNotMatch(ordinary.text, /POLICY INCOMPLETE/);
+  const known = budgetPolicy(loadPolicy(snapshot({ "README.md": "see KNOWN_ISSUES.md", "KNOWN_ISSUES.md": big }), "c0ffee"));
+  assert.match(known.text, /\[POLICY INCOMPLETE: KNOWN_ISSUES\.md/);
+  assert.ok(known.text.length <= POLICY_MAX_CHARS + 200);
+});
+
+test("every contest's priority documents reach the models whole", () => {
+  for (const id of ["karak", "kleidi", "wildcat"]) {
+    const { contest } = loadContest(id);
+    const { coverage, text } = budgetPolicy(loadPolicy(contest.source, contest.auditedCommit));
+    assert.doesNotMatch(text, /POLICY INCOMPLETE/, id);
+    for (const c of coverage.filter((c) => c.priority)) assert.equal(c.included, c.chars, `${id} ${c.path}`);
+  }
+  assert.match(loadContest("wildcat").policy, /## docs\/Known Issues\.md/);
 });
 
 test("Kleidi's known issues in docs/ now reach the policy", () => {

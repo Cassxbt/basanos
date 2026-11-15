@@ -1,8 +1,8 @@
 import type { Evidence } from "./evidence.ts";
 import type { Judgment, ModelVerdict } from "./verdict.ts";
 import type { ResolvedCitation } from "./citations.ts";
-import { requiredItems, type MissingItem } from "./obligations.ts";
-import { groundedClause } from "./policy.ts";
+import { requiredItems, type DecisionItem, type MissingItem } from "./obligations.ts";
+import { groundedClause, POLICY_INCOMPLETE } from "./policy.ts";
 
 export interface Capped {
   verdict: ModelVerdict;
@@ -61,6 +61,7 @@ export function applyCaps(judgment: Judgment, evidenceRecord: Evidence, ctx: Cap
     caps.push("verdict capped to NEEDS_PROOF: the exclusion does not quote a clause or bot finding from the contest policy");
   }
 
+  let readyCapped: string[] = [];
   if (verdict === "READY") {
     // Links to out-of-scope files (tests, interfaces) are allowed alongside in-scope ones; every other failure blocks READY.
     const broken = ctx.citations.filter((c) => !USABLE.has(c.status) && c.status !== "OUT_OF_SCOPE");
@@ -80,11 +81,24 @@ export function applyCaps(judgment: Judgment, evidenceRecord: Evidence, ctx: Cap
     if (reasons.length) {
       verdict = "NEEDS_PROOF";
       caps.push(`READY capped to NEEDS_PROOF: ${reasons.join("; ")}`);
+      readyCapped = reasons;
     }
   }
 
-  // The decision may not quietly drop a requirement the evidence layer raised: each one is matched by id, and a person reconciles any gap.
-  const carried = new Set(requiredItems(j.missing).map((i) => i.evidence_ref.trim().toUpperCase()));
+  // A reference proves the clause or line exists, not that it applies, so negative advice always goes to the user's own review.
+  if (verdict === "KNOWN_OR_OUT_OF_SCOPE" || verdict === "BLOCKED_BY_CODE") {
+    caps.push("review required: negative advice is shown with its grounds and never applied automatically");
+  }
+  if (ctx.policy.includes(POLICY_INCOMPLETE)) caps.push("review required: contest policy incomplete");
+
+  // A decision item carries an evidence requirement only if it names a required item with the same obligation;
+  // the evidence item's own text is then what gets published, so a relabelled item cannot replace it.
+  const byId = new Map(evidenceItems.map((i) => [i.id, i]));
+  const carries = (d: DecisionItem) => {
+    const ev = byId.get(d.evidence_ref.trim().toUpperCase());
+    return ev && ev.category === "required" && d.category === "required" && ev.obligation === d.obligation ? ev : null;
+  };
+  const carried = new Set(j.missing.map((d) => carries(d)?.id).filter(Boolean));
   const uncarried = requiredItems(evidenceItems).filter((i) => !carried.has(i.id));
   if (uncarried.length) {
     caps.push(`layers disagree: evidence requires ${uncarried.map((i) => `${i.id} (obligation ${i.obligation})`).join(", ")}, the decision does not`);
@@ -95,6 +109,33 @@ export function applyCaps(judgment: Judgment, evidenceRecord: Evidence, ctx: Cap
     severity = "low_or_none";
   }
 
-  const missing = [...j.missing.map(({ evidence_ref: _, ...item }) => item), ...uncarried.map(({ id: _, ...item }) => item)];
+  const published = new Set<string>();
+  const decided: MissingItem[] = j.missing.flatMap((d) => {
+    const ev = carries(d);
+    const { evidence_ref: _, ...own } = d;
+    if (!ev) return [own];
+    if (published.has(ev.id)) return [];
+    published.add(ev.id);
+    const { id: __, ...item } = ev;
+    return [{ ...item, why: d.why }];
+  });
+  const missing = [...decided, ...uncarried.map(({ id: _, ...item }) => item)];
+
+  // A capped READY always says what would resolve it, never an empty checklist.
+  if (readyCapped.length && requiredItems(missing).length === 0) {
+    if (e.trusted_role_required) {
+      missing.push({
+        item: "Show that the contest policy does not trust this role for this action, or which stated defense against a compromised role the attack defeats",
+        category: "required",
+        obligation: 2,
+        why: "The path needs a role the policy lists as trusted; that is acceptable only if the policy limits the role here or promises a defense the attack breaks.",
+        resolves_when: "The finding quotes the policy clause that limits the role, or names the guardian, delay, recovery or veto it bypasses and shows the bypass.",
+      });
+    }
+    const other = readyCapped.filter((r) => r !== "requires a trusted role");
+    if (other.length) {
+      missing.push({ item: `Resolve what code found: ${other.join("; ")}`, category: "required", obligation: 5, why: "Code checks on the evidence did not pass.", resolves_when: "Each listed check passes on the revised finding." });
+    }
+  }
   return { verdict, severity, caps, evidence, missing };
 }

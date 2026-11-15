@@ -4,6 +4,13 @@ import type { Report } from "../data/karak.ts";
 import type { ConsensusRow } from "../eval/consensus.ts";
 import { EVIDENCE_PAYLOAD } from "../eval/consensus.ts";
 import { renderPages } from "../site/render.ts";
+import { compute } from "../eval/claims.ts";
+import { assertReleaseMatchesCode } from "../eval/release.ts";
+
+// Release gate: published numbers must equal a fresh computation, and the release's runs must come from this exact code.
+const claimsText = readFileSync("data/claims.json", "utf8");
+if (claimsText !== JSON.stringify(compute(), null, 2) + "\n") throw new Error("claims.json does not match the committed run data; run npm run verify");
+assertReleaseMatchesCode(JSON.parse(claimsText).release);
 
 // Vercel Build Output API v3: deployed with `vercel deploy --prebuilt`, so generated files never live in git.
 const OUT = ".vercel/output";

@@ -1,5 +1,6 @@
 {
-  "pipeline": "obligations-v3",
-  "development_run": "karak-v3",
-  "holdout_run": "wildcat-v3"
+  "pipeline": "obligations-v3.1",
+  "development_run": "karak-v3.1",
+  "evaluation_run": "wildcat-v3.1",
+  "evaluation_role": "diagnostic, not blind: Wildcat was the obligations-v3 holdout and motivated parts of v3.1"
 }

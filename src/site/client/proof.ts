@@ -95,7 +95,7 @@ async function main() {
       },
       {
         what: "Automatic rejects the contest judge also rejected (SERV decides)",
-        note: "zero-score verdicts the production router sends without a human",
+        note: "zero-score verdicts the production router gives without review",
         state: "recomputed",
         published: `${s.serv.automatic_rejects_not_awarded}/${s.serv.automatic_rejects}`,
         computed: () => {
@@ -240,7 +240,7 @@ async function main() {
         ${a.votes.map((x, i) => `<div class="leader"><span>pass ${i + 1}: ${esc((VERDICT[x.verdict] ?? { label: x.verdict }).label)}</span><span class="dots"></span><span class="mono" style="user-select:all">${esc(x.id ?? "—")}</span></div>
           ${x.reason ? `<p class="fine" style="margin:4px 0 10px">${esc(x.reason)}</p>` : ""}${x.caps.map((c) => `<p class="fine muted" style="margin:0 0 6px">code: ${esc(c)}</p>`).join("")}`).join("")}
         <div class="leader"><span>agreement</span><span class="dots"></span><span>${esc(a.agreement ?? "code veto")}</span></div>
-        <div class="leader"><span>route</span><span class="dots"></span><span>${automatic(r, a) ? "automatic" : "a person"}</span></div>`;
+        <div class="leader"><span>route</span><span class="dots"></span><span>${automatic(r, a) ? "automatic advice" : "needs review"}</span></div>`;
     };
     opener = el;
     $("#drawer-body").innerHTML = `<span class="eyebrow">Karak #${r.n} · family ${r.family}</span>
@@ -315,12 +315,12 @@ function renderHoldout(claims: any) {
   const pair = (f: (a: any, run: any) => string, which: "serv" | "dolphin") => `${v2 ? `${f(v2[which], v2)} → ` : ""}<b>${f(v3[which], v3)}</b>`;
   const rows: [string, (a: any, run: any) => string][] = [
     ["READY", (a, r) => of(a.ready, r.reports)],
-    ["READY and routed without a person", (a, r) => of(a.ready_automatic ?? 0, r.reports)],
+    ["READY as automatic advice", (a, r) => of(a.ready_automatic ?? 0, r.reports)],
     ["READY precision (awarded among READY)", (a) => (a.ready_precision === null || a.ready_precision === undefined ? "undefined" : a.ready_precision.toFixed(2))],
     ["Awarded, auto-rejected", (a, r) => of(a.awarded_auto_rejected, r.awarded)],
     ["Awarded, automatically told to add proof", (a, r) => of(a.awarded_auto_needs_proof, r.awarded)],
     ["False discouragement (the two above, pre-registered)", (a, r) => of(a.false_discouragement, r.awarded)],
-    ["Sent to a person", (a, r) => of(a.human_routed, r.reports)],
+    ["Needs review", (a, r) => of(a.human_routed, r.reports)],
     ["Decision passes held by Prompt Guard", (a) => of(a.decision_votes_guard_held, a.decision_votes)],
     ["Exclusions capped for quoting no rule", (a) => String(a.exclusions_ungrounded?.length ?? 0)],
   ];
@@ -329,7 +329,7 @@ function renderHoldout(claims: any) {
     `<tr><td>Cost per check</td><td colspan="2">${v2 ? `$${v2.usd_per_check.toFixed(4)} → ` : ""}<b>$${v3.usd_per_check.toFixed(4)}</b></td></tr>`;
 
   const fam = (which: "serv" | "dolphin") => v3[which].awarded_families as any[];
-  $("#family-table").innerHTML = `<tr><th>Awarded family</th><th>Awarded</th><th>SERV: READY · auto no · auto proof · person</th><th>Dolphin: READY · auto no · auto proof · person</th></tr>` +
+  $("#family-table").innerHTML = `<tr><th>Awarded family</th><th>Awarded</th><th>SERV: READY · auto no · auto proof · review</th><th>Dolphin: READY · auto no · auto proof · review</th></tr>` +
     fam("serv").map((f, i) => {
       const d = fam("dolphin")[i];
       const cell = (x: any) => `${x.ready} · ${x.auto_rejected} · ${x.auto_needs_proof} · ${x.human}`;
@@ -345,7 +345,7 @@ function renderHoldout(claims: any) {
 
   const k = a7.diagnostic_kleidi, kr = a7.karak_regression;
   $("#holdout-scope").textContent = [
-    k && `Kleidi, which motivated this version and is no longer blind: SERV sent ${k.serv.human_routed}/${k.reports} to a person and auto-rejected ${k.serv.awarded_auto_rejected}/${k.awarded} awarded findings; Dolphin ${k.dolphin.human_routed}/${k.reports} and ${k.dolphin.awarded_auto_rejected}/${k.awarded}.`,
+    k && `Kleidi, which motivated this version and is no longer blind: SERV left ${k.serv.human_routed}/${k.reports} for review and auto-rejected ${k.serv.awarded_auto_rejected}/${k.awarded} awarded findings; Dolphin ${k.dolphin.human_routed}/${k.reports} and ${k.dolphin.awarded_auto_rejected}/${k.awarded}.`,
     kr && `Karak, the development contest: READY ${kr.serv.ready} (SERV) and ${kr.dolphin.ready} (Dolphin) of ${kr.reports}.`,
   ].filter(Boolean).join(" ");
 }

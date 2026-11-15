@@ -1,5 +1,5 @@
 import { readFileSync, appendFileSync, existsSync, mkdirSync, writeFileSync } from "node:fs";
-import { createHash } from "node:crypto";
+import { behaviorHashes, sha16 } from "./release.ts";
 import { execFileSync } from "node:child_process";
 import type { Report } from "../data/findings.ts";
 import { loadContest } from "../contests.ts";
@@ -101,18 +101,13 @@ async function run(name: string, items: { id: string; title: string; body: strin
   await Promise.all(Array.from({ length: 3 }, worker));
 }
 
-const BEHAVIOR_FILES = [
-  "src/evidence.ts", "src/verdict.ts", "src/caps.ts", "src/defenses.ts", "src/precheck.ts", "src/citations.ts",
-  "src/obligations.ts", "src/policy.ts", "src/llm.ts", "src/route.ts", "src/format.ts", "src/contests.ts",
-];
 
 // A resumed run must be the same version: if any behavior file or input changed, it refuses instead of mixing rows.
 function writeManifest(name: string, ablation: string, inputs: string[] = []) {
-  const sha = (f: string) => createHash("sha256").update(readFileSync(f)).digest("hex").slice(0, 16);
   const path = "data/runs/manifest.json";
   const all = existsSync(path) ? JSON.parse(readFileSync(path, "utf8")) : {};
-  const sources = Object.fromEntries(BEHAVIOR_FILES.map((f) => [f, sha(f)]));
-  const data = Object.fromEntries([`data/${CONTEST_ID}/snapshot.json`, REPORTS, ...inputs].filter(existsSync).map((f) => [f, sha(f)]));
+  const sources = behaviorHashes();
+  const data = Object.fromEntries([`data/${CONTEST_ID}/snapshot.json`, REPORTS, ...inputs].filter(existsSync).map((f) => [f, sha16(f)]));
   const at = { at: new Date().toISOString(), git: execFileSync("git", ["rev-parse", "HEAD"], { encoding: "utf8" }).trim(), dirty: execFileSync("git", ["status", "--porcelain", "src", "data"], { encoding: "utf8" }).trim().length > 0 };
   const prior = all[name];
   if (prior && existsSync(`data/runs/${name}.jsonl`)) {

@@ -7,6 +7,7 @@ export interface CheckResult {
   severity_supported: string | null;
   missing: (string | Item)[];
   reason: string;
+  grounds?: { kind: "policy clause"; clause: string; actor: string; conditions: string; why_within: string } | { kind: "blocking code"; code: { file: string; line: number; why: string }[] } | null;
   caps: string[];
   flags: string[];
   citations: { status: string; path: string; lines: [number, number]; audited_lines: [number, number] | null }[];
@@ -41,7 +42,7 @@ export function renderVerdict(r: CheckResult, compact = false): string {
   const v = VERDICT[r.verdict] ?? { label: r.verdict, color: "#8e8c86", chip: "c-ash" };
   const meta = [
     r.agreement && `<span class="chip ${v.chip}">${esc(r.agreement)}</span>`,
-    `<span class="chip ${r.route === "automatic" ? "c-ok" : "c-sky"}">${r.route === "automatic" ? "routes automatically" : "goes to a human"}</span>`,
+    `<span class="chip ${r.route === "automatic" ? "c-ok" : "c-sky"}">${r.route === "automatic" ? "automatic advice" : "needs your review"}</span>`,
     r.severity_supported && `<span class="chip c-ash">evidence supports: ${esc(r.severity_supported.replaceAll("_", " "))}</span>`,
   ].filter(Boolean).join("");
   const votes = r.votes.length
@@ -56,6 +57,16 @@ export function renderVerdict(r: CheckResult, compact = false): string {
   const missing = r.missing.length
     ? `<div class="block-title">What a judge would still need</div>${checklist(r.missing)}`
     : "";
+  const g = r.grounds;
+  const groundsBlock = !g
+    ? ""
+    : `<div class="block-title">What this rests on · reference verified, applicability is the model's reading</div>` +
+      (g.kind === "policy clause"
+        ? `<blockquote class="reason" style="margin:0 0 10px">“${esc(g.clause)}”</blockquote>
+           <div class="leader"><span>applies to</span><span class="dots"></span><span>${esc(g.actor)}</span></div>
+           <div class="leader"><span>under</span><span class="dots"></span><span>${esc(g.conditions)}</span></div>
+           <p class="fine">${esc(g.why_within)}</p>`
+        : g.code.map((b) => `<div class="leader"><span>${esc(b.file)}:${esc(b.line)}</span><span class="dots"></span><span>${esc(b.why)}</span></div>`).join(""));
   const notes = [...r.caps, ...(r.flags.length ? [`text addressed to the reviewer: ${r.flags.join(", ")}`] : [])];
   const cites = r.citations.length
     ? `<div class="block-title">Citations, resolved against the audited commit</div><table class="data">${r.citations.map((c) =>
@@ -74,7 +85,7 @@ export function renderVerdict(r: CheckResult, compact = false): string {
     <div class="verdict-meta">${meta}</div>
     <p class="reason">${esc(r.reason)}</p>
     ${notes.length ? `<p class="fine" style="margin-top:10px;color:var(--amber)">${notes.map(esc).join("<br>")}</p>` : ""}
-    ${missing}${votes}${cites}${evidence}
+    ${groundsBlock}${missing}${votes}${cites}${evidence}
     ${certificate(r)}`;
 }
 

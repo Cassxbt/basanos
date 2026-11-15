@@ -6,11 +6,26 @@ import { auroc, clusterBootstrap } from "./score.ts";
 import { ordinal } from "../precheck.ts";
 import { route } from "../route.ts";
 import { PIPELINE_VERSION } from "../obligations.ts";
+import { loadContest } from "../contests.ts";
+import { loadPolicy, budgetPolicy } from "../policy.ts";
 
 const CLAIMS = "data/claims.json";
 const jsonl = <T>(path: string): T[] => (existsSync(path) ? readFileSync(path, "utf8").trim().split("\n").filter(Boolean).map((l) => JSON.parse(l)) : []);
 const r3 = (x: number) => Math.round(x * 1000) / 1000;
 const r5 = (x: number) => Math.round(x * 1e5) / 1e5;
+
+// What each document contributed to a contest's policy bundle; v3 used a flat cap, so its coverage is recomputed under that cap.
+function policyCoverage(id: string, flatCap?: number) {
+  const { contest } = loadContest(id);
+  const p = loadPolicy(contest.source, contest.auditedCommit);
+  if (flatCap === undefined) return budgetPolicy(p).coverage;
+  let at = budgetPolicy({ ...p, documents: [] }).text.length;
+  return p.documents.map((d) => {
+    const start = at + "\n\n## ".length + d.path.length + 1;
+    at = start + d.text.length;
+    return { path: d.path, chars: d.text.length, included: Math.max(0, Math.min(d.text.length, flatCap - start)) };
+  });
+}
 
 export const automatic = (row: ConsensusRow, which: "serv" | "dolphin") => route({ ...row[which], flags: row.flags ?? [] }) === "automatic";
 
@@ -182,6 +197,17 @@ export function compute() {
         human_routed: pairs.filter(({ row }) => !auto(row)).length,
         auto_reject_not_awarded: pairs.filter(({ r, row }) => auto(row) && row[which].score === 0 && !r.awarded).length,
         auto_reject: pairs.filter(({ row }) => auto(row) && row[which].score === 0).length,
+        // Why rows were left for review; a row can have several causes.
+        review_causes: Object.fromEntries(Object.entries({
+          guard_hold: (row: ConsensusRow) => row.frontDoorHeld || row[which].votes.some((v) => v.verdict === "GUARD_HELD"),
+          flagged: (row: ConsensusRow) => !!row.flags?.length,
+          passes_disagree: (row: ConsensusRow) => row[which].agreement !== null && row[which].agreement !== "unanimous",
+          layers_disagree: (row: ConsensusRow) => row[which].votes.some((v) => v.caps.some((c) => c.startsWith("layers disagree"))),
+          code_overruled: (row: ConsensusRow) => row[which].votes.some((v) => v.caps.some((c) => c.startsWith("READY capped") || c.startsWith("verdict capped"))),
+          negative_advice: (row: ConsensusRow) => row[which].votes.some((v) => v.caps.some((c) => c.startsWith("review required: negative"))),
+          policy_incomplete: (row: ConsensusRow) => row[which].votes.some((v) => v.caps.some((c) => c.startsWith("review required: contest policy"))),
+        }).map(([k, f]) => [k, pairs.filter(({ row }) => !auto(row) && f(row)).length])),
+        automatic_by_verdict: pairs.filter(({ row }) => auto(row)).reduce<Record<string, number>>((t, { row }) => ({ ...t, [row[which].verdict]: (t[row[which].verdict] ?? 0) + 1 }), {}),
         decision_votes: votes.length,
         decision_votes_guard_held: votes.filter((v) => v.verdict === "GUARD_HELD").length,
         exclusions_grounded: votes.filter((v) => v.verdict === "KNOWN_OR_OUT_OF_SCOPE").length,
@@ -239,9 +265,17 @@ export function compute() {
     holdout_wildcat: v2Run("data/runs/wildcat-v3.jsonl", "data/wildcat/reports.json"),
     holdout_wildcat_v2_baseline: v2Run("data/runs/wildcat-v2.jsonl", "data/wildcat/reports.json"),
     diagnostic_kleidi: v2Run("data/runs/kleidi-v3.jsonl", "data/kleidi/reports.json"),
-    karak_regression: v2Run("data/runs/karak-v3.jsonl", "data/karak/reports.json"),
-    attacks_v5_wildcat: v2Attacks("data/runs/attacks-v5-wildcat.jsonl"),
-    frozen_v3_regression: v2Attacks("data/runs/frozen-v3.jsonl"),
+    // Stopped when amendment 8 superseded v3; reported as not run.
+    not_run: ["karak regression (stopped at 19 of 94)", "v5 attacks", "frozen v3 attacks"],
+    policy_coverage_wildcat: policyCoverage("wildcat", 40_000),
+  };
+  const amendment8 = {
+    pipeline: "obligations-v3.1",
+    karak_development: v2Run("data/runs/karak-v3.1.jsonl", "data/karak/reports.json"),
+    wildcat_diagnostic: v2Run("data/runs/wildcat-v3.1.jsonl", "data/wildcat/reports.json"),
+    attacks_v5_wildcat: v2Attacks("data/runs/attacks-v5-wildcat-v3.1.jsonl"),
+    frozen_v3_regression: v2Attacks("data/runs/frozen-v3.1.jsonl"),
+    policy_coverage: Object.fromEntries(["karak", "kleidi", "wildcat"].map((id) => [id, policyCoverage(id)])),
   };
 
   const audit = jsonl<any>("data/runs/reppo-audit.jsonl").filter((a) => a.status === "COMPLETED");
@@ -249,7 +283,7 @@ export function compute() {
   const release = JSON.parse(readFileSync("data/release.json", "utf8"));
   const manifest = JSON.parse(readFileSync("data/runs/manifest.json", "utf8"));
   if (release.pipeline !== PIPELINE_VERSION) throw new Error(`release names ${release.pipeline}, the code is ${PIPELINE_VERSION}`);
-  for (const run of [release.development_run, release.holdout_run]) {
+  for (const run of [release.development_run, release.evaluation_run]) {
     if (manifest[run]?.pipeline !== release.pipeline) throw new Error(`release ${release.pipeline} cites ${run}, recorded as ${manifest[run]?.pipeline}`);
   }
   const shipped = { source: release.development_run, rows: consensusRun(release.development_run) };
@@ -292,6 +326,7 @@ export function compute() {
     repair_loop: repair,
     amendment6,
     amendment7,
+    amendment8,
     reppo_audit: {
       completed: audit.length,
       accepted: audit.filter((a) => a.decision === "accept").length,

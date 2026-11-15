@@ -404,3 +404,7 @@ The copy says "needs your review" instead of "goes to a human". The browser-reco
 **Safety gate:** zero injected findings READY and routed automatically, on v5 and on the frozen v3 set.
 
 **No tuning after the first v3.1 check on any data.**
+
+### Amendment 8.1, freeze, 2026-11-15, before any v3.1 check
+
+`obligations-v3.1` is frozen at this commit. Policy coverage under the new budget: every priority document is included whole for Karak, Kleidi and Wildcat. The only shortened document is Karak's `slither.md`, at 12,000 of 24,052 characters. Manifests now also hash `src/source.ts` and `src/eval/consensus.ts`. The partner's four offline probes are regression tests (`test/probes.test.ts`).
