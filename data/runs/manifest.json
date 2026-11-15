@@ -208,5 +208,177 @@
       "src/citations.ts": "1fdec5a4b12e2d63",
       "src/obligations.ts": "4284e598368f0d03"
     }
+  },
+  "karak-v3.1": {
+    "started": "2026-11-15T14:42:39.835Z",
+    "git": "e305bd435e62f25b4f1bbd7754db6260ff01cfce",
+    "dirty": false,
+    "ablation": "none",
+    "contest": "karak",
+    "pipeline": "obligations-v3.1",
+    "passes": 3,
+    "models": {
+      "evidence": "deepseek-ai/DeepSeek-V4.1-Flash",
+      "deciders": [
+        "gpt-6-luna",
+        "deepseek-ai/DeepSeek-V4.1-Flash"
+      ]
+    },
+    "sources": {
+      "src/evidence.ts": "6fb5987296894eac",
+      "src/verdict.ts": "3d608ac572fd06ca",
+      "src/caps.ts": "b0cddb6b8802bef8",
+      "src/defenses.ts": "1a4ae0c8ce4d675c",
+      "src/precheck.ts": "82f68d1af242430b",
+      "src/citations.ts": "1fdec5a4b12e2d63",
+      "src/obligations.ts": "aac8cd05ed32d4c2",
+      "src/policy.ts": "425f906dec559811",
+      "src/llm.ts": "54fb2bbc32a4eef5",
+      "src/route.ts": "4c2b8345bfbb77ac",
+      "src/format.ts": "4f4d22dbb9757dfb",
+      "src/contests.ts": "6805d3f7b0f0aa66",
+      "src/source.ts": "ca1a2151a0048651",
+      "src/eval/consensus.ts": "5d0ea7e62d27ecc7"
+    },
+    "data": {
+      "data/karak/snapshot.json": "21c97c0d271d9662",
+      "data/karak/reports.json": "f0ef71b6c64c7c2c"
+    },
+    "resumes": [
+      {
+        "at": "2026-11-15T15:26:42.535Z",
+        "git": "e305bd435e62f25b4f1bbd7754db6260ff01cfce",
+        "dirty": true
+      }
+    ]
+  },
+  "frozen-v3.1": {
+    "started": "2026-11-15T15:28:07.468Z",
+    "git": "e305bd435e62f25b4f1bbd7754db6260ff01cfce",
+    "dirty": true,
+    "ablation": "none",
+    "contest": "karak",
+    "pipeline": "obligations-v3.1",
+    "passes": 3,
+    "models": {
+      "evidence": "deepseek-ai/DeepSeek-V4.1-Flash",
+      "deciders": [
+        "gpt-6-luna",
+        "deepseek-ai/DeepSeek-V4.1-Flash"
+      ]
+    },
+    "sources": {
+      "src/evidence.ts": "6fb5987296894eac",
+      "src/verdict.ts": "3d608ac572fd06ca",
+      "src/caps.ts": "b0cddb6b8802bef8",
+      "src/defenses.ts": "1a4ae0c8ce4d675c",
+      "src/precheck.ts": "82f68d1af242430b",
+      "src/citations.ts": "1fdec5a4b12e2d63",
+      "src/obligations.ts": "aac8cd05ed32d4c2",
+      "src/policy.ts": "425f906dec559811",
+      "src/llm.ts": "54fb2bbc32a4eef5",
+      "src/route.ts": "4c2b8345bfbb77ac",
+      "src/format.ts": "4f4d22dbb9757dfb",
+      "src/contests.ts": "6805d3f7b0f0aa66",
+      "src/source.ts": "ca1a2151a0048651",
+      "src/eval/consensus.ts": "5d0ea7e62d27ecc7"
+    },
+    "data": {
+      "data/karak/snapshot.json": "21c97c0d271d9662",
+      "data/karak/reports.json": "f0ef71b6c64c7c2c",
+      "data/karak/payloads_v3.json": "8eecb000285a7d18"
+    },
+    "resumes": [
+      {
+        "at": "2026-11-15T16:19:35.062Z",
+        "git": "af897cf6a4f5c5b7d69024f7a682782f14bbd9de",
+        "dirty": true
+      },
+      {
+        "at": "2026-11-15T16:23:16.794Z",
+        "git": "af897cf6a4f5c5b7d69024f7a682782f14bbd9de",
+        "dirty": true
+      }
+    ]
+  },
+  "wildcat-v3.1": {
+    "started": "2026-11-15T15:30:46.264Z",
+    "git": "e305bd435e62f25b4f1bbd7754db6260ff01cfce",
+    "dirty": true,
+    "ablation": "none",
+    "contest": "wildcat",
+    "pipeline": "obligations-v3.1",
+    "passes": 3,
+    "models": {
+      "evidence": "deepseek-ai/DeepSeek-V4.1-Flash",
+      "deciders": [
+        "gpt-6-luna",
+        "deepseek-ai/DeepSeek-V4.1-Flash"
+      ]
+    },
+    "sources": {
+      "src/evidence.ts": "6fb5987296894eac",
+      "src/verdict.ts": "3d608ac572fd06ca",
+      "src/caps.ts": "b0cddb6b8802bef8",
+      "src/defenses.ts": "1a4ae0c8ce4d675c",
+      "src/precheck.ts": "82f68d1af242430b",
+      "src/citations.ts": "1fdec5a4b12e2d63",
+      "src/obligations.ts": "aac8cd05ed32d4c2",
+      "src/policy.ts": "425f906dec559811",
+      "src/llm.ts": "54fb2bbc32a4eef5",
+      "src/route.ts": "4c2b8345bfbb77ac",
+      "src/format.ts": "4f4d22dbb9757dfb",
+      "src/contests.ts": "6805d3f7b0f0aa66",
+      "src/source.ts": "ca1a2151a0048651",
+      "src/eval/consensus.ts": "5d0ea7e62d27ecc7"
+    },
+    "data": {
+      "data/wildcat/snapshot.json": "61defff9aaec5ec3",
+      "data/wildcat/reports.json": "ce11181fbf701eca"
+    }
+  },
+  "attacks-v5-wildcat-v3.1": {
+    "started": "2026-11-15T15:32:26.910Z",
+    "git": "e305bd435e62f25b4f1bbd7754db6260ff01cfce",
+    "dirty": true,
+    "ablation": "none",
+    "contest": "wildcat",
+    "pipeline": "obligations-v3.1",
+    "passes": 3,
+    "models": {
+      "evidence": "deepseek-ai/DeepSeek-V4.1-Flash",
+      "deciders": [
+        "gpt-6-luna",
+        "deepseek-ai/DeepSeek-V4.1-Flash"
+      ]
+    },
+    "sources": {
+      "src/evidence.ts": "6fb5987296894eac",
+      "src/verdict.ts": "3d608ac572fd06ca",
+      "src/caps.ts": "b0cddb6b8802bef8",
+      "src/defenses.ts": "1a4ae0c8ce4d675c",
+      "src/precheck.ts": "82f68d1af242430b",
+      "src/citations.ts": "1fdec5a4b12e2d63",
+      "src/obligations.ts": "aac8cd05ed32d4c2",
+      "src/policy.ts": "425f906dec559811",
+      "src/llm.ts": "54fb2bbc32a4eef5",
+      "src/route.ts": "4c2b8345bfbb77ac",
+      "src/format.ts": "4f4d22dbb9757dfb",
+      "src/contests.ts": "6805d3f7b0f0aa66",
+      "src/source.ts": "ca1a2151a0048651",
+      "src/eval/consensus.ts": "5d0ea7e62d27ecc7"
+    },
+    "data": {
+      "data/wildcat/snapshot.json": "61defff9aaec5ec3",
+      "data/wildcat/reports.json": "ce11181fbf701eca",
+      "data/wildcat/payloads_v5.json": "690c3cedad551780"
+    },
+    "resumes": [
+      {
+        "at": "2026-11-15T16:32:47.999Z",
+        "git": "76ea9d7cf54712332840a0b90c00efe543b83d7f",
+        "dirty": true
+      }
+    ]
   }
 }
