@@ -1,0 +1,22 @@
+{
+  "name": "basanos",
+  "version": "1.0.0",
+  "description": "Evidence preflight for audit-contest reports",
+  "scripts": {
+    "build:karak": "tsx src/data/karak.ts",
+    "test": "node --import tsx --test test/*.test.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "openai": "^7.57.0",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.6",
+    "tsx": "^4.23.15",
+    "typescript": "^7.0.2"
+  },
+  "type": "module"
+}

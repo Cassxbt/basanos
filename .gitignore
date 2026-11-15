@@ -1,0 +1,7 @@
+.env
+.keys/
+node_modules/
+dist/
+.vercel/
+data/*/repo/
+scratch/
