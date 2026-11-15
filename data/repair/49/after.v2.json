@@ -1,0 +1,130 @@
+{
+  "verdict": "KNOWN_OR_OUT_OF_SCOPE",
+  "agreement": "unanimous",
+  "route": "human",
+  "severity_supported": "low_or_none",
+  "missing": [
+    {
+      "item": "Exercise the slashing path after establishing totalAssets through the beacon-proof flow.",
+      "category": "strengthens",
+      "obligation": 5,
+      "why": "The PoC uses vm.store to set totalAssets. The evidence record says this does not affect the handler-mismatch revert, so it is not required to support the claim.",
+      "resolves_when": "A test establishes totalAssets through validateWithdrawalCredentials/validateSnapshotProofs before exercising slashing."
+    }
+  ],
+  "reason": "The report confirms the trigger requires a trusted manager action, which the evidence record identifies as outside the stated scope. It also shows the revert is reversible by restoring the handler; no fund loss or higher severity is demonstrated.",
+  "caps": [
+    "layers disagree: evidence requires obligation 2, 3, the decision does not"
+  ],
+  "flags": [],
+  "citations": [
+    {
+      "status": "OK",
+      "path": "src/NativeVault.sol",
+      "lines": [
+        308,
+        308
+      ],
+      "audited_lines": [
+        308,
+        308
+      ]
+    }
+  ],
+  "votes": [
+    {
+      "verdict": "KNOWN_OR_OUT_OF_SCOPE",
+      "severity": "low_or_none",
+      "request_id": "d82c6f14-2942-41f9-98b3-a6a69c3836f7"
+    },
+    {
+      "verdict": "KNOWN_OR_OUT_OF_SCOPE",
+      "severity": "low_or_none",
+      "request_id": "c1eb8caa-ca1c-4a86-8ffe-648e58fc38e2"
+    },
+    {
+      "verdict": "KNOWN_OR_OUT_OF_SCOPE",
+      "severity": "low_or_none",
+      "request_id": "0ebf9920-7cd7-419c-bb29-f24a9b060b8e"
+    }
+  ],
+  "evidence": {
+    "model": "deepseek-ai/DeepSeek-V4.1-Flash",
+    "tokens_read": 43753,
+    "claim": "Re-pointing an asset's slashing handler in Core (allowlistAssets) makes NativeVault.slashAssets revert with NotSlashStore, DoSing slashing for already-deployed NativeVaults.",
+    "root_cause_file": "src/NativeVault.sol",
+    "root_cause_line": 308,
+    "code_supports_claim": "yes",
+    "support_reason": "NativeVault.slashAssets requires slashingHandler == self.slashStore (line 308), where slashStore is fixed at initialize (line 75). Core.allowlistAssets (Core.sol:85-91 -> CoreLib.sol:67-75) overwrites assetSlashingHandlers[asset] with no check against existing vaults, and SlasherLib.finalizeSlashing (SlasherLib.sol:135-138) passes self.assetSlashingHandlers[vault.asset()] as the handler. So after a re-point, finalizeSlashing reverts for every NativeVault whose slashStore differs.",
+    "blocking_code": [],
+    "poc": "concrete_steps",
+    "impact": "admin_misuse",
+    "preconditions": [
+      "MANAGER/owner calls allowlistAssets to re-point DEAD_BEEF to a different handler",
+      "at least one NativeVault already deployed with the old slashStore",
+      "a slashing request is queued/finalized after the re-point"
+    ],
+    "trusted_role_required": true,
+    "known_issue_match": "",
+    "missing_evidence": [
+      {
+        "item": "Contest policy does not list MANAGER/OWNER misconfiguration or admin-action DoS as in-scope; the report itself concedes the harm requires a trusted role acting through a normal admin function.",
+        "category": "required",
+        "obligation": 2,
+        "why": "Reachability under allowed actors is the crux. The only trigger is a MANAGER/owner call to allowlistAssets; if the policy treats trusted-role misconfiguration as out of scope, the path is not reachable by an in-scope actor and the finding fails obligation 2.",
+        "resolves_when": "The policy (or a judge ruling) explicitly states that a MANAGER/owner re-pointing an allowlisted asset's slashing handler is an in-scope attack surface, or the report shows a permissionless trigger."
+      },
+      {
+        "item": "Severity justification: the demonstrated effect is a temporary revert of finalizeSlashing that is fully reversible by the same trusted role (restore old handler) or by per-vault implementation upgrade.",
+        "category": "required",
+        "obligation": 3,
+        "why": "The stated impact is DoS of slashing, but the DoS is admin-induced and admin-reversible with no fund loss; the report must show this meets the contest's severity bar for a trusted-role-triggered, self-healing condition.",
+        "resolves_when": "The report ties the effect to a specific severity criterion (e.g., a stated invariant that slashing must not be blockable) or the judge accepts admin-reversible DoS as Low/QA."
+      },
+      {
+        "item": "PoC credits totalAssets via vm.store rather than the beacon-proof flow.",
+        "category": "strengthens",
+        "obligation": 5,
+        "why": "The slashing path under test (finalizeSlashing -> slashAssets -> NotSlashStore check) does not depend on how totalAssets was produced; the revert is independent of balance provenance, so the missing beacon flow does not undermine the claim.",
+        "resolves_when": "A test drives totalAssets through validateWithdrawalCredentials/validateSnapshotProofs before slashing."
+      }
+    ]
+  },
+  "decision": {
+    "provider": "serv",
+    "model": "gpt-6-luna",
+    "prompt_guard_requested": true
+  },
+  "usd": 0.004332,
+  "certificate": {
+    "version": 1,
+    "seal_type": "sha256-checksum",
+    "pipeline": "obligations-v2",
+    "contest": "karak",
+    "audited_commit": "f5e52fdcb4c20c4318d532a9f08f7876e9afb321",
+    "finding_sha256": "102adc3fdd38c378a56af95e2ba6ceaa179e20e8e2bac28f7c142d1595297c3a",
+    "verdict": "KNOWN_OR_OUT_OF_SCOPE",
+    "agreement": "unanimous",
+    "route": "human",
+    "votes": [
+      {
+        "verdict": "KNOWN_OR_OUT_OF_SCOPE",
+        "serv_request_id": "d82c6f14-2942-41f9-98b3-a6a69c3836f7"
+      },
+      {
+        "verdict": "KNOWN_OR_OUT_OF_SCOPE",
+        "serv_request_id": "c1eb8caa-ca1c-4a86-8ffe-648e58fc38e2"
+      },
+      {
+        "verdict": "KNOWN_OR_OUT_OF_SCOPE",
+        "serv_request_id": "0ebf9920-7cd7-419c-bb29-f24a9b060b8e"
+      }
+    ],
+    "decider": "serv/gpt-6-luna",
+    "evidence_model": "deepseek-ai/DeepSeek-V4.1-Flash",
+    "flags": [],
+    "usd": 0.004332,
+    "issued_at": "2026-11-15T10:08:09.484Z"
+  },
+  "seal": "2d1c0d7ff282d2a2b19ca064d87e9d85a3a817d183b46452fab790d5587df5d1"
+}

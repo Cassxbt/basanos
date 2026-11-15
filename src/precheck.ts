@@ -74,7 +74,7 @@ export function summarizeCitations(citations: ResolvedCitation[]): string {
 }
 
 export function checkCitations(body: string, title: string, contest: Contest): ResolvedCitation[] {
-  const resolved = parseCitations(body, contest.githubRepo, contest.auditedCommit).map((c) => resolveCitation(c, contest));
+  const resolved = parseCitations(body, contest.githubRepo, contest.auditedCommit, contest.aliases).map((c) => resolveCitation(c, contest));
   return markUnrelated(resolved, `${title}\n${body}`, contest);
 }
 

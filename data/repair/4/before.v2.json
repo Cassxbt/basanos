@@ -1,0 +1,178 @@
+{
+  "verdict": "NEEDS_PROOF",
+  "agreement": "unanimous",
+  "route": "automatic",
+  "severity_supported": "low_or_none",
+  "missing": [
+    {
+      "item": "Show a concrete loss beyond the intended slashing of pre-withdrawal misconduct.",
+      "category": "required",
+      "obligation": 3,
+      "why": "The report shows a slash can finalize after unstaking and deregistration, but does not identify a victim or establish that the slashed assets were not intended to remain slashable under the withdrawal-delay design.",
+      "resolves_when": "Identify the affected vault and party, the amount lost, and why those funds were not intended to be subject to this slash."
+    },
+    {
+      "item": "Resolve whether the registration invariant must hold at slashing finalization despite a request made during the withdrawal delay.",
+      "category": "required",
+      "obligation": 4,
+      "why": "The report cites the registration invariant, while the policy context also describes the withdrawal delay as allowing the DSS to slash before withdrawal. Whether this queued-slash sequence is excluded or violates the invariant remains unclear.",
+      "resolves_when": "Cite policy language establishing that registration must persist through finalization, or otherwise establish that this sequence is intended to be disallowed."
+    },
+    {
+      "item": "Provide a compiling, passing reproduction test.",
+      "category": "strengthens",
+      "obligation": 5,
+      "why": "The source supports the request, unstake, deregister, and finalize sequence, but the supplied test is not shown to compile or run.",
+      "resolves_when": "Provide a test that compiles and passes against the audited commit."
+    }
+  ],
+  "reason": "Scope references and the source-supported path are resolved: the report describes a reachable queued slash finalized after deregistration. The distinct harm and the policy treatment of that sequence remain unresolved.",
+  "caps": [],
+  "flags": [],
+  "citations": [
+    {
+      "status": "OK",
+      "path": "src/Core.sol",
+      "lines": [
+        130,
+        130
+      ],
+      "audited_lines": [
+        130,
+        130
+      ]
+    },
+    {
+      "status": "OK",
+      "path": "src/Core.sol",
+      "lines": [
+        220,
+        220
+      ],
+      "audited_lines": [
+        220,
+        220
+      ]
+    },
+    {
+      "status": "OK",
+      "path": "src/Core.sol",
+      "lines": [
+        248,
+        248
+      ],
+      "audited_lines": [
+        248,
+        248
+      ]
+    },
+    {
+      "status": "OK",
+      "path": "src/Core.sol",
+      "lines": [
+        113,
+        113
+      ],
+      "audited_lines": [
+        113,
+        113
+      ]
+    }
+  ],
+  "votes": [
+    {
+      "verdict": "NEEDS_PROOF",
+      "severity": "low_or_none",
+      "request_id": "5c42f624-c5c3-4442-bcf5-620543f9d072"
+    },
+    {
+      "verdict": "NEEDS_PROOF",
+      "severity": "low_or_none",
+      "request_id": "388bb0fc-16cb-421a-82ca-ff7df4556968"
+    },
+    {
+      "verdict": "NEEDS_PROOF",
+      "severity": "low_or_none",
+      "request_id": "ce6002e8-f48d-4abd-ac52-8de8c49f4776"
+    }
+  ],
+  "evidence": {
+    "model": "deepseek-ai/DeepSeek-V4.1-Flash",
+    "tokens_read": 43241,
+    "claim": "A DSS can finalize a slashing against an operator after the operator has unstaked its vaults and unregistered from that DSS, violating the invariant 'Only DSSs an operator is registered with can slash said operator'.",
+    "root_cause_file": "src/entities/SlasherLib.sol",
+    "root_cause_line": 126,
+    "code_supports_claim": "yes",
+    "support_reason": "requestSlashing (Core.sol:220-231) checks registration only at request time and stores the queued slashing root in self.slashingRequests (SlasherLib.sol:110). finalizeSlashing (SlasherLib.sol:126-151) only checks the stored root and the veto window; it never re-checks isOperatorRegisteredToDSS or that the vaults are still staked to the DSS. unregisterOperatorFromDSS (Operator.sol:181-203) only requires vaultStakedInDssMap[dss] to be empty, which unstaking satisfies, and does not consult pending slashing requests. So the sequence request -> unstake -> unregister -> finalize is reachable.",
+    "blocking_code": [],
+    "poc": "concrete_steps",
+    "impact": "unclear",
+    "preconditions": [
+      "operator registered to DSS with >=1 vault staked",
+      "operator unstakes all vaults (9-day MIN_STAKE_UPDATE_DELAY) and unregisters before the 2-day SLASHING_VETO_WINDOW elapses",
+      "DSS requested slashing before the unstake finalized"
+    ],
+    "trusted_role_required": false,
+    "known_issue_match": "",
+    "missing_evidence": [
+      {
+        "item": "Demonstration that the slash actually transfers value from a vault the operator no longer has staked to the DSS, and that this is a loss to anyone (stakers/DSS) rather than the intended 'slash for pre-withdrawal misbehavior'",
+        "category": "required",
+        "obligation": 3,
+        "why": "The stated impact is 'potential loss on deposits' and 'new users depositing into the DSS may be unaware'. The code shows the slash is applied to the vault's totalAssets (SlasherLib.sol:135-138, Vault.sol:193-205), which is the same effect as a normal in-window slash. Without showing a concrete victim whose funds are lost (e.g., a staker who deposited after the request, or a vault that was legitimately unstaked), the effect does not establish a distinct harm beyond the documented withdrawal-delay design.",
+        "resolves_when": "A concrete scenario is given where a specific party loses funds that the protocol design did not intend to be slashable, with the amounts and the vault/staker identified."
+      },
+      {
+        "item": "Reconciliation with the contest policy statement that the withdrawal delay exists precisely so the DSS can slash the vault before withdrawal, and that 'sitting on a queued withdraw doesn't provide an operator any edge'",
+        "category": "required",
+        "obligation": 4,
+        "why": "The policy explicitly frames the 9-day delay as the window in which the DSS may slash. The report's scenario is a slash requested inside that window and finalized after unstaking; if the policy treats this as intended behavior, the finding is excluded. The report must show the invariant is meant to bind at finalize time, not just at request time.",
+        "resolves_when": "The report cites a policy clause or sponsor statement establishing that the registration check must hold at finalize time, or the judge confirms the invariant applies to finalization."
+      },
+      {
+        "item": "The PoC test is not shown to compile/run (it references helpers stake_vaults_to_dss, dss, operator, and calls finalizeUpdateVaultStakeInDSS with a queued struct that must match the stored root)",
+        "category": "strengthens",
+        "obligation": 5,
+        "why": "The code path is clear from source reading alone; a runnable test would confirm it but its absence does not undermine the reachability shown by the source.",
+        "resolves_when": "A test is provided that compiles and passes against the audited commit."
+      }
+    ]
+  },
+  "decision": {
+    "provider": "serv",
+    "model": "gpt-6-luna",
+    "prompt_guard_requested": true
+  },
+  "usd": 0.004672,
+  "certificate": {
+    "version": 1,
+    "seal_type": "sha256-checksum",
+    "pipeline": "obligations-v2",
+    "contest": "karak",
+    "audited_commit": "f5e52fdcb4c20c4318d532a9f08f7876e9afb321",
+    "finding_sha256": "3f482d8565b332e157f007954b5d220f20c5dde0121dc64e41e2d92b86b883c7",
+    "verdict": "NEEDS_PROOF",
+    "agreement": "unanimous",
+    "route": "automatic",
+    "votes": [
+      {
+        "verdict": "NEEDS_PROOF",
+        "serv_request_id": "5c42f624-c5c3-4442-bcf5-620543f9d072"
+      },
+      {
+        "verdict": "NEEDS_PROOF",
+        "serv_request_id": "388bb0fc-16cb-421a-82ca-ff7df4556968"
+      },
+      {
+        "verdict": "NEEDS_PROOF",
+        "serv_request_id": "ce6002e8-f48d-4abd-ac52-8de8c49f4776"
+      }
+    ],
+    "decider": "serv/gpt-6-luna",
+    "evidence_model": "deepseek-ai/DeepSeek-V4.1-Flash",
+    "flags": [],
+    "usd": 0.004672,
+    "issued_at": "2026-11-15T10:07:29.869Z"
+  },
+  "seal": "08195c7f9567534c9c28a7c902119690b7691a435f88006f9938990ad62fd3d9"
+}

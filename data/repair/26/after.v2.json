@@ -1,0 +1,138 @@
+{
+  "verdict": "NEEDS_PROOF",
+  "agreement": "split",
+  "route": "human",
+  "severity_supported": "medium",
+  "missing": [
+    {
+      "item": "Establish the residual impact despite the operator’s unregister escape.",
+      "category": "required",
+      "obligation": 3,
+      "why": "The report acknowledges that an operator can unregister during the pending window, but still relies on conditional slashing when the operator does not do so. It does not establish that this escape is blocked or impractical, or restate the impact as griefing/DoS.",
+      "resolves_when": "Show that unregistering is unavailable or impractical in the relevant scenario, or limit the claim to the demonstrated griefing/DoS effect on changing DSS or stake updates."
+    },
+    {
+      "item": "Resolve whether the one-pending-update behavior is intended or a known limitation under contest policy.",
+      "category": "required",
+      "obligation": 4,
+      "why": "The report does not link this behavior to a policy clause or establish that the restriction is unintended rather than a design choice.",
+      "resolves_when": "Cite a relevant policy provision or code comment indicating cancellation or continued withdrawal/update access is expected, or obtain a ruling that this restriction is not an accepted limitation."
+    }
+  ],
+  "reason": "The passes disagreed (NEEDS_PROOF). Route this report to a human reviewer.",
+  "caps": [
+    "layers disagree: evidence requires obligation 5, the decision does not"
+  ],
+  "flags": [],
+  "citations": [
+    {
+      "status": "OK",
+      "path": "src/Core.sol",
+      "lines": [
+        146,
+        146
+      ],
+      "audited_lines": [
+        146,
+        146
+      ]
+    }
+  ],
+  "votes": [
+    {
+      "verdict": "GUARD_HELD",
+      "severity": null,
+      "request_id": null
+    },
+    {
+      "verdict": "GUARD_HELD",
+      "severity": null,
+      "request_id": null
+    },
+    {
+      "verdict": "NEEDS_PROOF",
+      "severity": "medium",
+      "request_id": "3782077d-7c40-4753-88ec-72759666354b"
+    }
+  ],
+  "evidence": {
+    "model": "deepseek-ai/DeepSeek-V4.1-Flash",
+    "tokens_read": 43412,
+    "claim": "A queued vault-stake update to a DSS cannot be canceled by the operator, and anyone (including the DSS) can finalize it after MIN_STAKE_UPDATE_DELAY, so a malicious DSS can force the stake and then slash the vault.",
+    "root_cause_file": "src/entities/Operator.sol",
+    "root_cause_line": 57,
+    "code_supports_claim": "yes",
+    "support_reason": "Operator.validateStakeUpdateRequest (Operator.sol:57) reverts with PendingStakeUpdateRequest while a pendingStakeUpdates root exists, and no cancel path exists in Core.sol or Operator.sol; finalizeUpdateVaultStakeInDSS (Core.sol:146) has no caller restriction, so any address can finalize after MIN_STAKE_UPDATE_DELAY (Operator.sol:93). The report's own second test shows the operator can escape by unregistering during the delay (Operator.sol:190 requires the staked-vault set to be empty, which it is while the stake is only queued), so the 'inevitable loss' framing is contradicted by the report itself.",
+    "blocking_code": [],
+    "poc": "runnable_test",
+    "impact": "unclear",
+    "preconditions": [
+      "operator has queued a stake update to a DSS",
+      "MIN_STAKE_UPDATE_DELAY (9 days) elapses",
+      "operator does not unregister from the DSS during the delay",
+      "veto committee does not cancel the slashing"
+    ],
+    "trusted_role_required": false,
+    "known_issue_match": "",
+    "missing_evidence": [
+      {
+        "item": "Reconcile the two PoC tests: the second test shows the operator can unregister during the pending window and make the later slash revert, which contradicts the first test's premise that the operator is helpless.",
+        "category": "required",
+        "obligation": 5,
+        "why": "The report's own evidence shows a reachable operator-side mitigation, so the claimed impact (forced stake leading to loss) is not established as unavoidable; the finding must state the residual impact (operator that misses the window) and show that residual case is a real loss rather than an operator error.",
+        "resolves_when": "The report either removes the escape test or narrows the impact to the case where the operator does not unregister, and shows that case still causes loss beyond the operator's own inaction."
+      },
+      {
+        "item": "Show that a malicious DSS can actually slash after the forced stake without the operator having any recourse, given that the operator can unregister before finalization.",
+        "category": "required",
+        "obligation": 3,
+        "why": "The demonstrated effect (30% slash) depends on the operator not exercising the unregister escape; without showing the escape is unavailable or impractical, the severity is not supported.",
+        "resolves_when": "A test or argument shows the unregister path is blocked or too slow in the relevant scenario, or the impact is restated as a griefing/DoS on the operator's ability to change DSS."
+      },
+      {
+        "item": "Confirm whether the 'cannot cancel' behavior is intended design (one pending update per vault) and whether the contest policy treats it as a known limitation.",
+        "category": "required",
+        "obligation": 4,
+        "why": "The policy lists 'Only the operator should be able to initiate a stake or unstake operation' and 'Operator/Staker shouldn't be blocked by the protocol for withdrawal beyond the withdrawal period'; if the one-pending-update rule is intended, the finding may be a design choice rather than a bug.",
+        "resolves_when": "The report cites a policy clause or code comment showing cancellation was expected, or the judge rules the one-pending-update restriction is not a known issue."
+      }
+    ]
+  },
+  "decision": {
+    "provider": "serv",
+    "model": "gpt-6-luna",
+    "prompt_guard_requested": true
+  },
+  "usd": 0.003059,
+  "certificate": {
+    "version": 1,
+    "seal_type": "sha256-checksum",
+    "pipeline": "obligations-v2",
+    "contest": "karak",
+    "audited_commit": "f5e52fdcb4c20c4318d532a9f08f7876e9afb321",
+    "finding_sha256": "641c488c81c9c6dad2a7e4c0421a9f27238225711132e12e7b2c293e7162176f",
+    "verdict": "NEEDS_PROOF",
+    "agreement": "split",
+    "route": "human",
+    "votes": [
+      {
+        "verdict": "GUARD_HELD",
+        "serv_request_id": null
+      },
+      {
+        "verdict": "GUARD_HELD",
+        "serv_request_id": null
+      },
+      {
+        "verdict": "NEEDS_PROOF",
+        "serv_request_id": "3782077d-7c40-4753-88ec-72759666354b"
+      }
+    ],
+    "decider": "serv/gpt-6-luna",
+    "evidence_model": "deepseek-ai/DeepSeek-V4.1-Flash",
+    "flags": [],
+    "usd": 0.003059,
+    "issued_at": "2026-11-15T10:08:15.485Z"
+  },
+  "seal": "2061eac97599de0d6868b80b8320d77ff545cc02f16e358c78be01faa2390fb1"
+}

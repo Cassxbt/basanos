@@ -1,7 +1,9 @@
 import { readFileSync, appendFileSync, existsSync, mkdirSync, writeFileSync } from "node:fs";
 import { createHash } from "node:crypto";
 import { execFileSync } from "node:child_process";
-import { KARAK, KARAK_POLICY, type Report } from "../data/karak.ts";
+import type { Report } from "../data/findings.ts";
+import { loadContest } from "../contests.ts";
+import { PIPELINE_VERSION } from "../obligations.ts";
 import { DOLPHIN_MODEL } from "../evidence.ts";
 import { SERV_MODEL } from "../verdict.ts";
 import { consensusScore, decide, prepare, ALL_DEFENSES, type Defenses, type Precheck } from "../precheck.ts";
@@ -57,9 +59,12 @@ function arm(p: Precheck): Arm {
 }
 
 let DEFENSES: Defenses = ALL_DEFENSES;
+const CONTEST_ID = process.env.BASANOS_CONTEST ?? "karak";
+const { contest: CONTEST, policy: POLICY } = loadContest(CONTEST_ID);
+const REPORTS = `data/${CONTEST_ID}/reports.json`;
 
 async function evaluate(r: { id: string; title: string; body: string }): Promise<ConsensusRow> {
-  const prepared = await prepare(r, KARAK, KARAK_POLICY, K, DEFENSES);
+  const prepared = await prepare(r, CONTEST, POLICY, K, DEFENSES);
   const [serv, dolphin] = await Promise.all([decide(prepared, DECIDERS.serv), decide(prepared, DECIDERS.dolphin)]);
   return {
     id: r.id,
@@ -105,9 +110,11 @@ function writeManifest(name: string, ablation: string) {
     git: execFileSync("git", ["rev-parse", "HEAD"], { encoding: "utf8" }).trim(),
     dirty: execFileSync("git", ["status", "--porcelain", "src"], { encoding: "utf8" }).trim().length > 0,
     ablation,
+    contest: CONTEST_ID,
+    pipeline: PIPELINE_VERSION,
     passes: K,
     models: { evidence: DOLPHIN_MODEL, deciders: [SERV_MODEL, DOLPHIN_MODEL] },
-    sources: Object.fromEntries(["src/evidence.ts", "src/verdict.ts", "src/caps.ts", "src/defenses.ts", "src/precheck.ts", "src/citations.ts"].map((f) => [f, sha(f)])),
+    sources: Object.fromEntries(["src/evidence.ts", "src/verdict.ts", "src/caps.ts", "src/defenses.ts", "src/precheck.ts", "src/citations.ts", "src/obligations.ts"].map((f) => [f, sha(f)])),
   };
   writeFileSync(path, JSON.stringify(all, null, 2));
 }
@@ -129,7 +136,7 @@ function pairedDiff(a: number[], b: number[], labels: boolean[], clusters: numbe
 }
 
 function score(name: string) {
-  const reports: Report[] = JSON.parse(readFileSync("data/karak/reports.json", "utf8"));
+  const reports: Report[] = JSON.parse(readFileSync(REPORTS, "utf8"));
   const rows = new Map<string, ConsensusRow>(
     readFileSync(`data/runs/${name}.jsonl`, "utf8").trim().split("\n").map((l) => JSON.parse(l)).map((r: ConsensusRow) => [r.id, r]),
   );
@@ -166,7 +173,7 @@ if (import.meta.url === `file://${process.argv[1]}`) {
     DEFENSES = { ...ALL_DEFENSES, [key]: false };
   }
   writeManifest(name, ablate ?? "none");
-  const reports: Report[] = JSON.parse(readFileSync("data/karak/reports.json", "utf8"));
+  const reports: Report[] = JSON.parse(readFileSync(REPORTS, "utf8"));
   if (cmd === "run") await run(name, reports);
   else if (cmd === "hostile" || cmd === "hostile3" || cmd === "frozen") {
     const payloads: Record<string, string> =

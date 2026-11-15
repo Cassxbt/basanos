@@ -1,0 +1,147 @@
+{
+  "verdict": "NEEDS_PROOF",
+  "agreement": "majority",
+  "route": "human",
+  "severity_supported": "low_or_none",
+  "missing": [
+    {
+      "item": "Resolve whether the policy’s README unstake/withdraw known-issue clause covers this front-run scenario.",
+      "category": "required",
+      "obligation": 4,
+      "why": "The evidence record says the README describes operator-initiated unstaking as intended behavior, but does not establish whether that clause covers this specific path.",
+      "resolves_when": "Cite the applicable policy clause and show it excludes this scenario, or cite policy language showing this scenario is distinct or remains eligible."
+    },
+    {
+      "item": "Show that the front-run permanently prevents slashing, rather than only delaying it.",
+      "category": "required",
+      "obligation": 3,
+      "why": "The report claims the operator effectively dodges slashing, but does not show that assets escape the DSS’s reach or that a later slashing request is blocked.",
+      "resolves_when": "Provide a concrete sequence showing the assets are withdrawn or otherwise unreachable before slashing can be re-requested, or establish that re-requesting is blocked."
+    }
+  ],
+  "reason": "Code references and the described transaction ordering support the path. Policy eligibility and permanent impact remain unresolved; the report does not establish a severity above low_or_none.",
+  "caps": [],
+  "flags": [],
+  "citations": [
+    {
+      "status": "OK",
+      "path": "src/entities/SlasherLib.sol",
+      "lines": [
+        52,
+        52
+      ],
+      "audited_lines": [
+        52,
+        52
+      ]
+    },
+    {
+      "status": "OK",
+      "path": "src/Core.sol",
+      "lines": [
+        149,
+        149
+      ],
+      "audited_lines": [
+        149,
+        149
+      ]
+    }
+  ],
+  "votes": [
+    {
+      "verdict": "NEEDS_PROOF",
+      "severity": "low_or_none",
+      "request_id": "5a5fd583-dfd0-446b-af40-5a00e9aca0d3"
+    },
+    {
+      "verdict": "NEEDS_PROOF",
+      "severity": "medium",
+      "request_id": "f8af7090-bc29-41f9-b791-ad62b3dd13bc"
+    },
+    {
+      "verdict": "GUARD_HELD",
+      "severity": null,
+      "request_id": null
+    }
+  ],
+  "evidence": {
+    "model": "deepseek-ai/DeepSeek-V4.1-Flash",
+    "tokens_read": 42052,
+    "claim": "Operator avoids slashing by pre-queuing an unstake and finalizing it (front-running requestSlashing) so the vault is no longer staked to the DSS and requestSlashing reverts with VaultNotStakedToDSS.",
+    "root_cause_file": "src/entities/SlasherLib.sol",
+    "root_cause_line": 52,
+    "code_supports_claim": "yes",
+    "support_reason": "requestSlashing -> validateVaultsAndSlashPercentages reverts if any target vault is not currently staked to the DSS (SlasherLib.sol:51-52). Unstaking is a permissionless-to-finalize queued update (Core.sol:146-153 -> Operator.validateAndUpdateVaultStakeInDSS -> updateVaultStakeInDSS removes vault from vaultStakedInDssMap, Operator.sol:103-108). The operator controls when to request (Core.sol:130-141) and can finalize after MIN_STAKE_UPDATE_DELAY, so it can land the removal before the DSS's requestSlashing tx. No check ties a pending unstake to slashing eligibility.",
+    "blocking_code": [],
+    "poc": "narrative_only",
+    "impact": "accounting_error",
+    "preconditions": [
+      "Operator is registered to the DSS and has a vault staked to it",
+      "Operator queued an unstake >= MIN_STAKE_UPDATE_DELAY before the slashing request",
+      "Operator can order its finalizeUpdateVaultStakeInDSS tx before the DSS's requestSlashing tx"
+    ],
+    "trusted_role_required": false,
+    "known_issue_match": "",
+    "missing_evidence": [
+      {
+        "item": "Contest policy explicitly states that a queued/initiated unstake is expected to stop the DSS from counting the stake, and that 'sitting on a queued withdraw doesn't provide an operator any edge' — i.e. the DSS is expected to act on the queued exit, not on the on-chain staked flag at request time.",
+        "category": "required",
+        "obligation": 4,
+        "why": "The README known-issues section describes exactly this operator-initiated unstake/withdraw behavior as intended design (DSS should stop considering the vault's stake). If that clause covers this path, the finding is a known/acknowledged issue and ineligible; the claim's impact depends on resolving whether the policy excludes it.",
+        "resolves_when": "A cited policy clause or sponsor statement confirms that an operator-initiated unstake does NOT excuse the DSS from slashing, or the finding is shown to be distinct from the README unstake/withdraw clause."
+      },
+      {
+        "item": "Demonstration that the DSS cannot simply re-request slashing after the unstake (e.g. that the vault's assets are already withdrawn/escaped before the SLASHING_VETO_WINDOW, or that re-requesting is blocked), i.e. that the dodge is permanent rather than a one-cooldown delay.",
+        "category": "required",
+        "obligation": 3,
+        "why": "The stated impact is that the operator 'effectively dodges the slashing event'. If the DSS can re-request slashing once the vault is re-staked, or if the assets remain slashable, the effect is only a delay and does not support the claimed impact/severity.",
+        "resolves_when": "A concrete sequence shows the slashed assets become unreachable by the DSS (e.g. vault fully unstaked and redeemed, or re-request blocked) after the front-run."
+      },
+      {
+        "item": "Concrete transaction ordering / timing values showing the front-run is feasible within the same block or mempool (MIN_STAKE_UPDATE_DELAY elapsed, finalize tx ordered before requestSlashing).",
+        "category": "strengthens",
+        "obligation": 5,
+        "why": "The report gives the mechanism but no numeric timeline; the code path itself is clear, so this only strengthens the reproduction, not the reachability.",
+        "resolves_when": "A step-by-step timeline with block timestamps and tx ordering is provided."
+      }
+    ]
+  },
+  "decision": {
+    "provider": "serv",
+    "model": "gpt-6-luna",
+    "prompt_guard_requested": true
+  },
+  "usd": 0.003446,
+  "certificate": {
+    "version": 1,
+    "seal_type": "sha256-checksum",
+    "pipeline": "obligations-v2",
+    "contest": "karak",
+    "audited_commit": "f5e52fdcb4c20c4318d532a9f08f7876e9afb321",
+    "finding_sha256": "a85ecb080b1392090dc447fd460e3f797601e515e04ab4fc63ff51b6a65eb7b6",
+    "verdict": "NEEDS_PROOF",
+    "agreement": "majority",
+    "route": "human",
+    "votes": [
+      {
+        "verdict": "NEEDS_PROOF",
+        "serv_request_id": "5a5fd583-dfd0-446b-af40-5a00e9aca0d3"
+      },
+      {
+        "verdict": "NEEDS_PROOF",
+        "serv_request_id": "f8af7090-bc29-41f9-b791-ad62b3dd13bc"
+      },
+      {
+        "verdict": "GUARD_HELD",
+        "serv_request_id": null
+      }
+    ],
+    "decider": "serv/gpt-6-luna",
+    "evidence_model": "deepseek-ai/DeepSeek-V4.1-Flash",
+    "flags": [],
+    "usd": 0.003446,
+    "issued_at": "2026-11-15T10:07:35.613Z"
+  },
+  "seal": "e4471a7cd2fdadc1bf0040c2136bf5f2f163a47e134cecc21b30810c13f75001"
+}

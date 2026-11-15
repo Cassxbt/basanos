@@ -28,6 +28,8 @@ export interface ResolvedCitation extends Citation {
 export interface Contest {
   source: CodeSource;
   githubRepo: string;
+  // Other repositories whose links point at the same audited code, with each verified commit mapped to it.
+  aliases?: Record<string, Record<string, string>>;
   auditedCommit: string;
   scope: Set<string>;
 }
@@ -37,18 +39,25 @@ const LINK = /https:\/\/github\.com\/([\w.-]+\/[\w.-]+)\/blob\/([0-9a-fA-F]{7,40
 const isBranch = (ref: string) => ref === "main" || ref === "master";
 
 // A branch link has no fixed revision; during a contest the default branch is the audited commit.
-export function parseCitations(body: string, githubRepo: string, auditedCommit: string): Citation[] {
+export function parseCitations(
+  body: string,
+  githubRepo: string,
+  auditedCommit: string,
+  aliases: Record<string, Record<string, string>> = {},
+): Citation[] {
   const seen = new Set<string>();
   const out: Citation[] = [];
   for (const m of body.matchAll(LINK)) {
-    if (m[1].toLowerCase() !== githubRepo.toLowerCase()) continue;
+    const repo = m[1].toLowerCase();
+    const alias = Object.entries(aliases).find(([r]) => r.toLowerCase() === repo)?.[1];
+    if (repo !== githubRepo.toLowerCase() && !alias) continue;
     const start = Number(m[4]);
     const end = m[5] ? Number(m[5]) : start;
     const key = `${m[2]}:${m[3]}:${start}:${end}`;
     if (seen.has(key)) continue;
     seen.add(key);
     const ref = m[2];
-    const commit = isBranch(ref) ? auditedCommit : ref.toLowerCase();
+    const commit = isBranch(ref) ? auditedCommit : alias?.[ref.toLowerCase()] ?? ref.toLowerCase();
     out.push({ url: m[0], ref, commit, path: decodeURIComponent(m[3]), start, end });
   }
   return out;
@@ -94,7 +103,7 @@ export function resolveCitation(c: Citation, contest: Contest): ResolvedCitation
 
 export function loadScope(source: CodeSource, commit: string): Set<string> {
   const lines = source.read(commit, "scope.txt") ?? [];
-  return new Set(lines.map((l) => l.trim()).filter(Boolean));
+  return new Set(lines.map((l) => l.trim().replace(/^\.\//, "")).filter(Boolean));
 }
 
 export function auditedSnippet(c: ResolvedCitation, contest: Contest, context = 0): string | null {

@@ -1,0 +1,154 @@
+{
+  "verdict": "NEEDS_PROOF",
+  "agreement": "split",
+  "route": "human",
+  "severity_supported": "medium",
+  "missing": [
+    {
+      "item": "Executed reproduction or trace confirming the zero-amount revert propagates through finalization",
+      "category": "required",
+      "obligation": 5,
+      "why": "The report includes a test-shaped assertion for the expected revert, but does not establish that the test ran or that finalization reaches that revert.",
+      "resolves_when": "Provide a runnable test result or trace that finalizes a queued request containing a zero-asset vault and observes ZeroAmount."
+    }
+  ],
+  "reason": "The passes disagreed (NEEDS_PROOF). Route this report to a human reviewer.",
+  "caps": [
+    "layers disagree: evidence requires obligation 2, 4, the decision does not"
+  ],
+  "flags": [],
+  "citations": [
+    {
+      "status": "OK",
+      "path": "src/Core.sol",
+      "lines": [
+        220,
+        220
+      ],
+      "audited_lines": [
+        220,
+        220
+      ]
+    },
+    {
+      "status": "OK",
+      "path": "src/Vault.sol",
+      "lines": [
+        193,
+        193
+      ],
+      "audited_lines": [
+        193,
+        193
+      ]
+    },
+    {
+      "status": "OK",
+      "path": "src/SlashingHandler.sol",
+      "lines": [
+        52,
+        52
+      ],
+      "audited_lines": [
+        52,
+        52
+      ]
+    }
+  ],
+  "votes": [
+    {
+      "verdict": "NEEDS_PROOF",
+      "severity": "medium",
+      "request_id": "40a07cbf-e244-4dd3-8722-00fc25d1399f"
+    },
+    {
+      "verdict": "GUARD_HELD",
+      "severity": null,
+      "request_id": null
+    },
+    {
+      "verdict": "GUARD_HELD",
+      "severity": null,
+      "request_id": null
+    }
+  ],
+  "evidence": {
+    "model": "deepseek-ai/DeepSeek-V4.1-Flash",
+    "tokens_read": 43305,
+    "claim": "When a queued slashing is finalized after the target vault's totalAssets has dropped to zero (via another DSS slash or completed withdrawals), Vault.slashAssets computes transferAmount=0 and calls SlashingHandler.handleSlashing, which reverts on ZeroAmount, reverting the whole finalizeSlashing and blocking slashing of the other vaults in the same request.",
+    "root_cause_file": "src/Vault.sol",
+    "root_cause_line": 198,
+    "code_supports_claim": "yes",
+    "support_reason": "Vault.slashAssets (src/Vault.sol:193-205) sets transferAmount = Math.min(totalAssets(), totalAssetsToSlash) with no zero guard, then unconditionally calls ISlashingHandler(slashingHandler).handleSlashing(IERC20(asset()), transferAmount) at line 202. SlashingHandler.handleSlashing (src/SlashingHandler.sol:52-59) reverts with ZeroAmount() at line 53 when amount==0. SlasherLib.finalizeSlashing (src/entities/SlasherLib.sol:126-151) loops over all queuedSlashing.vaults (line 134) and calls slashAssets without try/catch, so one zero-asset vault reverts the entire finalizeSlashing. The path is reachable: requestSlashing (Core.sol:220) is callable by a registered DSS, earmarkedStakes are snapshotted at request time (SlasherLib.sol:79-92), and the veto window (SlasherLib.sol:129) plus permissionless finalizeSlashing (Core.sol:248) allow the vault balance to change in between. No check elsewhere prevents totalAssets from reaching zero before finalization.",
+    "blocking_code": [],
+    "poc": "concrete_steps",
+    "impact": "accounting_error",
+    "preconditions": [
+      "DSS registered and operator registered to it with >=2 vaults staked",
+      "A queued slashing covering multiple vaults",
+      "One covered vault's totalAssets becomes 0 before finalizeSlashing (other DSS slash or completed redeem)"
+    ],
+    "trusted_role_required": false,
+    "known_issue_match": "",
+    "missing_evidence": [
+      {
+        "item": "Executed PoC or trace showing finalizeSlashing reverts with ZeroAmount when one vault has totalAssets==0",
+        "category": "required",
+        "obligation": 5,
+        "why": "The report's PoC is unexecuted test-shaped code; the claim depends on the exact revert propagating through SlasherLib.finalizeSlashing's loop, which must be demonstrated rather than asserted.",
+        "resolves_when": "A runnable test (or trace) is provided that reaches finalizeSlashing with a zero-asset vault and observes the ZeroAmount revert."
+      },
+      {
+        "item": "Confirmation that the zero-asset vault is still in the queuedSlashing.vaults list at finalization (i.e., not removed by unstake)",
+        "category": "required",
+        "obligation": 2,
+        "why": "If the vault were unstaked from the DSS before finalization, the queued request would still contain it (earmarkedStakes are fixed at request time), but the report must show the vault remains in the queued array; otherwise the revert path is not established.",
+        "resolves_when": "The PoC shows the vault is still in queuedSlashing.vaults when finalizeSlashing is called."
+      },
+      {
+        "item": "Whether the report's scenario is excluded by the known-issue note that DSS should stop considering queued withdrawals / slashed vaults",
+        "category": "required",
+        "obligation": 4,
+        "why": "The contest policy states DSS should stop considering vaults with queued withdrawals and that sitting on a queued withdraw gives no edge; the report's withdrawal-based scenario may fall under this exclusion, so a judge must decide if the zero-asset-via-withdrawal path is ineligible.",
+        "resolves_when": "A judge determines whether the withdrawal-completion scenario is covered by the known-issue exclusion; the other-DSS-slash scenario is not excluded."
+      }
+    ]
+  },
+  "decision": {
+    "provider": "serv",
+    "model": "gpt-6-luna",
+    "prompt_guard_requested": true
+  },
+  "usd": 0.003402,
+  "certificate": {
+    "version": 1,
+    "seal_type": "sha256-checksum",
+    "pipeline": "obligations-v2",
+    "contest": "karak",
+    "audited_commit": "f5e52fdcb4c20c4318d532a9f08f7876e9afb321",
+    "finding_sha256": "e09bc672e33134cf0c18d83568035b03f37c2fc92a8c4d03045790d2dc325e9e",
+    "verdict": "NEEDS_PROOF",
+    "agreement": "split",
+    "route": "human",
+    "votes": [
+      {
+        "verdict": "NEEDS_PROOF",
+        "serv_request_id": "40a07cbf-e244-4dd3-8722-00fc25d1399f"
+      },
+      {
+        "verdict": "GUARD_HELD",
+        "serv_request_id": null
+      },
+      {
+        "verdict": "GUARD_HELD",
+        "serv_request_id": null
+      }
+    ],
+    "decider": "serv/gpt-6-luna",
+    "evidence_model": "deepseek-ai/DeepSeek-V4.1-Flash",
+    "flags": [],
+    "usd": 0.003402,
+    "issued_at": "2026-11-15T10:07:37.081Z"
+  },
+  "seal": "2a48603bf0a475da065302d26f83c6950e7cde304d387184bdcbbefccf0e4786"
+}

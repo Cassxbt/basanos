@@ -41,6 +41,7 @@ Every missing item you list must name the obligation it affects and be classifie
 - "required": the claim cannot be accepted without it. Explain in "why" how its absence breaks that obligation.
 - "strengthens": a judge might like it, but its absence does not undermine the supported claim. Explain why not.
 Rules:
+- Obligation 1 is checked by code. In the citation check, OK or MOVED means the line exists in the audited commit and the file is in the contest's scope.txt. Never list an obligation-1 item unless the citation check shows a failure.
 - Once one in-scope path is sufficient, alternative paths are never required.
 - Design intent or scope is "required" only when tied to a cited contest policy clause or a precisely named unresolved assumption. Do not ask for generic sponsor confirmation.
 - If the policy is genuinely ambiguous on a point the claim depends on, list it as "required"; a person will decide.

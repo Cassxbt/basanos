@@ -1,0 +1,191 @@
+{
+  "verdict": "NEEDS_PROOF",
+  "agreement": "majority",
+  "route": "human",
+  "severity_supported": "high",
+  "missing": [
+    {
+      "item": "Policy-linked scope for the cited vault and slashing code",
+      "category": "required",
+      "obligation": 1,
+      "why": "The citations and reproduction identify the relevant source files, but the material does not establish that these targets are in scope under the applicable policy.",
+      "resolves_when": "Provide the applicable scope rule covering these targets, or precisely name the scope assumptions that make them eligible."
+    }
+  ],
+  "reason": "The added passing test resolves the reproduction and queued-share accounting concerns, demonstrating that the vault can be drained beyond the cap. Scope eligibility remains unestablished; if in scope, the demonstrated loss supports high severity.",
+  "caps": [
+    "layers disagree: evidence requires obligation 5, 2, the decision does not"
+  ],
+  "flags": [],
+  "citations": [
+    {
+      "status": "OK",
+      "path": "src/Vault.sol",
+      "lines": [
+        198,
+        198
+      ],
+      "audited_lines": [
+        198,
+        198
+      ]
+    },
+    {
+      "status": "OK",
+      "path": "src/NativeVault.sol",
+      "lines": [
+        311,
+        313
+      ],
+      "audited_lines": [
+        311,
+        313
+      ]
+    },
+    {
+      "status": "OK",
+      "path": "src/entities/SlasherLib.sol",
+      "lines": [
+        94,
+        94
+      ],
+      "audited_lines": [
+        94,
+        94
+      ]
+    },
+    {
+      "status": "OK",
+      "path": "src/entities/SlasherLib.sol",
+      "lines": [
+        107,
+        107
+      ],
+      "audited_lines": [
+        107,
+        107
+      ]
+    },
+    {
+      "status": "OK",
+      "path": "src/entities/SlasherLib.sol",
+      "lines": [
+        136,
+        136
+      ],
+      "audited_lines": [
+        136,
+        136
+      ]
+    },
+    {
+      "status": "OK",
+      "path": "src/Vault.sol",
+      "lines": [
+        193,
+        193
+      ],
+      "audited_lines": [
+        193,
+        193
+      ]
+    }
+  ],
+  "votes": [
+    {
+      "verdict": "NEEDS_PROOF",
+      "severity": "high",
+      "request_id": "039167a9-7fbd-4711-8c92-ffceb0edb774"
+    },
+    {
+      "verdict": "GUARD_HELD",
+      "severity": null,
+      "request_id": null
+    },
+    {
+      "verdict": "NEEDS_PROOF",
+      "severity": "high",
+      "request_id": "535a2f2e-fd6d-4fee-90da-07814f316aeb"
+    }
+  ],
+  "evidence": {
+    "model": "deepseek-ai/DeepSeek-V4.1-Flash",
+    "tokens_read": 44024,
+    "claim": "A DSS inflates vault totalAssets by depositing and queuing a redeem before requestSlashing, so earmarkedStakes is computed on inflated totalAssets; after the DSS withdraws its own funds, finalizeSlashing's Math.min clamp in Vault.slashAssets slashes the entire remaining vault balance, exceeding maxSlashablePercentageWad.",
+    "root_cause_file": "src/entities/SlasherLib.sol",
+    "root_cause_line": 86,
+    "code_supports_claim": "yes",
+    "support_reason": "SlasherLib.fetchEarmarkedStakes (SlasherLib.sol:86-90) computes earmarkedStakes from live totalAssets() at request time; Vault.slashAssets (Vault.sol:198) clamps to Math.min(totalAssets(), totalAssetsToSlash) at finalize time, so a shrunk vault is slashed to zero. Nothing re-validates the earmark against the post-withdrawal balance, and startRedeem/finishRedeem (Vault.sol:125-188) are open to any shareholder, so the DSS can inflate then exit.",
+    "blocking_code": [],
+    "poc": "concrete_steps",
+    "impact": "accounting_error",
+    "preconditions": [
+      "DSS is registered and operator is staked to it in the target vault",
+      "DSS holds enough tokens to inflate totalAssets above the honest balance",
+      "DSS queues a redeem at least MIN_WITHDRAWAL_DELAY before requestSlashing so it can finishRedeem inside the veto window",
+      "veto committee does not cancel the inflated request"
+    ],
+    "trusted_role_required": false,
+    "known_issue_match": "",
+    "missing_evidence": [
+      {
+        "item": "Executed reproduction (or concrete trace) showing the DSS's own redeem shares are excluded from the slashed amount and that the clamp actually fires with the stated numbers",
+        "category": "required",
+        "obligation": 5,
+        "why": "The PoC block is unexecuted and depends on helper fixtures (stake_vaults_to_dss, dss, operator, vaults) not in the audited source; the claim's core step (earmark > post-withdraw totalAssets, clamp to full balance) is asserted, not demonstrated. Without a verified run the reproduction does not support this particular claim.",
+        "resolves_when": "A runnable test against the audited commit (or a step-by-step trace with real balances) shows earmarkedStakes > totalAssets at finalize and the vault balance going to zero."
+      },
+      {
+        "item": "Confirmation that the DSS's queued-redeem shares still count in totalAssets() at requestSlashing time",
+        "category": "required",
+        "obligation": 2,
+        "why": "The inflation depends on startRedeem not reducing totalAssets (shares are held by the vault, Vault.sol:146). If totalAssets excluded queued shares the path would not inflate the earmark; the report asserts this but the audited source alone does not settle the ERC4626 accounting of vault-held shares.",
+        "resolves_when": "A test or trace shows totalAssets() including the DSS's queued shares at requestSlashing, or the report shows an alternative inflation route."
+      },
+      {
+        "item": "Whether the veto committee's ability to cancel (Core.cancelSlashing, Core.sol:235-243) is a policy-level mitigation that defeats the severity",
+        "category": "strengthens",
+        "obligation": 3,
+        "why": "The report itself concedes the veto committee could cancel; this affects severity judgment but not whether the path is reachable, so it does not undermine the supported claim.",
+        "resolves_when": "n/a"
+      }
+    ]
+  },
+  "decision": {
+    "provider": "serv",
+    "model": "gpt-6-luna",
+    "prompt_guard_requested": true
+  },
+  "usd": 0.004552,
+  "certificate": {
+    "version": 1,
+    "seal_type": "sha256-checksum",
+    "pipeline": "obligations-v2",
+    "contest": "karak",
+    "audited_commit": "f5e52fdcb4c20c4318d532a9f08f7876e9afb321",
+    "finding_sha256": "54884247ce50c4231dbedd8ef8ba0aa68f1c9e1a0f120b1c8b8c0086cac8a8c0",
+    "verdict": "NEEDS_PROOF",
+    "agreement": "majority",
+    "route": "human",
+    "votes": [
+      {
+        "verdict": "NEEDS_PROOF",
+        "serv_request_id": "039167a9-7fbd-4711-8c92-ffceb0edb774"
+      },
+      {
+        "verdict": "GUARD_HELD",
+        "serv_request_id": null
+      },
+      {
+        "verdict": "NEEDS_PROOF",
+        "serv_request_id": "535a2f2e-fd6d-4fee-90da-07814f316aeb"
+      }
+    ],
+    "decider": "serv/gpt-6-luna",
+    "evidence_model": "deepseek-ai/DeepSeek-V4.1-Flash",
+    "flags": [],
+    "usd": 0.004552,
+    "issued_at": "2026-11-15T10:08:25.787Z"
+  },
+  "seal": "93185c2f21a0314be8fd302632976d56f5fff40d4383bb89a53fb95d5b04447c"
+}

@@ -78,6 +78,15 @@ test("blocking references to code that does not exist are dropped and noted", ()
   assert.match(r.caps.join(" "), /does not exist/);
 });
 
+test("obligation-1 items are dropped when code verified every citation, kept when one fails", () => {
+  const ok = [{ status: "OK", url: "", ref: "main", commit: "x", path: "src/Vault.sol", start: 78, end: 88 }] as any;
+  const r = applyCaps({ ...ready, missing: [req("confirm the file is in scope", 1)] }, evidence, { ...ctx, citations: ok });
+  assert.equal(r.verdict, "READY");
+  assert.match(r.caps.join(" "), /dropped obligation-1/);
+  const bad = [...ok, { status: "BAD_LINES", url: "", ref: "main", commit: "x", path: "src/Vault.sol", start: 9000, end: 9000 }] as any;
+  assert.equal(applyCaps({ ...ready, missing: [req("confirm the file is in scope", 1)] }, evidence, { ...ctx, citations: bad }).verdict, "NEEDS_PROOF");
+});
+
 test("informational impact caps severity", () => {
   assert.equal(applyCaps(ready, { ...evidence, impact: "informational" }, ctx).severity, "low_or_none");
 });

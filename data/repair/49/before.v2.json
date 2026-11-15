@@ -1,0 +1,112 @@
+{
+  "verdict": "GUARD_HELD",
+  "agreement": null,
+  "route": "human",
+  "severity_supported": null,
+  "missing": [],
+  "reason": "SERV Prompt Guard held every pass (3). Route this report to a human reviewer.",
+  "caps": [],
+  "flags": [],
+  "citations": [
+    {
+      "status": "OK",
+      "path": "src/NativeVault.sol",
+      "lines": [
+        308,
+        308
+      ],
+      "audited_lines": [
+        308,
+        308
+      ]
+    }
+  ],
+  "votes": [
+    {
+      "verdict": "GUARD_HELD",
+      "severity": null,
+      "request_id": null
+    },
+    {
+      "verdict": "GUARD_HELD",
+      "severity": null,
+      "request_id": null
+    },
+    {
+      "verdict": "GUARD_HELD",
+      "severity": null,
+      "request_id": null
+    }
+  ],
+  "evidence": {
+    "model": "deepseek-ai/DeepSeek-V4.1-Flash",
+    "tokens_read": 42163,
+    "claim": "Changing the asset's slashing handler in Core's assetSlashingHandlers mapping makes NativeVault.slashAssets revert (NotSlashStore), DoSing slashing for already-deployed NativeVaults.",
+    "root_cause_file": "src/NativeVault.sol",
+    "root_cause_line": 308,
+    "code_supports_claim": "yes",
+    "support_reason": "NativeVault.slashAssets (L299-318) reverts unless slashingHandler == self.slashStore (L308). self.slashStore is fixed at initialize (L75) from extraData and has no setter. SlasherLib.finalizeSlashing (L134-139) passes self.assetSlashingHandlers[vault.asset()] as the handler, and Core.allowlistAssets (Core.sol L85-91 -> CoreLib.allowlistAssets L67-75) can overwrite that mapping. So after a handler change, finalizeSlashing reverts for every pre-existing NativeVault.",
+    "blocking_code": [],
+    "poc": "concrete_steps",
+    "impact": "informational",
+    "preconditions": [
+      "MANAGER (trusted) calls Core.allowlistAssets to change the handler for Constants.DEAD_BEEF after NativeVaults are deployed",
+      "A DSS then requests and finalizes a slashing on those NativeVaults"
+    ],
+    "trusted_role_required": true,
+    "known_issue_match": "",
+    "missing_evidence": [
+      {
+        "item": "Reachability under allowed actors: the trigger is a MANAGER-only call to allowlistAssets (Core.sol L85-91, CoreLib.sol L67-75). The README lists MANAGER as a trusted role and the policy says vault/slashing-handler allowlisting burden falls on OWNER.",
+        "category": "required",
+        "obligation": 2,
+        "why": "The DoS only occurs after a trusted-role action; without establishing that this misconfiguration is in-scope (not a trusted-role exclusion), the path is not reachable by an untrusted actor.",
+        "resolves_when": "The report cites a contest-policy clause or invariant showing a manager-driven handler change is an in-scope attack surface, or shows a non-trusted path to the same state."
+      },
+      {
+        "item": "Demonstration that the DoS is not merely a temporary misconfiguration recoverable by the trusted manager (restoring the old handler) and that it constitutes a real impact beyond a self-inflicted admin error.",
+        "category": "required",
+        "obligation": 3,
+        "why": "The report itself concedes restoring handler A fixes it; a reversible admin misconfiguration with no attacker gain does not clearly support a DoS severity.",
+        "resolves_when": "The report shows a concrete loss or permanent lock (e.g., slashing permanently blocked with no trusted recovery) or a policy clause treating this as in-scope."
+      }
+    ]
+  },
+  "decision": {
+    "provider": "serv",
+    "model": "gpt-6-luna",
+    "prompt_guard_requested": true
+  },
+  "usd": 0.001592,
+  "certificate": {
+    "version": 1,
+    "seal_type": "sha256-checksum",
+    "pipeline": "obligations-v2",
+    "contest": "karak",
+    "audited_commit": "f5e52fdcb4c20c4318d532a9f08f7876e9afb321",
+    "finding_sha256": "78548dd3dd9a2c9529dcae277f6cb1c836ef9752da062c24491083a2e32d6ce8",
+    "verdict": "GUARD_HELD",
+    "agreement": null,
+    "route": "human",
+    "votes": [
+      {
+        "verdict": "GUARD_HELD",
+        "serv_request_id": null
+      },
+      {
+        "verdict": "GUARD_HELD",
+        "serv_request_id": null
+      },
+      {
+        "verdict": "GUARD_HELD",
+        "serv_request_id": null
+      }
+    ],
+    "decider": "serv/gpt-6-luna",
+    "evidence_model": "deepseek-ai/DeepSeek-V4.1-Flash",
+    "flags": [],
+    "usd": 0.001592,
+    "issued_at": "2026-11-15T10:07:19.704Z"
+  },
+  "seal": "078f3ee3ff18a82687fc8fad426c49f0175847fd79356872cfae4a1bd1b7363b"
+}

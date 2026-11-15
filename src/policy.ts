@@ -52,8 +52,9 @@ function botFindings(report: string): BotFinding[] {
 export function loadPolicy(source: CodeSource, commit: string): Policy {
   const readme = source.read(commit, "README.md")?.join("\n") ?? "";
   const bot = source.read(commit, "4naly3er-report.md")?.join("\n");
+  const known = source.read(commit, "KNOWN_ISSUES.md")?.join("\n");
   return {
-    readmeSections: sections(readme, README_SECTIONS),
+    readmeSections: known ? `${sections(readme, README_SECTIONS)}\n\n## Known issues (KNOWN_ISSUES.md)\n${known}` : sections(readme, README_SECTIONS),
     botFindings: bot ? botFindings(bot) : [],
   };
 }

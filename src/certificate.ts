@@ -1,9 +1,11 @@
 import { createHash } from "node:crypto";
 import type { Precheck } from "./precheck.ts";
+import { PIPELINE_VERSION } from "./obligations.ts";
 
 export interface Certificate {
   version: 1;
   seal_type: "sha256-checksum";
+  pipeline: string;
   contest: string;
   audited_commit: string;
   finding_sha256: string;
@@ -32,6 +34,7 @@ export function issue(p: Precheck, contest: string, auditedCommit: string, title
   const certificate: Certificate = {
     version: 1,
     seal_type: "sha256-checksum",
+    pipeline: PIPELINE_VERSION,
     contest,
     audited_commit: auditedCommit,
     finding_sha256: findingDigest(title, body),

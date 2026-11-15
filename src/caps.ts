@@ -20,10 +20,21 @@ const USABLE = new Set(["OK", "MOVED"]);
 
 // Code has the last word over the decision model: a verdict may never be stronger than the evidence record allows,
 // and the evidence record may not point at code that does not exist.
-export function applyCaps(j: Judgment, e: Evidence, ctx: CapContext): Capped {
+export function applyCaps(judgment: Judgment, evidenceRecord: Evidence, ctx: CapContext): Capped {
+  let j = judgment;
+  let e = evidenceRecord;
   const caps: string[] = [];
   let verdict = j.verdict;
   let severity = j.severity_supported;
+
+  // Obligation 1 (scope, references resolve) is decided by code, not by a model.
+  const codeOwnsScope = ctx.citations.length > 0 && ctx.citations.every((c) => USABLE.has(c.status) || c.status === "OUT_OF_SCOPE");
+  const notScope = (items: typeof e.missing_evidence) => (codeOwnsScope ? items.filter((i) => i.obligation !== 1) : items);
+  if (codeOwnsScope && [...e.missing_evidence, ...j.missing].some((i) => i.obligation === 1)) {
+    caps.push("dropped obligation-1 items: code verified every citation resolves in scope");
+  }
+  e = { ...e, missing_evidence: notScope(e.missing_evidence) };
+  j = { ...j, missing: notScope(j.missing) };
 
   const realBlocking = e.blocking_code.filter((b) => ctx.locationExists(b.file, b.line));
   if (realBlocking.length < e.blocking_code.length) {

@@ -1,0 +1,165 @@
+{
+  "verdict": "NEEDS_PROOF",
+  "agreement": "majority",
+  "route": "human",
+  "severity_supported": "medium",
+  "missing": [
+    {
+      "item": "Resolve whether the registration invariant applies when slashing is requested or when it is finalized.",
+      "category": "required",
+      "obligation": 4,
+      "why": "The code and reproduction show that a slash requested while the operator is registered can execute after unregistration. The stated allowance to slash pre-unstake conduct leaves unclear whether that sequence violates contest policy.",
+      "resolves_when": "An applicable contest-policy clause or sponsor statement specifies whether registration is required at request time or finalization time."
+    },
+    {
+      "item": "Clarify whether the post-unregistration depositor’s loss is a distinct impact beyond the queued slash reducing vault assets.",
+      "category": "strengthens",
+      "obligation": 3,
+      "why": "The reproduction demonstrates the depositor’s redeemable value falls from 1000 to 950, but the vault asset reduction is also the ordinary result of executing the queued slash.",
+      "resolves_when": "Explain why the depositor’s dilution is a distinct consequence relevant to the claimed impact, or rely on the invariant violation without that additional impact."
+    }
+  ],
+  "reason": "The cited code and passing reproduction support the post-unregistration finalization path and conditional financial loss. Whether this violates the stated invariant remains unresolved; the policy distinction is necessary to establish the claim.",
+  "caps": [],
+  "flags": [],
+  "citations": [
+    {
+      "status": "OK",
+      "path": "src/Core.sol",
+      "lines": [
+        130,
+        130
+      ],
+      "audited_lines": [
+        130,
+        130
+      ]
+    },
+    {
+      "status": "OK",
+      "path": "src/Core.sol",
+      "lines": [
+        220,
+        220
+      ],
+      "audited_lines": [
+        220,
+        220
+      ]
+    },
+    {
+      "status": "OK",
+      "path": "src/Core.sol",
+      "lines": [
+        248,
+        248
+      ],
+      "audited_lines": [
+        248,
+        248
+      ]
+    },
+    {
+      "status": "OK",
+      "path": "src/Core.sol",
+      "lines": [
+        113,
+        113
+      ],
+      "audited_lines": [
+        113,
+        113
+      ]
+    }
+  ],
+  "votes": [
+    {
+      "verdict": "GUARD_HELD",
+      "severity": null,
+      "request_id": null
+    },
+    {
+      "verdict": "NEEDS_PROOF",
+      "severity": "medium",
+      "request_id": "2aab2364-b8ae-4cef-9aec-0e52bdb1618d"
+    },
+    {
+      "verdict": "NEEDS_PROOF",
+      "severity": "medium",
+      "request_id": "c2a85df0-3d99-414a-ae60-a8a4190aff4c"
+    }
+  ],
+  "evidence": {
+    "model": "deepseek-ai/DeepSeek-V4.1-Flash",
+    "tokens_read": 44829,
+    "claim": "A DSS can finalize a slashing on an operator after the operator has fully unstaked and unregistered from that DSS, because finalizeSlashing does not re-check registration, breaking the invariant 'Only DSSs an operator is registered with can slash said operator'.",
+    "root_cause_file": "src/entities/SlasherLib.sol",
+    "root_cause_line": 126,
+    "code_supports_claim": "yes",
+    "support_reason": "requestSlashing (Core.sol:220-231) checks registration via checkIfOperatorIsRegInRegDSS (Operator.sol:143-148) and stores the queued slashing root (SlasherLib.sol:110). finalizeSlashing (Core.sol:248-256 -> SlasherLib.sol:126-151) only checks the stored root and the veto window; it never re-checks that the operator is still registered to the DSS. unregisterOperatorFromDSS (Core.sol:113-124 -> Operator.sol:181-203) only requires that no vaults remain staked to the DSS (Operator.sol:190), not that no slashing is pending. So a slash queued while registered can be finalized after unregistration.",
+    "blocking_code": [],
+    "poc": "concrete_steps",
+    "impact": "funds_loss",
+    "preconditions": [
+      "Operator has vaults staked to a DSS and initiates unstake (9-day MIN_STAKE_UPDATE_DELAY).",
+      "DSS calls requestSlashing while operator still registered and vaults still staked (within the 9-day window).",
+      "Operator finalizes unstake and unregisters from DSS before the 2-day SLASHING_VETO_WINDOW elapses.",
+      "Anyone calls finalizeSlashing after the veto window."
+    ],
+    "trusted_role_required": false,
+    "known_issue_match": "",
+    "missing_evidence": [
+      {
+        "item": "Whether the invariant 'Only DSSs an operator is registered with can slash said operator' is intended to bind at finalization time or only at request time.",
+        "category": "required",
+        "obligation": 4,
+        "why": "The README also states a DSS can slash conduct that occurred before unstake initiation for up to 7 days, and the SLASHING_VETO_WINDOW is 2 days. A judge could read a slash requested while registered as satisfying the invariant, making the finalization-after-unregistration behavior intended rather than a bug. The report itself concedes this is a design-intent question. Without resolving it, the claim cannot be accepted as a violation.",
+        "resolves_when": "A contest policy clause or sponsor statement specifies whether the registration invariant is evaluated at requestSlashing or at finalizeSlashing."
+      },
+      {
+        "item": "Whether the 'new staker loses funds' impact is a distinct harm or merely the intended slashing of the vault's assets.",
+        "category": "strengthens",
+        "obligation": 3,
+        "why": "The vault's totalAssets reduction is the normal effect of a valid queued slash; the report's added harm is that a post-unregistration depositor is diluted. That is a consequence of the same root cause and does not change whether the invariant is broken, so its absence does not undermine the core claim.",
+        "resolves_when": "N/A"
+      }
+    ]
+  },
+  "decision": {
+    "provider": "serv",
+    "model": "gpt-6-luna",
+    "prompt_guard_requested": true
+  },
+  "usd": 0.004076,
+  "certificate": {
+    "version": 1,
+    "seal_type": "sha256-checksum",
+    "pipeline": "obligations-v2",
+    "contest": "karak",
+    "audited_commit": "f5e52fdcb4c20c4318d532a9f08f7876e9afb321",
+    "finding_sha256": "7dc69bcabdf2e4ee0fcde4399faf50676d68d2c292f0158676d855a7d47e7514",
+    "verdict": "NEEDS_PROOF",
+    "agreement": "majority",
+    "route": "human",
+    "votes": [
+      {
+        "verdict": "GUARD_HELD",
+        "serv_request_id": null
+      },
+      {
+        "verdict": "NEEDS_PROOF",
+        "serv_request_id": "2aab2364-b8ae-4cef-9aec-0e52bdb1618d"
+      },
+      {
+        "verdict": "NEEDS_PROOF",
+        "serv_request_id": "c2a85df0-3d99-414a-ae60-a8a4190aff4c"
+      }
+    ],
+    "decider": "serv/gpt-6-luna",
+    "evidence_model": "deepseek-ai/DeepSeek-V4.1-Flash",
+    "flags": [],
+    "usd": 0.004076,
+    "issued_at": "2026-11-15T10:09:42.008Z"
+  },
+  "seal": "5e0242e7a2bf368098d819b46b6b7023131a82e16e32805c3d6db086097aace1"
+}
