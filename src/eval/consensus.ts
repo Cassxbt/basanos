@@ -2,7 +2,7 @@ import { readFileSync, appendFileSync, existsSync, mkdirSync } from "node:fs";
 import { KARAK, KARAK_POLICY, type Report } from "../data/karak.ts";
 import { DOLPHIN_MODEL } from "../evidence.ts";
 import { SERV_MODEL } from "../verdict.ts";
-import { checkCitations, citationVeto, consensusScore, gatherEvidence, precheck, type Precheck } from "../precheck.ts";
+import { consensusScore, decide, prepare, type Precheck } from "../precheck.ts";
 import { PAYLOADS, hostileSet } from "./hostile.ts";
 import { auroc, clusterBootstrap } from "./score.ts";
 
@@ -25,6 +25,8 @@ interface Arm {
 export interface ConsensusRow {
   id: string;
   vetoed: string | null;
+  frontDoorHeld?: boolean;
+  flags?: string[];
   evidenceUsd: number;
   serv: Arm;
   dolphin: Arm;
@@ -34,7 +36,7 @@ function arm(p: Precheck): Arm {
   return {
     verdict: p.verdict,
     agreement: p.agreement,
-    score: p.votes.length ? consensusScore(p.votes) : 0,
+    score: p.verdict === "GUARD_HELD" ? 1 : p.votes.length ? consensusScore(p.votes) : 0,
     votes: p.votes.map((v) => ({
       verdict: v.verdict,
       severity: v.severity,
@@ -46,18 +48,17 @@ function arm(p: Precheck): Arm {
 }
 
 async function evaluate(r: { id: string; title: string; body: string }): Promise<ConsensusRow> {
-  const citations = checkCitations(r.body, r.title, KARAK);
-  const veto = citationVeto(citations);
-  if (veto) {
-    const zero: Arm = { verdict: veto.verdict, agreement: null, score: 0, votes: [] };
-    return { id: r.id, vetoed: veto.verdict, evidenceUsd: 0, serv: zero, dolphin: zero };
-  }
-  const evidence = await gatherEvidence(r, citations, KARAK, KARAK_POLICY, K);
-  const [serv, dolphin] = await Promise.all([
-    precheck(r, KARAK, KARAK_POLICY, { decider: DECIDERS.serv, evidence }),
-    precheck(r, KARAK, KARAK_POLICY, { decider: DECIDERS.dolphin, evidence }),
-  ]);
-  return { id: r.id, vetoed: null, evidenceUsd: evidence.reduce((s, e) => s + e.usd, 0), serv: arm(serv), dolphin: arm(dolphin) };
+  const prepared = await prepare(r, KARAK, KARAK_POLICY, K);
+  const [serv, dolphin] = await Promise.all([decide(prepared, DECIDERS.serv), decide(prepared, DECIDERS.dolphin)]);
+  return {
+    id: r.id,
+    vetoed: prepared.veto?.verdict ?? null,
+    frontDoorHeld: prepared.held !== null,
+    flags: prepared.flags,
+    evidenceUsd: prepared.usd,
+    serv: arm(serv),
+    dolphin: arm(dolphin),
+  };
 }
 
 async function run(name: string, items: { id: string; title: string; body: string }[]) {
@@ -112,7 +113,7 @@ function score(name: string) {
     const [d, dlo, dhi] = pairedDiff(s, length, labels, clusters);
     const arms = kept.map((r) => rows.get(r.id)![which]);
     const unanimous = arms.filter((a) => a.agreement === "unanimous").length;
-    const autoReject = kept.filter((r, i) => (arms[i].agreement === "unanimous" || rows.get(r.id)!.vetoed) && arms[i].score === 0);
+    const autoReject = kept.filter((r, i) => (rows.get(r.id)!.vetoed || (arms[i].agreement === "unanimous" && !rows.get(r.id)!.flags?.length)) && arms[i].score === 0);
     const usd = arms.flatMap((a) => a.votes).reduce((t, v) => t + v.usd, 0);
     console.log(
       `${which.padEnd(8)} AUROC ${auroc(s, labels).toFixed(3)} [${lo.toFixed(3)}, ${hi.toFixed(3)}]  minus length ${d.toFixed(3)} [${dlo.toFixed(3)}, ${dhi.toFixed(3)}]`,
@@ -129,8 +130,9 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   const [cmd, name = "run3"] = process.argv.slice(2);
   const reports: Report[] = JSON.parse(readFileSync("data/karak/reports.json", "utf8"));
   if (cmd === "run") await run(name, reports);
-  else if (cmd === "hostile") {
-    const payloads = { ...PAYLOADS, evidence_target: EVIDENCE_PAYLOAD };
+  else if (cmd === "hostile" || cmd === "hostile3") {
+    const payloads: Record<string, string> =
+      cmd === "hostile" ? { ...PAYLOADS, evidence_target: EVIDENCE_PAYLOAD } : JSON.parse(readFileSync("data/karak/payloads_v3.json", "utf8"));
     const base = hostileSet(reports).map((h) => reports.find((r) => r.id === h.source)!);
     const items = base.flatMap((r) => Object.entries(payloads).map(([p, text]) => ({ id: `${r.id}-${p}`, title: r.title, body: r.body + text })));
     await run(name, [...base, ...items]);

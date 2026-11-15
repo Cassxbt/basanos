@@ -1,7 +1,8 @@
 import { parseCitations, resolveCitation, markUnrelated, type Contest, type ResolvedCitation } from "./citations.ts";
 import { extractEvidence, DOLPHIN_MODEL, type Evidence } from "./evidence.ts";
-import { judge, SERV_MODEL, type Judgment, type ModelVerdict } from "./verdict.ts";
+import { judge, screen, SERV_MODEL, type Judgment, type ModelVerdict } from "./verdict.ts";
 import { applyCaps } from "./caps.ts";
+import { scanInstructions, proofInReport, capProof } from "./defenses.ts";
 import { GuardBlocked, type Call, type Provider } from "./llm.ts";
 
 // GUARD_HELD is not a rejection: Prompt Guard also holds some clean reports, so a human decides.
@@ -26,18 +27,23 @@ export interface Precheck {
   missing: string[];
   reason: string;
   citations: ResolvedCitation[];
+  flags: string[];
   votes: Vote[];
   decider: { provider: Provider; model: string } | null;
   usd: number;
 }
 
-export interface PrecheckOptions {
-  k?: number;
-  decider?: { provider: Provider; model: string };
-  evidence?: Call<Evidence>[];
+export interface Prepared {
+  report: { title: string; body: string };
+  citations: ResolvedCitation[];
+  veto: { verdict: Verdict; reason: string } | null;
+  flags: string[];
+  held: string | null;
+  evidence: Call<Evidence>[];
+  usd: number;
 }
 
-export const DEFAULT_DECIDER = { provider: "serv" as const, model: SERV_MODEL };
+export const DEFAULT_DECIDER: { provider: Provider; model: string } = { provider: "serv", model: SERV_MODEL };
 const ZERO = new Set(["BLOCKED_BY_CODE", "KNOWN_OR_OUT_OF_SCOPE", "CITATION_BROKEN", "GUARD_HELD"]);
 const SEVERITY_RANK: Severity[] = ["low_or_none", "medium", "high"];
 
@@ -109,14 +115,13 @@ export function consensus(votes: Vote[]): Pick<Precheck, "verdict" | "agreement"
 }
 
 async function vote(
-  report: { title: string; body: string },
-  citations: ResolvedCitation[],
+  p: Prepared,
   evidence: Call<Evidence>,
   decider: { provider: Provider; model: string },
 ): Promise<Vote> {
   try {
-    const judgment = await judge(decider.provider, decider.model, report, summarizeCitations(citations), evidence.value);
-    const capped = applyCaps(judgment.value, evidence.value);
+    const judgment = await judge(decider.provider, decider.model, p.report, summarizeCitations(p.citations), evidence.value);
+    const capped = applyCaps(judgment.value, evidence.value, p.flags);
     return {
       verdict: capped.verdict,
       severity: capped.severity,
@@ -132,33 +137,55 @@ async function vote(
   }
 }
 
-export async function gatherEvidence(
-  report: { title: string; body: string },
-  citations: ResolvedCitation[],
-  contest: Contest,
-  policy: string,
-  k: number,
-): Promise<Call<Evidence>[]> {
-  return Promise.all(Array.from({ length: k }, () => extractEvidence(report, citations, contest, policy)));
+// Everything that does not depend on who decides: citations, the instruction scan, SERV's front-door screen,
+// and k evidence passes whose proof claim is capped at what the finding itself shows.
+export async function prepare(report: { title: string; body: string }, contest: Contest, policy: string, k = 3): Promise<Prepared> {
+  const citations = checkCitations(report.body, report.title, contest);
+  const base = { report, citations, flags: [], held: null, evidence: [], usd: 0 };
+  const veto = citationVeto(citations);
+  if (veto) return { ...base, veto };
+
+  const flags = scanInstructions(`${report.title}\n${report.body}`);
+  let screenUsd = 0;
+  try {
+    screenUsd = (await screen(report)).usd;
+  } catch (err) {
+    if (!(err instanceof GuardBlocked)) throw err;
+    return { ...base, veto: null, flags, held: err.message };
+  }
+
+  const shown = proofInReport(report.body);
+  const evidence = (await Promise.all(Array.from({ length: k }, () => extractEvidence(report, citations, contest, policy)))).map(
+    (e) => ({ ...e, value: { ...e.value, poc: capProof(e.value.poc, shown) } }),
+  );
+  return { ...base, veto: null, flags, held: null, evidence, usd: screenUsd + evidence.reduce((t, e) => t + e.usd, 0) };
+}
+
+export async function decide(p: Prepared, decider = DEFAULT_DECIDER): Promise<Precheck> {
+  const shared = { citations: p.citations, flags: p.flags, decider, usd: p.usd };
+  if (p.veto) return { ...p.veto, ...shared, agreement: null, severitySupported: null, missing: [], votes: [], decider: null };
+  if (p.held) {
+    return {
+      ...shared,
+      verdict: "GUARD_HELD",
+      agreement: null,
+      severitySupported: null,
+      missing: [],
+      votes: [],
+      reason: `SERV Prompt Guard held the finding at the front door (${p.held}). Route it to a human reviewer.`,
+    };
+  }
+  const votes = await Promise.all(p.evidence.map((e) => vote(p, e, decider)));
+  return { ...consensus(votes), ...shared, votes, usd: p.usd + votes.reduce((t, v) => t + (v.judgment?.usd ?? 0), 0) };
 }
 
 export async function precheck(
   report: { title: string; body: string },
   contest: Contest,
   policy: string,
-  opts: PrecheckOptions = {},
+  opts: { k?: number; decider?: { provider: Provider; model: string } } = {},
 ): Promise<Precheck> {
-  const citations = checkCitations(report.body, report.title, contest);
-  const veto = citationVeto(citations);
-  if (veto) {
-    return { ...veto, agreement: null, severitySupported: null, missing: [], citations, votes: [], decider: null, usd: 0 };
-  }
-  const decider = opts.decider ?? DEFAULT_DECIDER;
-  const evidence = opts.evidence ?? (await gatherEvidence(report, citations, contest, policy, opts.k ?? 3));
-  const votes = await Promise.all(evidence.map((e) => vote(report, citations, e, decider)));
-  const usd =
-    (opts.evidence ? 0 : evidence.reduce((s, e) => s + e.usd, 0)) + votes.reduce((s, v) => s + (v.judgment?.usd ?? 0), 0);
-  return { ...consensus(votes), citations, votes, decider, usd };
+  return decide(await prepare(report, contest, policy, opts.k ?? 3), opts.decider ?? DEFAULT_DECIDER);
 }
 
 export { DOLPHIN_MODEL, SERV_MODEL };
