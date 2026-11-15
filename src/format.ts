@@ -1,12 +1,9 @@
 import type { Precheck } from "./precheck.ts";
 import { issue } from "./certificate.ts";
 
-// Only a unanimous verdict on text that addresses no one but the reader is routed without a human.
-// A decider that claimed READY and was overruled by code is exactly the case a person should see.
-const overruled = (p: Precheck) => p.votes.some((v) => v.caps.some((c) => c.startsWith("READY capped") || c.startsWith("layers disagree")));
+import { route } from "./route.ts";
 
-export const route = (p: Precheck): "automatic" | "human" =>
-  p.verdict === "CITATION_BROKEN" || (p.agreement === "unanimous" && p.flags.length === 0 && !overruled(p)) ? "automatic" : "human";
+export { route };
 
 export function toJson(p: Precheck) {
   const lead = p.votes.find((v) => v.verdict === p.verdict) ?? p.votes[0];

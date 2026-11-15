@@ -1,9 +1,12 @@
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { $, $$, esc, getClaims, streakSVG, checklist, VERDICT, ready, type Item } from "./site.ts";
+import { route } from "../../route.ts";
 
-interface Arm { score: number; verdict: string; agreement: string | null; reason: string | null; missing: (string | Item)[]; overruled: boolean; votes: { verdict: string; id: string | null; caps: string[] }[] }
+interface Arm { score: number; verdict: string; agreement: string | null; reason: string | null; missing: (string | Item)[]; votes: { verdict: string; id: string | null; caps: string[]; reason: string | null; missing: (string | Item)[] }[] }
 interface Row { id: string; n: number; title: string; family: number; awarded: boolean; final: string | null; len: number; flags: string[]; held: boolean; vetoed: boolean; serv: Arm; dolphin: Arm }
+
+const automatic = (r: Row, a: Arm) => route({ ...a, flags: r.flags }) === "automatic";
 
 // Same estimator, same seed and same resampling order as src/eval/score.ts, so results match to the digit.
 function auroc(scores: number[], labels: boolean[]) {
@@ -92,11 +95,11 @@ async function main() {
       },
       {
         what: "Automatic rejects the contest judge also rejected (SERV decides)",
-        note: "unanimous zero-score verdicts with no flags, plus code vetoes",
+        note: "zero-score verdicts the production router sends without a human",
         state: "recomputed",
         published: `${s.serv.automatic_rejects_not_awarded}/${s.serv.automatic_rejects}`,
         computed: () => {
-          const auto = rows.filter((r) => (r.vetoed || (r.serv.agreement === "unanimous" && !r.flags.length && !r.serv.overruled)) && r.serv.score === 0);
+          const auto = rows.filter((r) => automatic(r, r.serv) && r.serv.score === 0);
           return `${auto.filter((r) => !r.awarded).length}/${auto.length}`;
         },
       },
@@ -189,7 +192,7 @@ async function main() {
         (filter === "awarded" && r.awarded) ||
         (filter === "not" && !r.awarded) ||
         (filter === "unanimous" && a.agreement === "unanimous") ||
-        (filter === "miss" && r.awarded && a.score === 0 && (r.vetoed || (a.agreement === "unanimous" && !r.flags.length && !a.overruled))) ||
+        (filter === "miss" && r.awarded && a.score === 0 && automatic(r, a)) ||
         a.verdict === filter;
       el.classList.toggle("dim", !show);
     }
@@ -234,8 +237,10 @@ async function main() {
         <p style="font:500 28px/1 var(--display);color:${v.color};margin:4px 0 12px">${esc(v.label)}</p>
         ${a.reason ? `<p class="reason" style="font-size:15px;margin:0 0 12px">${esc(a.reason)}</p>` : ""}
         ${a.missing.length ? checklist(a.missing) : ""}
-        ${a.votes.map((x, i) => `<div class="leader"><span>pass ${i + 1}: ${esc((VERDICT[x.verdict] ?? { label: x.verdict }).label)}</span><span class="dots"></span><span class="mono" style="user-select:all">${esc(x.id ?? "—")}</span></div>`).join("")}
-        <div class="leader"><span>agreement</span><span class="dots"></span><span>${esc(a.agreement ?? "code veto")}${a.overruled ? " · code overruled a READY" : ""}</span></div>`;
+        ${a.votes.map((x, i) => `<div class="leader"><span>pass ${i + 1}: ${esc((VERDICT[x.verdict] ?? { label: x.verdict }).label)}</span><span class="dots"></span><span class="mono" style="user-select:all">${esc(x.id ?? "—")}</span></div>
+          ${x.reason ? `<p class="fine" style="margin:4px 0 10px">${esc(x.reason)}</p>` : ""}${x.caps.map((c) => `<p class="fine muted" style="margin:0 0 6px">code: ${esc(c)}</p>`).join("")}`).join("")}
+        <div class="leader"><span>agreement</span><span class="dots"></span><span>${esc(a.agreement ?? "code veto")}</span></div>
+        <div class="leader"><span>route</span><span class="dots"></span><span>${automatic(r, a) ? "automatic" : "a person"}</span></div>`;
     };
     opener = el;
     $("#drawer-body").innerHTML = `<span class="eyebrow">Karak #${r.n} · family ${r.family}</span>

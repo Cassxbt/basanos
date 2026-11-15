@@ -147,7 +147,7 @@ script:
         <div class="row"><span class="gold">scan</span><span>Text addressed to the pipeline (field names, dictated verdicts, fake judge comments, hidden text) removes READY and automatic routing. <span class="muted">{{loc:src/defenses.ts:export function scanInstructions}}</span></span></div>
       </div>
       <div class="panel diagram" data-reveal>
-        <div class="row"><span class="gold">caps</span><span>READY needs code support “yes”, a root cause that exists in the audited source, no blocking code, no known-issue match, no trusted role, a test or concrete steps, every citation resolving, and nothing left on either missing-proof list. Any miss: needs proof, and a person sees it. <span class="muted">{{loc:src/caps.ts:export function applyCaps}}</span></span></div>
+        <div class="row"><span class="gold">caps</span><span>READY needs code support “yes”, a root cause that exists in the audited source, no blocking code, no known-issue match, no trusted role, a test or concrete steps, every citation resolving, and no <em>required</em> item left in either the evidence or the decision. Each missing item names which of five acceptance obligations it affects; items that only strengthen a finding do not block it. If the evidence requires something the decision does not, a person decides. Any miss: needs proof, and a person sees it. <span class="muted">{{loc:src/caps.ts:export function applyCaps}}</span></span></div>
         <div class="row"><span class="gold">consensus</span><span>Three passes. Unanimous and unflagged routes automatically; anything else goes to a human. <span class="muted">{{loc:src/precheck.ts:export function consensus}}</span></span></div>
         <div class="row"><span class="gold">receipt</span><span>Every check returns an Assay Receipt with a SHA-256 checksum over finding digest, audited commit, votes, request ids and cost. It detects edits; it does not prove who issued it or that the verdict is right. <span class="muted">{{loc:src/certificate.ts:export function issue}}</span></span></div>
       </div>
@@ -186,7 +186,7 @@ script:
         <tr><th>Piece</th><th>State</th></tr>
         <tr><td>Citations, unrelated-span check, scan, caps, consensus, certificate</td><td>Real, deterministic, tested</td></tr>
         <tr><td>Dolphin and SERV calls</td><td>Real API calls from this site's server. Keys never reach the browser.</td></tr>
-        <tr><td>Contest coverage</td><td>Karak only, from a committed snapshot of the audited commit. Other contests need a snapshot.</td></tr>
+        <tr><td>Contest coverage</td><td>Two closed contests from committed snapshots: Karak in the browser, Kleidi through the API, CLI and MCP. Other contests need a snapshot.</td></tr>
         <tr><td>Live contests</td><td>Not supported. Basanos is shown on a closed contest and never posts back.</td></tr>
         <tr><td>Duplicate detection</td><td>Not offered before submission: a hunter cannot see other hunters' reports.</td></tr>
         <tr><td>Bug fixes for the pair test</td><td>Written by an agent, compiled, verified with reproducing tests. Not the sponsor's private fixes.</td></tr>

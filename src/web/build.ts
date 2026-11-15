@@ -80,8 +80,7 @@ const arm = (a: ConsensusRow["serv"]) => ({
   agreement: a.agreement,
   reason: a.reason ?? null,
   missing: a.missing ?? [],
-  overruled: a.votes.some((v) => v.caps.some((c) => c.startsWith("READY capped"))),
-  votes: a.votes.map((v) => ({ verdict: v.verdict, id: v.requestId, caps: v.caps })),
+  votes: a.votes.map((v) => ({ verdict: v.verdict, id: v.requestId, caps: v.caps, reason: v.reason ?? null, missing: v.missing ?? [] })),
 });
 const fixes: { number: number; files: string[]; summary: string }[] = JSON.parse(readFileSync("data/karak/fixes.json", "utf8"));
 writeFileSync(`${STATIC}/data/proof.json`, JSON.stringify({

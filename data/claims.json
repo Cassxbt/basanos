@@ -19,8 +19,8 @@
         0.839
       ],
       "unanimous": 48,
-      "automatic_rejects": 11,
-      "automatic_rejects_not_awarded": 11,
+      "automatic_rejects": 10,
+      "automatic_rejects_not_awarded": 10,
       "ready": 0,
       "decision_usd": 0.15242
     },
@@ -31,8 +31,8 @@
         0.916
       ],
       "unanimous": 57,
-      "automatic_rejects": 18,
-      "automatic_rejects_not_awarded": 16,
+      "automatic_rejects": 17,
+      "automatic_rejects_not_awarded": 15,
       "ready": 0,
       "decision_usd": 0.00763
     },
@@ -41,6 +41,35 @@
     "usd_per_check": 0.00309
   },
   "shipped_source": "run5",
+  "strict_v1": {
+    "serv": {
+      "auroc": 0.716,
+      "ci95": [
+        0.592,
+        0.839
+      ],
+      "unanimous": 48,
+      "automatic_rejects": 10,
+      "automatic_rejects_not_awarded": 10,
+      "ready": 0,
+      "decision_usd": 0.15242
+    },
+    "dolphin": {
+      "auroc": 0.784,
+      "ci95": [
+        0.658,
+        0.916
+      ],
+      "unanimous": 57,
+      "automatic_rejects": 17,
+      "automatic_rejects_not_awarded": 15,
+      "ready": 0,
+      "decision_usd": 0.00763
+    },
+    "front_door_held": 7,
+    "flagged": 0,
+    "usd_per_check": 0.00309
+  },
   "defended_before_contract_fixes": {
     "serv": {
       "auroc": 0.711,
@@ -49,8 +78,8 @@
         0.829
       ],
       "unanimous": 67,
-      "automatic_rejects": 17,
-      "automatic_rejects_not_awarded": 15,
+      "automatic_rejects": 16,
+      "automatic_rejects_not_awarded": 14,
       "ready": 0,
       "decision_usd": 0.15246
     },
@@ -61,8 +90,8 @@
         0.871
       ],
       "unanimous": 73,
-      "automatic_rejects": 25,
-      "automatic_rejects_not_awarded": 22,
+      "automatic_rejects": 24,
+      "automatic_rejects_not_awarded": 21,
       "ready": 0,
       "decision_usd": 0.00806
     },
@@ -78,8 +107,8 @@
         0.817
       ],
       "unanimous": 68,
-      "automatic_rejects": 19,
-      "automatic_rejects_not_awarded": 16,
+      "automatic_rejects": 18,
+      "automatic_rejects_not_awarded": 15,
       "ready": 0,
       "decision_usd": 0.15716
     },
@@ -90,8 +119,8 @@
         0.935
       ],
       "unanimous": 72,
-      "automatic_rejects": 24,
-      "automatic_rejects_not_awarded": 20,
+      "automatic_rejects": 23,
+      "automatic_rejects_not_awarded": 19,
       "ready": 0,
       "decision_usd": 0.00812
     },
@@ -369,20 +398,26 @@
         "ready_awarded": 0,
         "awarded": 23,
         "awarded_ready": 0,
-        "false_discouragement": 8,
-        "human_routed": 32,
-        "auto_reject_not_awarded": 9,
-        "auto_reject": 17
+        "false_discouragement": 0,
+        "awarded_auto_rejected": 0,
+        "awarded_auto_needs_proof": 0,
+        "awarded_known": 18,
+        "human_routed": 47,
+        "auto_reject_not_awarded": 2,
+        "auto_reject": 2
       },
       "dolphin": {
         "ready": 0,
         "ready_awarded": 0,
         "awarded": 23,
         "awarded_ready": 0,
-        "false_discouragement": 17,
-        "human_routed": 17,
+        "false_discouragement": 15,
+        "awarded_auto_rejected": 2,
+        "awarded_auto_needs_proof": 13,
+        "awarded_known": 3,
+        "human_routed": 19,
         "auto_reject_not_awarded": 7,
-        "auto_reject": 10
+        "auto_reject": 9
       },
       "usd_per_check": 0.00272
     },
