@@ -85,3 +85,14 @@ Changes:
   32 positive reports come from only 9 families, and family 55 alone holds 12 of them.
 - **Run 1:** it had already been run on the original 75 reports. Their rows are kept. Run 1 is extended to the 19 added reports with the same code and prompts. Run 2 covers all 94.
 - **Citation check:** it resolves every in-scope citation in Karak, so it is a hygiene gate, not a predictor. The README will say so. Its value is tested on the hostile and fabricated sets.
+
+## Amendment 2, 2026-11-15, before running the bug/fix pairs
+
+The pre-registered pair metric looks for a score falling from 3 or 2 to 1 or 0. It has almost no power here: on the original code, both arms already score most of the 9 awarded findings at 1 or 0, because they are strict about proof. Run 1 has 3 Dolphin and 1 SERV pair starting at 2 or above.
+
+The pre-registered metric stays and is reported first. A second metric is added and labeled exploratory: the evidence record's `code_supports_claim`.
+- Before the fix, it is "yes" for 7 of 9 findings in each run.
+- Measured: the share of findings with "yes" before the fix and "no" after it, plus the BLOCKED_BY_CODE rate after the fix.
+- Both are measured in model-only mode, where citation statuses are withheld.
+
+Fixes are written by a separate agent from each report's recommended mitigation (`data/karak/fixes.json`). Patched code carries no comments that describe the bug. Each pair runs twice.
