@@ -10,7 +10,8 @@
     "mcp": "tsx src/mcp.ts",
     "snapshot": "tsx src/data/snapshot.ts",
     "eval": "tsx src/eval/run.ts",
-    "score": "tsx src/eval/score.ts"
+    "score": "tsx src/eval/score.ts",
+    "build:web": "tsx src/web/build.ts"
   },
   "author": "",
   "license": "MIT",
@@ -21,6 +22,7 @@
   },
   "devDependencies": {
     "@types/node": "^26.6.6",
+    "esbuild": "^0.28.2",
     "tsx": "^4.23.15",
     "typescript": "^7.0.2"
   },
