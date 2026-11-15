@@ -6,4 +6,6 @@ export const KLEIDI_REPO = "code-423n4/2024-10-kleidi";
 export const KLEIDI_SPONSOR_REPO = "solidity-labs-io/kleidi";
 export const KLEIDI_SPONSOR_COMMIT = "0d72b6cb5725c1380212dc76257da96fcfacf22f";
 export const KLEIDI_AUDITED = "ab89bcb443249e1524496b694ddb19e298dca799";
+export const WILDCAT_REPO = "code-423n4/2024-08-wildcat";
+export const WILDCAT_AUDITED = "fe746cc0fbedc4447a981a50e6ba4c95f98b9fe1";
 export const KLEIDI_ALIASES = { [KLEIDI_SPONSOR_REPO]: { [KLEIDI_SPONSOR_COMMIT]: KLEIDI_AUDITED } };

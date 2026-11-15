@@ -39,6 +39,12 @@ export class GitSource implements CodeSource {
     }
     return this.files.get(key)!;
   }
+
+  // Policy documents can live anywhere in the repository, so snapshots carry every Markdown file.
+  markdown(commit: string): string[] {
+    const out = execFileSync("git", ["-C", this.repoDir, "ls-tree", "-r", "--name-only", "-z", commit], { encoding: "utf8", maxBuffer: 64 * 1024 * 1024 });
+    return out.split("\0").filter((p) => p.endsWith(".md") && !p.startsWith("lib/") && !p.includes("node_modules/"));
+  }
 }
 
 export type Snapshot = Record<string, Record<string, string>>;

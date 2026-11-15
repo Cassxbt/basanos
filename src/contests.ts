@@ -1,10 +1,11 @@
 import karakSnapshot from "../data/karak/snapshot.json" with { type: "json" };
 import karakFix31Snapshot from "../data/karak/snapshot-fix31.json" with { type: "json" };
 import kleidiSnapshot from "../data/kleidi/snapshot.json" with { type: "json" };
+import wildcatSnapshot from "../data/wildcat/snapshot.json" with { type: "json" };
 import { loadScope, type Contest } from "./citations.ts";
 import { loadPolicy, renderPolicy } from "./policy.ts";
 import { SnapshotSource, type Snapshot } from "./source.ts";
-import { KARAK_AUDITED, KARAK_FIX_31, KARAK_REPO, KLEIDI_ALIASES, KLEIDI_AUDITED, KLEIDI_REPO } from "./data/constants.ts";
+import { KARAK_AUDITED, KARAK_FIX_31, KARAK_REPO, KLEIDI_ALIASES, KLEIDI_AUDITED, KLEIDI_REPO, WILDCAT_AUDITED, WILDCAT_REPO } from "./data/constants.ts";
 
 interface ContestEntry {
   id: string;
@@ -32,11 +33,18 @@ export const CONTESTS: ContestEntry[] = [
   },
   {
     id: "kleidi",
-    name: "Code4rena 2024-10 Kleidi (closed, amendment-6 holdout)",
+    name: "Code4rena 2024-10 Kleidi (closed, amendment-6 holdout; diagnostic since amendment 7)",
     githubRepo: KLEIDI_REPO,
     auditedCommit: KLEIDI_AUDITED,
     snapshot: kleidiSnapshot as Snapshot,
     aliases: KLEIDI_ALIASES,
+  },
+  {
+    id: "wildcat",
+    name: "Code4rena 2024-08 Wildcat (closed, amendment-7 holdout)",
+    githubRepo: WILDCAT_REPO,
+    auditedCommit: WILDCAT_AUDITED,
+    snapshot: wildcatSnapshot as Snapshot,
   },
 ];
 

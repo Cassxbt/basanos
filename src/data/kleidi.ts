@@ -22,7 +22,7 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   );
   const policyFiles = ["README.md", "4naly3er-report.md", "scope.txt", "KNOWN_ISSUES.md"];
   writeFileSync("data/kleidi/snapshot.json", JSON.stringify({
-    ...takeSnapshot(contest.source as GitSource, [KLEIDI_AUDITED], [...contest.scope, ...policyFiles]),
+    ...takeSnapshot(contest.source as GitSource, [KLEIDI_AUDITED], [...contest.scope, ...policyFiles, ...(contest.source as GitSource).markdown(KLEIDI_AUDITED)]),
     ...takeSnapshot(contest.source as GitSource, cited, [...contest.scope]),
   }));
   console.log(`kleidi: ${reports.length} reports, ${excluded.length} excluded, ${contest.scope.size} scope files, ${cited.length} other cited commits`);
