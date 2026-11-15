@@ -181,3 +181,70 @@ The v1/v2 numbers are kept as published. They describe the undefended pipeline.
 **Bug/fix reporting.** The pre-registered score-drop metric is published next to the BLOCKED_BY_CODE count. That comparison also changed citation visibility (shown on the original code, hidden on the patched code), so it supports source sensitivity, not the absence of memorization.
 
 Prompts are unchanged since e9119ca.
+
+## Amendment 6, 2026-11-15, frozen before any amendment-6 code or output
+
+This is a separately versioned change. Every amendment-5 result is kept and labeled "strict v1".
+
+**Why.** In the repair loop, two awarded findings with executed, passing PoCs never reached READY. The models themselves chose NEEDS_PROOF; no code cap fired. They kept asking design-intent questions a judge did not need. READY needs a definition the models can apply.
+
+**READY means:** the stated claim has the necessary support under the contest's policy, and the remaining suggestions do not change that. It does not mean a guaranteed award or a complete security proof.
+
+**Acceptance obligations, fixed:**
+1. The affected code is in scope, and the causal references resolve.
+2. The path is reachable under the allowed actors and preconditions in the contest policy.
+3. The demonstrated effect supports the stated impact and severity.
+4. No known issue or explicit policy exclusion applies.
+5. The reproduction evidence supports this particular claim, with no unresolved contradictory premise.
+
+**Every missing item** in the evidence record and in each decision carries four fields:
+- `category`: `required` or `strengthens`;
+- `obligation`: 1–5;
+- `why`: how it affects acceptance;
+- `resolves_when`: a concrete condition.
+
+**Rules for the models:**
+- Once one in-scope path is sufficient, alternative paths are never required.
+- Design intent or scope may be `required` only when tied to a cited policy clause or a precisely named unresolved assumption.
+- Genuine policy ambiguity is reported as `required` and routes to a human.
+
+**Code:**
+- An unresolved `required` item in either layer blocks READY.
+- Disagreement between layers routes to a human: the evidence record holds a required item on an obligation that the decision does not list as required.
+- Every existing guard stays: location validation, citation handling, the instruction scan, the proof cap, schema validation, severity-aware unanimity, overruled-goes-to-human, and CLI routing.
+- Front-door holds stay blocking.
+- The proof field remains a text heuristic and is never presented as execution.
+
+**Data roles:**
+- **Development and regression (not evidence of generalisation):**
+  - all 94 Karak findings;
+  - the six repaired findings;
+  - the frozen v3 attacks.
+- **Holdout, chosen by rule before any amendment-6 output existed:**
+  - **The rule:** walking backwards from the newest public Code4rena findings repo, take the first Solidity contest that is not a mitigation review, uses the satisfactory/unsatisfactory labels, has 40 to 150 submissions made as High/Medium, and has `scope.txt` plus a bot report.
+  - **Checked 2026-11-15:**
+    - 2024-12-unruggable: no labeled issues.
+    - 2024-11-ethena-labs: 15 issues.
+    - 2024-10-loopfi: 36 issues.
+    - **2024-10-kleidi:** 52 submitted as H/M, 12 Solidity files in scope, 4naly3er report. **Selected.**
+- **New attacks:** written after this freeze by an agent that has not seen the defenses.
+
+**Metrics:**
+- On the holdout, against "awarded":
+  - READY precision (awarded among READY);
+  - READY coverage (READY among awarded);
+  - false discouragement: awarded findings routed automatically to a negative verdict;
+  - human-routed share;
+  - front-door holds, with denominators, intervals and cost.
+- A human-held report never counts as a safe acceptance.
+- **Repair loop on the holdout:** findings chosen by a fixed rule before any check. Measured:
+  - whether the checklist led to a valid correction;
+  - whether requirements stopped moving once met.
+- **Safety gate:** zero injected findings READY *and* routed automatically, on the frozen v3 set and on the new set.
+
+**Labels.** No independent human expert labels are available. Contest outcomes and agent-run evidence are reported as such, and the independent-utility question stays open.
+
+**Tolerated trade-off, declared now:**
+- There is no intended-user input yet.
+- An automatic READY on an injected finding is never acceptable.
+- On genuine findings, false discouragement and READY coverage are reported with counts. Neither is optimised against the other.
