@@ -3,6 +3,7 @@ import { execFileSync } from "node:child_process";
 export interface CodeSource {
   hasCommit(commit: string): boolean;
   read(commit: string, path: string): string[] | null;
+  markdown(commit: string): string[];
 }
 
 export class GitSource implements CodeSource {
@@ -66,6 +67,11 @@ export class SnapshotSource implements CodeSource {
     const full = this.full(commit);
     const text = full ? this.snapshot[full][path] : undefined;
     return text === undefined ? null : text.split("\n");
+  }
+
+  markdown(commit: string): string[] {
+    const full = this.full(commit);
+    return full ? Object.keys(this.snapshot[full]).filter((p) => p.endsWith(".md")) : [];
   }
 }
 

@@ -42,6 +42,7 @@ export interface Prepared {
   held: string | null;
   evidence: Call<Evidence>[];
   locationExists: (file: string, line: number) => boolean;
+  policy: string;
   usd: number;
 }
 
@@ -129,12 +130,12 @@ async function vote(
   signal?: AbortSignal,
 ): Promise<Vote> {
   try {
-    const judgment = await judge(decider.provider, decider.model, p.report, summarizeCitations(p.citations), evidence.value, signal);
-    const capped = applyCaps(judgment.value, evidence.value, { flags: p.flags, citations: p.citations, locationExists: p.locationExists });
+    const judgment = await judge(decider.provider, decider.model, p.report, summarizeCitations(p.citations), evidence.value, p.policy, signal);
+    const capped = applyCaps(judgment.value, evidence.value, { flags: p.flags, citations: p.citations, locationExists: p.locationExists, policy: p.policy });
     return {
       verdict: capped.verdict,
       severity: capped.severity,
-      missing: judgment.value.missing.length ? judgment.value.missing : capped.evidence.missing_evidence,
+      missing: capped.missing,
       reason: judgment.value.reason,
       caps: capped.caps,
       evidence: { ...evidence, value: capped.evidence },
@@ -171,7 +172,7 @@ export async function prepare(
     const lines = contest.source.read(contest.auditedCommit, file);
     return !!lines && Number.isInteger(line) && line >= 1 && line <= lines.length;
   };
-  const base = { report, citations, flags: [], held: null, evidence: [], locationExists, usd: 0 };
+  const base = { report, citations, flags: [], held: null, evidence: [], locationExists, policy, usd: 0 };
   const veto = citationVeto(citations);
   if (veto) return { ...base, veto };
 
@@ -221,16 +222,15 @@ export async function precheck(
   return decide(p, opts.decider ?? DEFAULT_DECIDER, opts.signal);
 }
 
-// Upper bound on what one check can bill for the requested models, from max output tokens and a generous
-// input estimate (3 characters per token). Prompt Guard's own inference is not reported in usage, so it is
-// not covered by this bound.
-export function worstCaseUsd(reportChars: number, contest: Contest, policy: string, k = 3): number {
+// An estimate to reserve before a check, not a billing bound: inputs are assumed at 3 characters per token,
+// outputs at their maximum, and Prompt Guard's own inference is not reported in usage so it is not counted.
+export function estimatedReservationUsd(reportChars: number, contest: Contest, policy: string, k = 3): number {
   const report = reportChars / 3;
   const evidenceIn = (scopeBundle(contest).length + policy.length) / 3 + report + 2000;
   const ev = price(DOLPHIN_MODEL), sv = price(SERV_MODEL);
   const screenUsd = ((report + 3000) * sv.input + SCREEN_MAX_TOKENS * sv.output) / 1e6;
   const evidenceUsd = k * (evidenceIn * ev.input + EVIDENCE_MAX_TOKENS * ev.output) / 1e6;
-  const judgeUsd = k * ((report + 8000) * sv.input + JUDGE_MAX_TOKENS.serv * sv.output) / 1e6;
+  const judgeUsd = k * ((report + policy.length / 3 + 8000) * sv.input + JUDGE_MAX_TOKENS.serv * sv.output) / 1e6;
   return screenUsd + evidenceUsd + judgeUsd;
 }
 

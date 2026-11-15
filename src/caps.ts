@@ -1,19 +1,23 @@
 import type { Evidence } from "./evidence.ts";
 import type { Judgment, ModelVerdict } from "./verdict.ts";
 import type { ResolvedCitation } from "./citations.ts";
-import { requiredItems } from "./obligations.ts";
+import { requiredItems, type MissingItem } from "./obligations.ts";
+import { groundedClause } from "./policy.ts";
 
 export interface Capped {
   verdict: ModelVerdict;
   severity: Judgment["severity_supported"];
   caps: string[];
   evidence: Evidence;
+  // The checklist code enforced: the decision's items after code drops, plus evidence requirements it did not carry.
+  missing: MissingItem[];
 }
 
 export interface CapContext {
   flags: string[];
   citations: ResolvedCitation[];
   locationExists: (file: string, line: number) => boolean;
+  policy: string;
 }
 
 const USABLE = new Set(["OK", "MOVED"]);
@@ -27,14 +31,18 @@ export function applyCaps(judgment: Judgment, evidenceRecord: Evidence, ctx: Cap
   let verdict = j.verdict;
   let severity = j.severity_supported;
 
-  // Obligation 1 (scope, references resolve) is decided by code, not by a model.
-  const codeOwnsScope = ctx.citations.length > 0 && ctx.citations.every((c) => USABLE.has(c.status) || c.status === "OUT_OF_SCOPE");
-  const notScope = (items: typeof e.missing_evidence) => (codeOwnsScope ? items.filter((i) => i.obligation !== 1) : items);
-  if (codeOwnsScope && [...e.missing_evidence, ...j.missing].some((i) => i.obligation === 1)) {
+  // Evidence items are numbered before anything is dropped, matching the ids the decider was shown.
+  const numbered = e.missing_evidence.map((item, i) => ({ ...item, id: `E${i + 1}` }));
+
+  // Obligation 1 (scope, references resolve) is decided by code, not by a model, but only when every citation settles it.
+  const codeOwnsScope = ctx.citations.length > 0 && ctx.citations.every((c) => USABLE.has(c.status));
+  const keep = (i: { obligation: number }) => !codeOwnsScope || i.obligation !== 1;
+  if (codeOwnsScope && [...e.missing_evidence, ...j.missing].some((i) => !keep(i))) {
     caps.push("dropped obligation-1 items: code verified every citation resolves in scope");
   }
-  e = { ...e, missing_evidence: notScope(e.missing_evidence) };
-  j = { ...j, missing: notScope(j.missing) };
+  const evidenceItems = numbered.filter(keep);
+  e = { ...e, missing_evidence: evidenceItems.map(({ id: _, ...item }) => item) };
+  j = { ...j, missing: j.missing.filter(keep) };
 
   const realBlocking = e.blocking_code.filter((b) => ctx.locationExists(b.file, b.line));
   if (realBlocking.length < e.blocking_code.length) {
@@ -42,6 +50,16 @@ export function applyCaps(judgment: Judgment, evidenceRecord: Evidence, ctx: Cap
   }
   const evidence = { ...e, blocking_code: realBlocking };
   const rootExists = ctx.locationExists(e.root_cause_file, e.root_cause_line);
+
+  // A negative verdict is held to the same standard as READY: it must rest on real code or a quotable clause.
+  if (verdict === "BLOCKED_BY_CODE" && realBlocking.length === 0) {
+    verdict = "NEEDS_PROOF";
+    caps.push("verdict capped to NEEDS_PROOF: BLOCKED_BY_CODE names no blocking code that exists in the audited source");
+  }
+  if (verdict === "KNOWN_OR_OUT_OF_SCOPE" && !groundedClause(j.exclusion.clause, ctx.policy)) {
+    verdict = "NEEDS_PROOF";
+    caps.push("verdict capped to NEEDS_PROOF: the exclusion does not quote a clause or bot finding from the contest policy");
+  }
 
   if (verdict === "READY") {
     // Links to out-of-scope files (tests, interfaces) are allowed alongside in-scope ones; every other failure blocks READY.
@@ -65,15 +83,18 @@ export function applyCaps(judgment: Judgment, evidenceRecord: Evidence, ctx: Cap
     }
   }
 
-  // The decision may not quietly drop an obligation the evidence layer marked as required: a person reconciles them.
-  const decided = new Set(requiredItems(j.missing).map((i) => i.obligation));
-  const dropped = [...new Set(requiredItems(e.missing_evidence).map((i) => i.obligation))].filter((o) => !decided.has(o));
-  if (dropped.length) caps.push(`layers disagree: evidence requires obligation ${dropped.join(", ")}, the decision does not`);
+  // The decision may not quietly drop a requirement the evidence layer raised: each one is matched by id, and a person reconciles any gap.
+  const carried = new Set(requiredItems(j.missing).map((i) => i.evidence_ref.trim().toUpperCase()));
+  const uncarried = requiredItems(evidenceItems).filter((i) => !carried.has(i.id));
+  if (uncarried.length) {
+    caps.push(`layers disagree: evidence requires ${uncarried.map((i) => `${i.id} (obligation ${i.obligation})`).join(", ")}, the decision does not`);
+  }
 
   if (e.impact === "informational" && severity !== "low_or_none") {
     caps.push(`severity ${severity} capped: evidence impact is informational`);
     severity = "low_or_none";
   }
 
-  return { verdict, severity, caps, evidence };
+  const missing = [...j.missing.map(({ evidence_ref: _, ...item }) => item), ...uncarried.map(({ id: _, ...item }) => item)];
+  return { verdict, severity, caps, evidence, missing };
 }

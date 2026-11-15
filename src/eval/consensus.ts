@@ -101,21 +101,27 @@ async function run(name: string, items: { id: string; title: string; body: strin
   await Promise.all(Array.from({ length: 3 }, worker));
 }
 
-function writeManifest(name: string, ablation: string) {
+const BEHAVIOR_FILES = [
+  "src/evidence.ts", "src/verdict.ts", "src/caps.ts", "src/defenses.ts", "src/precheck.ts", "src/citations.ts",
+  "src/obligations.ts", "src/policy.ts", "src/llm.ts", "src/route.ts", "src/format.ts", "src/contests.ts",
+];
+
+// A resumed run must be the same version: if any behavior file or input changed, it refuses instead of mixing rows.
+function writeManifest(name: string, ablation: string, inputs: string[] = []) {
   const sha = (f: string) => createHash("sha256").update(readFileSync(f)).digest("hex").slice(0, 16);
   const path = "data/runs/manifest.json";
   const all = existsSync(path) ? JSON.parse(readFileSync(path, "utf8")) : {};
-  all[name] = {
-    started: new Date().toISOString(),
-    git: execFileSync("git", ["rev-parse", "HEAD"], { encoding: "utf8" }).trim(),
-    dirty: execFileSync("git", ["status", "--porcelain", "src"], { encoding: "utf8" }).trim().length > 0,
-    ablation,
-    contest: CONTEST_ID,
-    pipeline: PIPELINE_VERSION,
-    passes: K,
-    models: { evidence: DOLPHIN_MODEL, deciders: [SERV_MODEL, DOLPHIN_MODEL] },
-    sources: Object.fromEntries(["src/evidence.ts", "src/verdict.ts", "src/caps.ts", "src/defenses.ts", "src/precheck.ts", "src/citations.ts", "src/obligations.ts"].map((f) => [f, sha(f)])),
-  };
+  const sources = Object.fromEntries(BEHAVIOR_FILES.map((f) => [f, sha(f)]));
+  const data = Object.fromEntries([`data/${CONTEST_ID}/snapshot.json`, REPORTS, ...inputs].filter(existsSync).map((f) => [f, sha(f)]));
+  const at = { at: new Date().toISOString(), git: execFileSync("git", ["rev-parse", "HEAD"], { encoding: "utf8" }).trim(), dirty: execFileSync("git", ["status", "--porcelain", "src", "data"], { encoding: "utf8" }).trim().length > 0 };
+  const prior = all[name];
+  if (prior && existsSync(`data/runs/${name}.jsonl`)) {
+    const same = JSON.stringify(prior.sources) === JSON.stringify(sources) && JSON.stringify(prior.data ?? {}) === JSON.stringify(data);
+    if (!same) throw new Error(`${name}: behavior files or inputs changed since the run started; start a new run name`);
+    prior.resumes = [...(prior.resumes ?? []), at];
+  } else {
+    all[name] = { started: at.at, git: at.git, dirty: at.dirty, ablation, contest: CONTEST_ID, pipeline: PIPELINE_VERSION, passes: K, models: { evidence: DOLPHIN_MODEL, deciders: [SERV_MODEL, DOLPHIN_MODEL] }, sources, data };
+  }
   writeFileSync(path, JSON.stringify(all, null, 2));
 }
 
@@ -172,7 +178,8 @@ if (import.meta.url === `file://${process.argv[1]}`) {
     if (!key) throw new Error(`unknown ablation ${ablate}`);
     DEFENSES = { ...ALL_DEFENSES, [key]: false };
   }
-  writeManifest(name, ablate ?? "none");
+  const inputs = cmd === "attacks" ? [process.env.BASANOS_PAYLOADS ?? ""] : cmd === "frozen" || cmd === "hostile3" ? ["data/karak/payloads_v3.json"] : [];
+  if (cmd !== "score") writeManifest(name, ablate ?? "none", inputs);
   const reports: Report[] = JSON.parse(readFileSync(REPORTS, "utf8"));
   if (cmd === "run") await run(name, reports);
   else if (cmd === "hostile" || cmd === "hostile3" || cmd === "frozen") {

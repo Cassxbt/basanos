@@ -3,11 +3,13 @@ import assert from "node:assert/strict";
 import { applyCaps } from "../src/caps.ts";
 import { consensus, consensusScore, type Vote } from "../src/precheck.ts";
 import type { Evidence } from "../src/evidence.ts";
-import type { Judgment } from "../src/verdict.ts";
-import type { MissingItem } from "../src/obligations.ts";
+import { NO_EXCLUSION, type Judgment } from "../src/verdict.ts";
+import type { DecisionItem, MissingItem } from "../src/obligations.ts";
+import { route } from "../src/route.ts";
 
 const req = (item: string, obligation: MissingItem["obligation"] = 5): MissingItem => ({ item, category: "required", obligation, why: "w", resolves_when: "r" });
 const opt = (item: string, obligation: MissingItem["obligation"] = 3): MissingItem => ({ item, category: "strengthens", obligation, why: "w", resolves_when: "r" });
+const asked = (m: MissingItem, evidence_ref = ""): DecisionItem => ({ ...m, evidence_ref });
 
 const evidence: Evidence = {
   claim: "c",
@@ -23,8 +25,10 @@ const evidence: Evidence = {
   known_issue_match: "",
   missing_evidence: [],
 };
-const ready: Judgment = { verdict: "READY", severity_supported: "high", missing: [], reason: "r" };
-const ctx = { flags: [], citations: [], locationExists: (f: string, l: number) => ["src/Vault.sol", "src/Core.sol"].includes(f) && l >= 1 && l <= 365 };
+const ready: Judgment = { verdict: "READY", severity_supported: "high", missing: [], exclusion: NO_EXCLUSION, reason: "r" };
+const policy = "## README.md\nThe owner is trusted to set fees within the documented bounds.\n\n## Bot report findings\n- [M-1] Centralization risk: src/Vault.sol:10";
+const ctx = { flags: [], citations: [], policy, locationExists: (f: string, l: number) => ["src/Vault.sol", "src/Core.sol"].includes(f) && l >= 1 && l <= 365 };
+const ok = [{ status: "OK", url: "", ref: "main", commit: "x", path: "src/Vault.sol", start: 78, end: 88 }] as any;
 
 test("READY survives only a clean evidence record", () => {
   assert.equal(applyCaps(ready, evidence, ctx).verdict, "READY");
@@ -50,18 +54,27 @@ test("each weakness in the evidence caps READY to NEEDS_PROOF", () => {
 });
 
 test("READY is capped when the decision itself lists missing proof", () => {
-  assert.equal(applyCaps({ ...ready, missing: [req("a test")] }, evidence, ctx).verdict, "NEEDS_PROOF");
+  assert.equal(applyCaps({ ...ready, missing: [asked(req("a test"))] }, evidence, ctx).verdict, "NEEDS_PROOF");
 });
 
 test("items that only strengthen a supported claim do not block READY", () => {
-  const r = applyCaps({ ...ready, missing: [opt("a boundary-case regression test")] }, { ...evidence, missing_evidence: [opt("gas numbers")] }, ctx);
+  const r = applyCaps({ ...ready, missing: [asked(opt("a boundary-case regression test"))] }, { ...evidence, missing_evidence: [opt("gas numbers")] }, ctx);
   assert.equal(r.verdict, "READY");
   assert.deepEqual(r.caps, []);
 });
 
-test("the decision may not silently drop an obligation the evidence layer requires", () => {
-  const r = applyCaps({ ...ready, verdict: "NEEDS_PROOF", missing: [req("numbers", 3)] }, { ...evidence, missing_evidence: [req("trust model clause", 4)] }, ctx);
-  assert.match(r.caps.join(" "), /layers disagree: evidence requires obligation 4/);
+test("the decision may not silently drop a requirement the evidence layer raised", () => {
+  const r = applyCaps({ ...ready, verdict: "NEEDS_PROOF", missing: [asked(req("numbers", 3))] }, { ...evidence, missing_evidence: [req("trust model clause", 4)] }, ctx);
+  assert.match(r.caps.join(" "), /layers disagree: evidence requires E1 \(obligation 4\)/);
+});
+
+test("requirements are reconciled item by item, not by obligation number", () => {
+  const e = { ...evidence, missing_evidence: [req("a reproduction"), req("the victim's balance after the call")] };
+  const carriesOne = applyCaps({ ...ready, verdict: "NEEDS_PROOF", missing: [asked(req("a reproduction"), "E1")] }, e, ctx);
+  assert.match(carriesOne.caps.join(" "), /evidence requires E2 \(obligation 5\)/);
+  assert.deepEqual(carriesOne.missing.map((m) => m.item), ["a reproduction", "the victim's balance after the call"]);
+  const carriesBoth = applyCaps({ ...ready, verdict: "NEEDS_PROOF", missing: [asked(req("a reproduction"), "E1"), asked(req("balances"), "e2")] }, e, ctx);
+  assert.ok(!carriesBoth.caps.some((c) => c.startsWith("layers disagree")));
 });
 
 test("READY is capped when any citation does not resolve, even if another does", () => {
@@ -72,19 +85,37 @@ test("READY is capped when any citation does not resolve, even if another does",
   assert.equal(applyCaps(ready, evidence, { ...ctx, citations }).verdict, "NEEDS_PROOF");
 });
 
-test("blocking references to code that does not exist are dropped and noted", () => {
+test("BLOCKED_BY_CODE resting only on code that does not exist is capped and goes to a person", () => {
   const r = applyCaps({ ...ready, verdict: "BLOCKED_BY_CODE" }, { ...evidence, blocking_code: [{ file: "ghost.sol", line: 4, why: "x" }] }, ctx);
   assert.equal(r.evidence.blocking_code.length, 0);
-  assert.match(r.caps.join(" "), /does not exist/);
+  assert.equal(r.verdict, "NEEDS_PROOF");
+  assert.match(r.caps.join(" "), /verdict capped/);
+  assert.equal(route({ verdict: r.verdict, agreement: "unanimous", flags: [], votes: [{ caps: r.caps }] }), "human");
+  const real = applyCaps({ ...ready, verdict: "BLOCKED_BY_CODE" }, { ...evidence, blocking_code: [{ file: "src/Core.sol", line: 9, why: "guard" }] }, ctx);
+  assert.equal(real.verdict, "BLOCKED_BY_CODE");
 });
 
-test("obligation-1 items are dropped when code verified every citation, kept when one fails", () => {
-  const ok = [{ status: "OK", url: "", ref: "main", commit: "x", path: "src/Vault.sol", start: 78, end: 88 }] as any;
-  const r = applyCaps({ ...ready, missing: [req("confirm the file is in scope", 1)] }, evidence, { ...ctx, citations: ok });
+test("an exclusion stands only when it quotes the contest policy or names a bot finding in it", () => {
+  const known = (clause: string): Judgment => ({ ...ready, verdict: "KNOWN_OR_OUT_OF_SCOPE", exclusion: { clause, actor: "owner", conditions: "c", why_within: "w" } });
+  assert.equal(applyCaps(known("The owner is trusted to set fees within the documented bounds."), evidence, ctx).verdict, "KNOWN_OR_OUT_OF_SCOPE");
+  assert.equal(applyCaps(known("M-1"), evidence, ctx).verdict, "KNOWN_OR_OUT_OF_SCOPE");
+  for (const clause of ["", "The owner is fully trusted in every respect.", "M-7", "trusted"]) {
+    const r = applyCaps(known(clause), evidence, ctx);
+    assert.equal(r.verdict, "NEEDS_PROOF", clause);
+    assert.match(r.caps.join(" "), /verdict capped.*exclusion/, clause);
+  }
+});
+
+test("obligation-1 items are dropped only when every citation is OK or MOVED", () => {
+  const scopeItem = [asked(req("confirm the file is in scope", 1))];
+  const r = applyCaps({ ...ready, missing: scopeItem }, evidence, { ...ctx, citations: ok });
   assert.equal(r.verdict, "READY");
   assert.match(r.caps.join(" "), /dropped obligation-1/);
-  const bad = [...ok, { status: "BAD_LINES", url: "", ref: "main", commit: "x", path: "src/Vault.sol", start: 9000, end: 9000 }] as any;
-  assert.equal(applyCaps({ ...ready, missing: [req("confirm the file is in scope", 1)] }, evidence, { ...ctx, citations: bad }).verdict, "NEEDS_PROOF");
+  assert.deepEqual(r.missing, [], "the published checklist is the one code enforced");
+  for (const status of ["BAD_LINES", "OUT_OF_SCOPE"]) {
+    const mixed = [...ok, { status, url: "", ref: "main", commit: "x", path: "test/Vault.t.sol", start: 1, end: 2 }] as any;
+    assert.equal(applyCaps({ ...ready, missing: scopeItem }, evidence, { ...ctx, citations: mixed }).verdict, "NEEDS_PROOF", status);
+  }
 });
 
 test("informational impact caps severity", () => {

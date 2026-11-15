@@ -18,7 +18,7 @@ type Mode = "full" | "model_only";
 
 async function decide(provider: Provider, model: string, r: Report, citationText: string, evidence: any) {
   try {
-    const j = await judge(provider, model, r, citationText, evidence);
+    const j = await judge(provider, model, r, citationText, evidence, KARAK_POLICY);
     return { verdict: j.value.verdict, severity: j.value.severity_supported, reason: j.value.reason, requestId: j.requestId, usd: j.usd };
   } catch (err) {
     if (!(err instanceof GuardBlocked)) throw err;

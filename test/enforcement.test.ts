@@ -37,7 +37,11 @@ const lyingEvidence = {
 };
 
 test("contradictory READY claims never become READY or route automatically", async () => {
-  mockProviders(lyingEvidence, { verdict: "READY", severity_supported: "high", missing: [{ item: "No reproduction of the exploit", category: "required", obligation: 5, why: "w", resolves_when: "r" }], reason: "ready" });
+  mockProviders(lyingEvidence, {
+    verdict: "READY", severity_supported: "high", reason: "ready",
+    missing: [{ item: "No reproduction of the exploit", category: "required", obligation: 5, why: "w", resolves_when: "r", evidence_ref: "E1" }],
+    exclusion: { clause: "", actor: "", conditions: "", why_within: "" },
+  });
   const { contest, policy } = loadContest("karak");
   const p = await precheck({ title: "deposit", body }, contest, policy);
   assert.notEqual(p.verdict, "READY");

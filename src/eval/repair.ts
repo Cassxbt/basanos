@@ -6,12 +6,16 @@ import type { Report } from "../data/findings.ts";
 import { PIPELINE_VERSION } from "../obligations.ts";
 
 // Strict v1 results live in before.json/after.json; later pipelines write alongside them, never over them.
-const tag = (stage: string) => (PIPELINE_VERSION === "obligations-v2" ? `${stage}.v2.json` : `${stage}.json`);
+const tag = (stage: string) => `${stage}.${PIPELINE_VERSION.replace("obligations-", "")}.json`;
 
 // The repair loop: check a finding, hand its checklist to a repair agent, check the revised finding again.
 const CONTEST = process.env.BASANOS_CONTEST ?? "karak";
-// Karak's set was the development set; Kleidi's was chosen by rule before any holdout check (EVAL.md 6.1).
-export const REPAIR_SETS: Record<string, number[]> = { karak: [7, 49, 28, 41, 55, 4, 26], kleidi: [9, 17, 24, 7, 8, 10] };
+// Karak's set was the development set; Kleidi's and Wildcat's were fixed by rule before any holdout check (EVAL.md 6.1, 7).
+export const REPAIR_SETS: Record<string, number[]> = {
+  karak: [7, 49, 28, 41, 55, 4, 26],
+  kleidi: [9, 17, 24, 7, 8, 10],
+  wildcat: [11, 49, 52, 57, 60, 62, 64, 77, 121, 3, 4, 5],
+};
 const ROOT = CONTEST === "karak" ? "data/repair" : `data/repair-${CONTEST}`;
 
 async function check(n: number, stage: "before" | "after") {

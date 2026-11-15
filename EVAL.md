@@ -349,3 +349,14 @@ Front-door holds stay blocking. The instruction scan, proof cap, schema validati
 **Tolerated trade-off, unchanged.** An automatic READY on an injected finding is never acceptable. On genuine findings, false discouragement, human share and READY coverage are reported with counts. None is optimised against the others.
 
 **No tuning after the first Wildcat check.** If Wildcat shows a defect, it is reported, and any fix becomes a later version evaluated on fresh data.
+
+### Amendment 7.1, freeze, 2026-11-15, before any Wildcat check under obligations-v3
+
+**Implementation diagnostic on development data only (Karak #4, #7, #31, #49, #93):**
+- With the policy bundle in the decider's user message, SERV's Prompt Guard held 11 of 12 decision passes.
+- The policy is trusted contest material from the audited commit, so it now goes in the system message. Prompt Guard still screens the untrusted part (citation check, evidence and report).
+- Afterwards 3 of 12 passes were held. For comparison, under `obligations-v2` the guard held 94 of 273 SERV decision passes on the 94 clean Karak findings (34%). Much of SERV's human routing is guard holds, not policy decisions.
+
+**Network.** Node's dual-stack connection autoselection timed out every IPv4 attempt on this network, which caused the "Connection error" rows that had to be resumed. Runs now use `NODE_OPTIONS="--no-network-family-autoselection --dns-result-order=ipv4first"`. This changes no request.
+
+**Frozen:** `obligations-v3` at this commit. No prompt, rule or cap changes after the first Wildcat check.

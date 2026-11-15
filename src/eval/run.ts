@@ -27,7 +27,7 @@ export interface Row {
 
 async function arm(provider: "dolphin" | "serv", model: string, r: Report, evidence: any): Promise<ArmResult> {
   try {
-    const j = await judge(provider, model, r, summarizeCitations(r.citations), evidence);
+    const j = await judge(provider, model, r, summarizeCitations(r.citations), evidence, KARAK_POLICY);
     return {
       verdict: j.value.verdict,
       severity: j.value.severity_supported,

@@ -1,6 +1,6 @@
 import type { IncomingMessage, ServerResponse } from "node:http";
 import { CONTESTS, loadContest } from "../contests.ts";
-import { precheck, worstCaseUsd } from "../precheck.ts";
+import { precheck, estimatedReservationUsd } from "../precheck.ts";
 import { toReport } from "../format.ts";
 import { configureClients } from "../llm.ts";
 
@@ -73,7 +73,7 @@ export default async function handler(req: IncomingMessage & { body?: unknown },
   }
 
   const { contest: c, policy } = loadContest(contest);
-  const held = reserve(now, worstCaseUsd(title.length + report.length, c, policy));
+  const held = reserve(now, estimatedReservationUsd(title.length + report.length, c, policy));
   if (!held) return send(res, 503, { error: "The public demo has reached its spending limit for now. Try again shortly, or run it locally." });
   const abort = new AbortController();
   const timer = setTimeout(() => abort.abort(new Error("deadline")), DEADLINE_MS);

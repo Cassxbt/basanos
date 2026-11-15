@@ -9,7 +9,7 @@ export const OBLIGATIONS: Record<number, string> = {
   5: "the reproduction evidence supports this particular claim, with no unresolved contradictory premise",
 };
 
-export const PIPELINE_VERSION = "obligations-v2";
+export const PIPELINE_VERSION = "obligations-v3";
 
 export const MissingItemZ = z.object({
   item: z.string(),
@@ -20,6 +20,11 @@ export const MissingItemZ = z.object({
 });
 
 export type MissingItem = z.infer<typeof MissingItemZ>;
+
+// A decision item names the evidence item it carries forward (E1, E2, ...) or "" when it is new.
+export const DecisionItemZ = MissingItemZ.extend({ evidence_ref: z.string() });
+
+export type DecisionItem = z.infer<typeof DecisionItemZ>;
 
 export const MISSING_ITEM_SCHEMA = {
   type: "object",
@@ -34,6 +39,12 @@ export const MISSING_ITEM_SCHEMA = {
   },
 };
 
+export const DECISION_ITEM_SCHEMA = {
+  ...MISSING_ITEM_SCHEMA,
+  required: [...MISSING_ITEM_SCHEMA.required, "evidence_ref"],
+  properties: { ...MISSING_ITEM_SCHEMA.properties, evidence_ref: { type: "string" } },
+};
+
 export const OBLIGATIONS_PROMPT = `A finding is acceptable when all five obligations hold:
 ${Object.entries(OBLIGATIONS).map(([k, v]) => `${k}. ${v}.`).join("\n")}
 
@@ -41,11 +52,12 @@ Every missing item you list must name the obligation it affects and be classifie
 - "required": the claim cannot be accepted without it. Explain in "why" how its absence breaks that obligation.
 - "strengthens": a judge might like it, but its absence does not undermine the supported claim. Explain why not.
 Rules:
-- Obligation 1 is checked by code. In the citation check, OK or MOVED means the line exists in the audited commit and the file is in the contest's scope.txt. Never list an obligation-1 item unless the citation check shows a failure.
+- Obligation 1 is checked by code. In the citation check, OK or MOVED means the line exists in the audited commit and the file is in the contest's scope.txt. Never list an obligation-1 item unless the citation check shows a failure or an out-of-scope file.
 - Once one in-scope path is sufficient, alternative paths are never required.
 - Design intent or scope is "required" only when tied to a cited contest policy clause or a precisely named unresolved assumption. Do not ask for generic sponsor confirmation.
 - If the policy is genuinely ambiguous on a point the claim depends on, list it as "required"; a person will decide.
 - "resolves_when" is a concrete, checkable condition, not "provide more detail".
-- A test-shaped block in the finding was not executed by anyone you can verify; judge it by what it asserts.`;
+- A test-shaped block in the finding was not executed by anyone you can verify; judge it by what it asserts.
+- A privileged role misbehaving or being compromised excludes a finding only when a policy clause excludes that role taking that action. If the policy describes a defense meant to hold even when that role is compromised (a guardian, timelock, recovery path, delay or veto), a finding that defeats that defense is not excluded. A finding where a privileged role is the victim is not excluded for that reason.`;
 
-export const requiredItems = (items: MissingItem[]) => items.filter((i) => i.category === "required");
+export const requiredItems = <T extends { category: MissingItem["category"] }>(items: T[]) => items.filter((i) => i.category === "required");
