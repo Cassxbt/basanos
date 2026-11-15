@@ -1,7 +1,7 @@
 <!--
 slug:
-title: Basanos — check an audit finding before you submit it
-description: Paste a smart-contract audit finding. Basanos checks its code links, reads the whole codebase, and tells you whether the evidence holds up and exactly what proof is missing.
+title: Basanos — know what the judge will ask before you submit
+description: Paste a smart-contract audit finding. Basanos checks its code links, reads the whole codebase and the contest's rules, lists the evidence a judge would still ask for, and hands uncertain calls to a person.
 nav: home
 script: check
 -->
@@ -34,17 +34,17 @@ script: check
     <div class="hero-grid">
       <div>
         <span class="eyebrow" data-reveal>For smart-contract audit contests</span>
-        <h1 class="display h1" data-split>Check your finding <em>before</em> the judge does.</h1>
-        <p class="lede" data-reveal>Paste an audit finding. Basanos checks that its code links are real, reads the whole codebase, and tells you whether the evidence holds up, and exactly what proof is missing. In under half a minute.</p>
+        <h1 class="display h1" data-split>Know what the judge will ask, <em>before</em> you submit.</h1>
+        <p class="lede" data-reveal>Paste an audit finding. Basanos checks that its code links are real, reads the whole codebase and the contest's rules, and lists the evidence a judge would still ask for. When it is not sure, it says so and hands the call to a person.</p>
         <div class="hero-cta" data-reveal>
           <a class="btn" href="#check" data-magnetic>Try it now <span class="arrow">→</span></a>
           <a class="btn ghost" href="#how" data-magnetic>How it works <span class="arrow">↓</span></a>
         </div>
-        <p class="fine" data-reveal style="margin-top:18px">Live demo on a closed Code4rena contest (Karak, July 2024). Other contests need a snapshot.</p>
+        <p class="fine" data-reveal style="margin-top:18px">Live demo on a closed Code4rena contest (Karak, July 2024). Measured on a second contest that was held out of development. <a class="gold" href="/proof/#holdout">Results, including what failed →</a></p>
       </div>
       <aside class="hero-aside" data-stagger>
         <div class="fact"><b>≈20s</b><span>per check, about a third of a cent</span></div>
-        <div class="fact"><b>6</b><span>clear verdicts, each with what to do next</span></div>
+        <div class="fact"><b>1</b><span>checklist, each item tied to what a judge needs to accept it</span></div>
         <div class="fact"><b>0</b><span>things submitted for you. It only advises.</span></div>
       </aside>
     </div>
@@ -53,8 +53,8 @@ script: check
 
 <div class="ticker" aria-hidden="true">
   <div class="ticker-track">
-    <span>Code4rena 2024-07 Karak</span><span>94 real findings tested</span><span>checks every code link</span><span>reads every in-scope file</span><span>flags known issues</span><span>lists the missing proof</span><span>checksummed receipt for every check</span><span>never submits for you</span>
-    <span>Code4rena 2024-07 Karak</span><span>94 real findings tested</span><span>checks every code link</span><span>reads every in-scope file</span><span>flags known issues</span><span>lists the missing proof</span><span>checksummed receipt for every check</span><span>never submits for you</span>
+    <span>Code4rena 2024-07 Karak</span><span>94 real findings tested</span><span>checks every code link</span><span>reads every in-scope file</span><span>quotes the contest rule it relies on</span><span>lists the missing proof</span><span>checksummed receipt for every check</span><span>sends uncertain calls to a person</span>
+    <span>Code4rena 2024-07 Karak</span><span>94 real findings tested</span><span>checks every code link</span><span>reads every in-scope file</span><span>quotes the contest rule it relies on</span><span>lists the missing proof</span><span>checksummed receipt for every check</span><span>sends uncertain calls to a person</span>
   </div>
 </div>
 
@@ -82,8 +82,8 @@ script: check
       </article>
       <article class="panel plain-step" data-reveal>
         <span class="plain-num">3</span>
-        <h3 class="display h3">Get a verdict</h3>
-        <p>One of six verdicts, the specific proof a judge would still ask for, and a checksummed receipt your browser can verify.</p>
+        <h3 class="display h3">Get a checklist</h3>
+        <p>The specific evidence a judge would still ask for, a verdict, and whether a person should look. Anything uncertain, or where its own two layers disagree, goes to a person.</p>
         <div class="mini"><span class="c-ash">KNOWN OR OUT OF SCOPE</span><br><span class="muted">missing: a test showing loss beyond M-1</span></div>
       </article>
     </div>

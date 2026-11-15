@@ -130,33 +130,21 @@ script: proof
   </div>
 </section>
 
-<section class="section" id="holdout">
+<section class="section" id="holdout" data-hide-if-empty>
   <div class="wrap">
     <div class="section-head">
       <div>
         <span class="eyebrow" data-reveal>Held-out contest</span>
         <h2 class="display h2" data-split style="margin-top:22px">A contest it was never tuned on.</h2>
       </div>
-      <p class="lede" data-reveal>We froze the current pipeline, then picked the next contest by a rule written down first: Code4rena 2024-10 Kleidi, <span data-claim="amendment6.holdout_kleidi.reports">52</span> findings, <span data-claim="amendment6.holdout_kleidi.awarded">23</span> awarded, in only <span data-claim="amendment6.holdout_kleidi.awarded_families">3</span> awarded families. No prompt or rule changed after the first Kleidi check.</p>
+      <p class="lede" data-reveal>We froze the pipeline, then picked the next contest by a rule written down first: Code4rena 2024-08 Wildcat, <span data-claim="amendment7.holdout_wildcat.reports">106</span> findings, <span data-claim="amendment7.holdout_wildcat.awarded">22</span> awarded in <span data-claim="amendment7.holdout_wildcat.awarded_families">9</span> duplicate families. The previous version ran on the same findings, so the change is measured on data neither version saw.</p>
     </div>
-    <div class="panel" style="padding:8px 28px" data-reveal>
-      <table class="data">
-        <tr><th></th><th>SERV decides</th><th>Dolphin decides</th></tr>
-        <tr><td>READY</td><td><span data-claim="amendment6.holdout_kleidi.serv.ready">0</span>/<span data-claim="amendment6.holdout_kleidi.reports">52</span></td><td><span data-claim="amendment6.holdout_kleidi.dolphin.ready">0</span>/<span data-claim="amendment6.holdout_kleidi.reports">52</span></td></tr>
-        <tr><td>Awarded, but auto-rejected</td><td><span data-claim="amendment6.holdout_kleidi.serv.awarded_auto_rejected">8</span>/<span data-claim="amendment6.holdout_kleidi.awarded">23</span></td><td><span data-claim="amendment6.holdout_kleidi.dolphin.awarded_auto_rejected">3</span>/<span data-claim="amendment6.holdout_kleidi.awarded">23</span></td></tr>
-        <tr><td>Awarded, automatically told to add proof</td><td><span data-claim="amendment6.holdout_kleidi.serv.awarded_auto_needs_proof">0</span>/<span data-claim="amendment6.holdout_kleidi.awarded">23</span></td><td><span data-claim="amendment6.holdout_kleidi.dolphin.awarded_auto_needs_proof">14</span>/<span data-claim="amendment6.holdout_kleidi.awarded">23</span></td></tr>
-        <tr><td>False discouragement (the two above, pre-registered)</td><td><span data-claim="amendment6.holdout_kleidi.serv.false_discouragement">8</span>/<span data-claim="amendment6.holdout_kleidi.awarded">23</span></td><td><span data-claim="amendment6.holdout_kleidi.dolphin.false_discouragement">17</span>/<span data-claim="amendment6.holdout_kleidi.awarded">23</span></td></tr>
-        <tr><td>Automatic rejects the judge also rejected</td><td><span data-claim="amendment6.holdout_kleidi.serv.auto_reject_not_awarded">9</span>/<span data-claim="amendment6.holdout_kleidi.serv.auto_reject">17</span></td><td><span data-claim="amendment6.holdout_kleidi.dolphin.auto_reject_not_awarded">7</span>/<span data-claim="amendment6.holdout_kleidi.dolphin.auto_reject">10</span></td></tr>
-        <tr><td>Sent to a human</td><td><span data-claim="amendment6.holdout_kleidi.serv.human_routed">32</span>/<span data-claim="amendment6.holdout_kleidi.reports">52</span></td><td><span data-claim="amendment6.holdout_kleidi.dolphin.human_routed">17</span>/<span data-claim="amendment6.holdout_kleidi.reports">52</span></td></tr>
-        <tr><td>New blind attacks, READY and automatic</td><td><span data-claim="amendment6.attacks_v4_kleidi.unsafe.serv">0</span>/<span data-claim="amendment6.attacks_v4_kleidi.injected">60</span></td><td><span data-claim="amendment6.attacks_v4_kleidi.unsafe.dolphin">0</span>/<span data-claim="amendment6.attacks_v4_kleidi.injected">60</span></td></tr>
-        <tr><td>Earlier blind attacks, rerun on this pipeline</td><td><span data-claim="amendment6.frozen_v3_regression.unsafe.serv">0</span>/<span data-claim="amendment6.frozen_v3_regression.injected">60</span></td><td><span data-claim="amendment6.frozen_v3_regression.unsafe.dolphin">0</span>/<span data-claim="amendment6.frozen_v3_regression.injected">60</span></td></tr>
-      </table>
-    </div>
-    <div class="crit" style="margin-top:24px" data-reveal>
-      <h4>What went wrong</h4>
-      <p>Kleidi's awarded bugs turn on what the Safe and its cold signers may do. With SERV deciding, Basanos read those roles as trusted and called <span data-claim="amendment6.holdout_kleidi.serv.awarded_known">18</span> of <span data-claim="amendment6.holdout_kleidi.awarded">23</span> awarded findings known or out of scope; the unanimous ones were auto-rejected. Dolphin, on the same evidence, mostly asked for more proof instead. The trust model is where a person still has to decide.</p>
-      <p class="muted">The six findings for the holdout repair loop were fixed by rule before any check. None came back as needing proof, so none qualified for repair. Cost: $<span data-claim="amendment6.holdout_kleidi.usd_per_check">0.00272</span> per check.</p>
-    </div>
+    <div class="panel" style="padding:8px 28px" data-reveal><table class="data" id="holdout-table"></table></div>
+    <p class="fine" style="margin-top:16px" data-reveal>Every routing number comes from the production router. Awarded findings in one family are duplicates, not independent tests, so each family is shown below. Labels are contest outcomes.</p>
+    <div class="panel" style="padding:8px 28px;margin-top:24px" data-reveal><table class="data" id="family-table"></table></div>
+    <div class="grid-2" style="margin-top:24px" id="holdout-notes"></div>
+    <div class="panel" style="padding:8px 28px;margin-top:24px" data-reveal><table class="data" id="attack-table"></table></div>
+    <p class="fine" style="margin-top:16px" id="holdout-scope" data-reveal></p>
   </div>
 </section>
 
