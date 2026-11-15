@@ -11,7 +11,8 @@
     "snapshot": "tsx src/data/snapshot.ts",
     "eval": "tsx src/eval/run.ts",
     "score": "tsx src/eval/score.ts",
-    "build:web": "tsx src/web/build.ts"
+    "build:web": "tsx src/web/build.ts",
+    "verify": "tsx src/eval/claims.ts"
   },
   "author": "",
   "license": "MIT",
