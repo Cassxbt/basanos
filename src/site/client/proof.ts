@@ -313,24 +313,26 @@ async function main() {
 // The held-out contest under the current pipeline, next to the previous version on the same findings.
 function renderHoldout(claims: any) {
   const a7 = claims.amendment7;
-  const v3 = a7?.holdout_wildcat, v2 = a7?.holdout_wildcat_v2_baseline;
+  const v3 = a7?.holdout_wildcat, v2 = a7?.holdout_wildcat_v2_baseline, v31 = claims.amendment8?.wildcat_diagnostic;
   if (!v3) { $("#holdout").hidden = true; return; }
   const of = (n: number, d: number) => `${n}/${d}`;
-  const pair = (f: (a: any, run: any) => string, which: "serv" | "dolphin") => `${v2 ? `${f(v2[which], v2)} → ` : ""}<b>${f(v3[which], v3)}</b>`;
+  const pair = (f: (a: any, run: any) => string, which: "serv" | "dolphin") =>
+    [v2 && f(v2[which], v2), `<b>${f(v3[which], v3)}</b>`, v31 && f(v31[which], v31)].filter(Boolean).join(" → ");
   const rows: [string, (a: any, run: any) => string][] = [
     ["READY", (a, r) => of(a.ready, r.reports)],
     ["READY as automatic advice", (a, r) => of(a.ready_automatic ?? 0, r.reports)],
     ["READY precision (awarded among READY)", (a) => (a.ready_precision === null || a.ready_precision === undefined ? "undefined" : a.ready_precision.toFixed(2))],
-    ["Awarded, auto-rejected", (a, r) => of(a.awarded_auto_rejected, r.awarded)],
+    ["Awarded, auto-rejected (all were broken-citation results)", (a, r) => of(a.awarded_auto_rejected, r.awarded)],
     ["Awarded, automatically told to add proof", (a, r) => of(a.awarded_auto_needs_proof, r.awarded)],
     ["False discouragement (the two above, pre-registered)", (a, r) => of(a.false_discouragement, r.awarded)],
     ["Needs review", (a, r) => of(a.human_routed, r.reports)],
     ["Decision passes held by Prompt Guard", (a) => of(a.decision_votes_guard_held, a.decision_votes)],
     ["Exclusions capped for quoting no rule", (a) => String(a.exclusions_ungrounded?.length ?? 0)],
   ];
-  $("#holdout-table").innerHTML = `<tr><th></th><th>SERV decides${v2 ? " · v2 → v3" : ""}</th><th>Dolphin decides${v2 ? " · v2 → v3" : ""}</th></tr>` +
+  const head = [v2 && "v2", "<b>v3, blind</b>", v31 && "v3.1"].filter(Boolean).join(" → ");
+  $("#holdout-table").innerHTML = `<tr><th></th><th>SERV decides · ${head}</th><th>Dolphin decides · ${head}</th></tr>` +
     rows.map(([label, f]) => `<tr><td>${esc(label)}</td><td>${pair(f, "serv")}</td><td>${pair(f, "dolphin")}</td></tr>`).join("") +
-    `<tr><td>Cost per check</td><td colspan="2">${v2 ? `$${v2.usd_per_check.toFixed(4)} → ` : ""}<b>$${v3.usd_per_check.toFixed(4)}</b></td></tr>`;
+    `<tr><td>Cost per check</td><td colspan="2">${[v2 && `$${v2.usd_per_check.toFixed(4)}`, `<b>$${v3.usd_per_check.toFixed(4)}</b>`, v31 && `$${v31.usd_per_check.toFixed(4)}`].filter(Boolean).join(" → ")}</td></tr>`;
 
   const fam = (which: "serv" | "dolphin") => v3[which].awarded_families as any[];
   $("#family-table").innerHTML = `<tr><th>Awarded family</th><th>Awarded</th><th>SERV: READY · auto no · auto proof · review</th><th>Dolphin: READY · auto no · auto proof · review</th></tr>` +
@@ -340,17 +342,18 @@ function renderHoldout(claims: any) {
       return `<tr><td>#${f.family}</td><td>${f.awarded}</td><td>${cell(f)}</td><td>${cell(d)}</td></tr>`;
     }).join("");
 
-  const attacks: [string, any][] = [["New blind attacks on Wildcat", a7.attacks_v5_wildcat], ["Earlier blind attacks, rerun", a7.frozen_v3_regression]];
+  const a8 = claims.amendment8;
+  const attacks: [string, any][] = [["New blind attacks on Wildcat (v3.1)", a8?.attacks_v5_wildcat], ["Earlier blind attacks, rerun (v3.1)", a8?.frozen_v3_regression]];
   const shown = attacks.filter(([, x]) => x);
   if (shown.length) {
     $("#attack-table").innerHTML = `<tr><th>Attack set</th><th>READY and automatic · SERV / Dolphin</th><th>READY at all · SERV / Dolphin</th><th>Flagged by the scan</th><th>Clean controls held or flagged</th></tr>` +
       shown.map(([label, x]) => `<tr><td>${label}</td><td>${x.unsafe.serv}/${x.injected} · ${x.unsafe.dolphin}/${x.injected}</td><td>${x.ready.serv} · ${x.ready.dolphin}</td><td>${x.flagged}/${x.injected}</td><td>${x.clean_held_or_flagged}/${x.clean}</td></tr>`).join("");
   } else $("#attack-table").closest(".panel")!.remove();
 
-  const k = a7.diagnostic_kleidi, kr = a7.karak_regression;
+  const k = a7.diagnostic_kleidi, kr = a8?.karak_development;
   $("#holdout-scope").textContent = [
     k && `Kleidi, which motivated this version and is no longer blind: SERV left ${k.serv.human_routed}/${k.reports} for review and auto-rejected ${k.serv.awarded_auto_rejected}/${k.awarded} awarded findings; Dolphin ${k.dolphin.human_routed}/${k.reports} and ${k.dolphin.awarded_auto_rejected}/${k.awarded}.`,
-    kr && `Karak, the development contest: READY ${kr.serv.ready} (SERV) and ${kr.dolphin.ready} (Dolphin) of ${kr.reports}.`,
+    kr && `Karak, the development contest, under v3.1: READY ${kr.serv.ready} (SERV) and ${kr.dolphin.ready} (Dolphin) of ${kr.reports}; needs review ${kr.serv.human_routed} and ${kr.dolphin.human_routed}.`,
   ].filter(Boolean).join(" ");
 }
 

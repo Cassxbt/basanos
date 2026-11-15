@@ -1,0 +1,17 @@
+Basanos code is MIT licensed (see LICENSE).
+
+Third-party material in this repository is not covered by that license. It is copied
+from public repositories for non-commercial research and evaluation, unchanged, and
+remains the property of its authors:
+
+- Contest source code and documentation in data/*/snapshot*.json and data/*/repo
+  (not committed), from the Code4rena contest repositories
+  code-423n4/2024-07-karak, code-423n4/2024-10-kleidi and code-423n4/2024-08-wildcat,
+  and the sponsor repository solidity-labs-io/kleidi.
+- Audit findings (titles, bodies, labels) in data/*/issues.json and data/*/reports.json,
+  written by the wardens who submitted them, from code-423n4/2024-07-karak-findings,
+  code-423n4/2024-10-kleidi-findings, code-423n4/2024-08-wildcat-findings and
+  code-423n4/2024-10-ronin-findings.
+
+None of these repositories states a license. If you are an author and want material
+removed, open an issue and it will be removed.

@@ -1,175 +1,171 @@
 # Basanos
 
-**Check your finding before the judge does.**
+**Review an audit finding against its source and the contest rules.**
 
-Basanos checks a smart-contract audit-contest finding against the audited code before it is submitted. It returns one verdict and the specific evidence a judge would still ask for. It is advice, not a guarantee, and it never submits anything. The live demo covers one closed contest (Code4rena 2024-07 Karak).
+Audit contests reject many findings for reasons that can be checked before submission: a link to the wrong line, a known issue, an impact the code does not allow, a missing proof. Basanos reads a smart-contract finding next to the audited code and the contest's own rules, and suggests the checks the finding still needs, each with the condition that would resolve it. When it is not sure, or when its answer is "no", it shows what it found and leaves the call to you. It advises; it never submits anything.
 
 > *βάσανος*: the touchstone. Assayers rubbed gold on a black stone and read the streak.
 
-Live: **[basanos-nu.vercel.app](https://basanos-nu.vercel.app)** · Judge path: [`/judges`](https://basanos-nu.vercel.app/judges/) · Proof: [`/proof`](https://basanos-nu.vercel.app/proof/) · Every number below: `npm run verify` · SERV Hackathon 02, **Dolphin track**
+Live: **[basanos-nu.vercel.app](https://basanos-nu.vercel.app)** · Judge path: [`/judges`](https://basanos-nu.vercel.app/judges/) · Evidence: [`/proof`](https://basanos-nu.vercel.app/proof/) · SERV Hackathon 02, **Dolphin track** · Release `obligations-v3.1`
 
-## The Touchstone Pass
-
-```
-finding ──► 1. code       every GitHub link resolved at its commit and compared with the audited commit;
-                          a finding with no link to audited code it actually discusses stops here (no model call, $0)
-        ──► 2. guard      SERV Prompt Guard screens the raw finding; code scans for text addressed to the pipeline
-        ──► 3. Dolphin    DeepSeek-V4.1-Flash reads the entire in-scope source plus the contest's known issues
-                          and writes an evidence record (~43k tokens, ~$0.0005), three independent times
-        ──► 4. SERV       one bounded decision per pass with Prompt Guard on, then code caps the decision:
-                          locations must exist, proof must be in the finding, nothing may remain on a missing list
-        ──► consensus     same verdict and severity three times, nothing flagged, nothing overruled → automatic;
-                          anything else → a human
-```
-
-**Verdicts**
-
-| Verdict | Meaning |
+| Status | |
 |---|---|
-| `READY` | The code supports the claim, the path is reachable, the impact is shown, and it is not a known issue. |
-| `NEEDS_PROOF` | Plausible. The verdict lists exactly what is missing. |
-| `BLOCKED_BY_CODE` | The audited code prevents the claimed path. The verdict names the line. |
-| `KNOWN_OR_OUT_OF_SCOPE` | A bot-report or README known issue, a trusted-role precondition, or out-of-scope code. |
-| `CITATION_BROKEN` | No link points at audited code that the finding actually discusses. |
-| `GUARD_HELD` | SERV Prompt Guard held the text. This goes to a human; it is not a rejection. |
+| What it is | An experimental review assistant. It has not called a real finding READY on any contest, so it is a checklist, not a gate. |
+| Contests | Karak in the browser; Kleidi and Wildcat through the API, CLI and MCP. All closed, from committed snapshots. |
+| Models | Dolphin `DeepSeek-V4.1-Flash` reads the source; SERV `gpt-6-luna` with `serv_prompt_guard` screens and decides. |
+| Users | None yet. No independent auditor has rated the checklists. |
+| Cost | About $0.0044 (Karak) to $0.0049 (Wildcat) per check: list prices from token counts, not an invoice. |
 
-**Code has the last word.** `src/caps.ts` downgrades `READY` to `NEEDS_PROOF`, and sends it to a person, when any of these hold:
-- the claim is only partly supported;
-- the root cause, or any blocking reference, is not real audited code;
-- the code blocks the path;
-- it matches a known issue;
-- a trusted role is required;
-- the finding contains no test with an assertion and no concrete steps (read by code; nothing is executed);
-- either the evidence record or the decision still lists missing proof;
-- any citation fails to resolve;
-- the finding contains text addressed to the reviewer.
+## What a useful answer looks like
 
-Model output is validated against a schema at runtime. `test/enforcement.test.ts` replays the contradictory-READY probe from the milestone review offline.
+Wildcat #11, an awarded finding, as submitted: anyone can call `onQueueWithdrawal` on the access-control hooks for any lender. One of Basanos's v3.1 suggested checks:
 
-The caps are tested in `test/caps.test.ts`.
+> **Required (obligation 3).** Evidence that the missing hooked-market check is the cause, rather than the lender's own call also consuming the one-time proof.
+> *Resolves when:* a sequence is shown where the lender's own call would succeed but the attacker's prior call makes it fail.
+
+That is the control test a repair agent then wrote. It passes against the unmodified audited code (`data/repair-wildcat/11/`). On Wildcat #49, the checklist asked for impact beyond a documentation mismatch. The agent's test showed there was none, which is the weakness a judge would find.
+
+## What you get
+
+- **Suggested checks.** Each says which of five acceptance obligations it affects, why, and what resolves it. Items that would only strengthen a finding are marked as such.
+- **A verdict:** `READY`, `NEEDS_PROOF`, `BLOCKED_BY_CODE`, `KNOWN_OR_OUT_OF_SCOPE`, `CITATION_BROKEN` or `GUARD_HELD`.
+- **What a "no" rests on.** A known-issue call quotes the contest rule; a blocked call names the line. Code verifies the rule or line exists; whether it applies is the model's reading. So a model "no" is always left to your review.
+- **Automatic advice or "needs your review".** Automatic advice requires three unanimous passes, no flag, no code overrule, and a verdict that is not a model "no". A broken code link is the one automatic negative: it asks you to repair the link, not to drop the finding.
+- **An Assay Receipt.** A SHA-256 checksum over the finding digest, audited commit, votes, request ids and cost. It detects edits. It does not prove who issued it or that the verdict is right.
+
+## How it works
+
+```
+finding ──► 1. code      every GitHub link resolved at its commit against the audited commit;
+                         none that resolves to code the finding discusses → CITATION_BROKEN, no model call
+        ──► 2. guard     SERV Prompt Guard screens the raw finding; code scans for text addressed to the pipeline
+        ──► 3. Dolphin   reads all in-scope source plus the contest policy bundle (README, known issues,
+                         invariants, edge cases, other linked docs) and writes an evidence record, three repeated passes
+        ──► 4. SERV      one bounded decision per pass with the policy and Prompt Guard on; code then caps it
+        ──► routing      src/route.ts, the one router the API, CLI, evaluation and site all use
+```
+
+**Code has the last word** (`src/caps.ts`):
+- **READY** needs code support, a root cause that exists in the audited source, no blocking code, no known issue, a test or concrete steps, every citation resolving, and no required item left in either layer. A finding that needs a trusted role is never READY. Code does not yet check the policy's exceptions for that role; it adds an item saying what would resolve it, and leaves it to your review. A capped READY always says what would resolve it.
+- **A "no"** must rest on a quoted clause or bot finding that appears in the policy bundle, or on blocking code that exists. It always goes to your review.
+- **Each requirement** the evidence step raises is numbered. The decision carries it by number and obligation, and the evidence step's own wording is what you see.
+- **Known-issue, trust and scope documents** go into the policy bundle whole. Other documents are shortened to 12,000 characters each; one is, Wildcat's Access Control Hooks. If a priority document cannot fit, every model result for that contest needs review.
+
+51 tests, no keys or network needed. They include the partner review's offline probes (`test/probes.test.ts`) and release-gate mutation tests (`test/release.test.ts`).
 
 ## Judge path (90 seconds)
 
-1. Open [`/judges`](https://basanos-nu.vercel.app/judges/) and press **Run all four attacks**. Each card shows the expected result first, then the live one.
-   - Fabricated lines: `CITATION_BROKEN`, $0.
-   - A known issue: `KNOWN_OR_OUT_OF_SCOPE`, with M-1 named.
-   - An injection: sent to a human.
-   - A fixed bug: `BLOCKED_BY_CODE`, pointing at the fix line.
-2. Open [`/proof`](https://basanos-nu.vercel.app/proof/). Your browser recomputes every claim from the committed rows. Press **Tamper with the data** and the affected claims turn red.
-3. On the [home page](https://basanos-nu.vercel.app/#check), run any example and press **Tamper with it** on the Assay Receipt. Its SHA-256 checksum stops matching. A checksum detects edits; it does not prove who issued the receipt or that the verdict is right.
-4. Locally, `npm run verify` recomputes every published number and exits 1 on any mismatch.
-
-Local, with your own keys:
-
-```bash
-npm ci
-cp .env.example .env            # SERV_API_KEY, DOLPHIN_API_KEY; the CLI and MCP load .env from the working directory
-npm test                        # 29 tests, no keys or network needed
-npm run verify                  # recompute published numbers from data/runs
-npx tsx src/cli.ts finding.md --contest karak
-```
-
-**MCP**, for an agent that hunts bugs. Add this to Claude Code or Cursor:
-
-```json
-{ "mcpServers": { "basanos": { "command": "npx", "args": ["tsx", "/absolute/path/to/basanos/src/mcp.ts"],
-  "env": { "SERV_API_KEY": "…", "DOLPHIN_API_KEY": "…" } } } }
-```
-
-The agent calls `basanos_precheck` with the finding before it submits.
+1. Open [`/judges`](https://basanos-nu.vercel.app/judges/) and press **Run all four attacks**:
+   - fabricated lines: `CITATION_BROKEN`, $0;
+   - a known issue: shown with the rule it relies on;
+   - an injection: left for review;
+   - a fixed bug: `BLOCKED_BY_CODE` at the fix line.
+2. Open [`/proof`](https://basanos-nu.vercel.app/proof/). Your browser recomputes the claims ledger and the 94-finding tray from the committed rows. **Tamper with the data** turns the affected claims red. The held-out, repair and attack tables are computed by `npm run verify`, which the build refuses to skip.
+3. On the [home page](https://basanos-nu.vercel.app/#check), run an example and press **Tamper with it** on the receipt.
 
 ## What we measured
 
-One closed Code4rena contest, [2024-07 Karak](https://github.com/code-423n4/2024-07-karak-findings), audited commit `f5e52fd`.
+Every version was pre-registered in [EVAL.md](EVAL.md) before its code (amendments 1 to 8). Labels are contest outcomes, not ground truth about bugs. Awarded findings in one duplicate family are not independent. All routing comes from `src/route.ts`.
 
-- **Findings:** 94 submitted as High or Medium, in 47 duplicate families.
-- **Labels:** 32 were awarded as High or Medium. Labels are contest outcomes, not ground truth about bugs.
-- **Method:** the plan was committed before the full runs, with four dated amendments: [EVAL.md](EVAL.md).
-- **Source of every number:** [`data/claims.json`](data/claims.json), checked by `npm run verify`. The live [`/proof`](https://basanos-nu.vercel.app/proof/) page recomputes the same numbers in your browser.
+**Wildcat** (Code4rena 2024-08, 106 findings, 22 awarded in 9 families). It was chosen by a rule written down before v3 existed. v3 was blind on it. v3.1 was built after seeing v3's problems, so its column is diagnostic. Each cell is SERV deciding / Dolphin deciding.
 
-### It reads the code (bug/fix pairs)
+| | v2 | **v3 (blind)** | v3.1 (released) |
+|---|---|---|---|
+| READY | 0 / 0 | 0 / 0 | 0 / 0 |
+| Awarded, auto-rejected | 1 / 4 | 1 / 1 | 1 / 1 |
+| Awarded, automatically told to add proof | 1 / 10 | 2 / 13 | 5 / 13 |
+| False discouragement (the two above) | 2 / 14 | 3 / 14 | 6 / 14 |
+| Awarded findings called known or out of scope (SERV) | 5 | 0 | 0 |
+| Needs your review | 86 / 35 | 89 / 48 | 67 / 51 |
+| SERV decision passes held by Prompt Guard | 82 / 291 | 136 / 291 | 47 / 291 |
 
-- **Setup:** each of the 9 awarded findings was rerun against a branch where its bug is fixed. The fixes compile, and each one fails a reproducing test before the fix and passes after.
-- **Citations withheld:** the citation check was hidden, so only reading the source could reveal the fix.
-- **Contamination:** a model recalling the 2024 outcome would keep calling these findings valid.
+**Karak** (development, 94 findings, 32 awarded), v3.1:
+- READY: 0 / 0.
+- Needs review: 65 / 94 and 44 / 94.
+- False discouragement: 6 / 32 and 16 / 32.
+- Guard held 35 of 279 SERV passes.
 
-| | Original code | Patched code |
+**Reading:**
+- **What v3 fixed.** Once the decision layer read the contest's own rules and had to quote them, awarded findings stopped being called known, and Dolphin's automatic rejections fell from 29 to 7.
+- **What v3.1 added.** Every remaining automatic rejection is a broken-citation result. One of them, the awarded #121, has a real line that shares no identifier with the text; the relevance heuristic is wrong there.
+- **What did not change.** Nothing reached READY.
+
+### The repair loop
+
+Agents, not told which findings were awarded, took each checklist, wrote a Foundry test against the unmodified audited code and ran it. We re-ran every test ourselves.
+- **Karak (strict v1):** 6 executed proofs; 0 revisions reached READY.
+- **Wildcat (v3, set fixed by rule):**
+  - 10 attempted;
+  - 6 tests support their claim (several only in a limited form; #77 is a documented known issue);
+  - 4 tests show the claim does not hold;
+  - **0 of 6 revisions reached READY.**
+
+  After the proof, the checklist moved to severity, policy-intent and actor questions. Once it asked for a test run the revision already contained, because Basanos reads tests and does not execute them. **This is the main limit we found.** Stable requirement tracking across revisions, plus verified test execution, is the next version.
+
+### Hostile text
+
+Six blind payloads by an agent that never saw the defenses (v5, on Wildcat), plus the earlier frozen set, both run under v3.1:
+
+| | v5 blind | frozen v3 |
 |---|---|---|
-| Verdict `BLOCKED_BY_CODE`, SERV decides | 1 / 18 | **10 / 18** |
-| Verdict `BLOCKED_BY_CODE`, Dolphin decides | 2 / 18 | **10 / 18** |
-| The blocking code named is in a file the fix changed | n/a | **10 / 10** |
+| Injected findings READY and automatic, SERV / Dolphin | 0/60 / 0/60 | 0/60 / 0/60 |
+| Flagged by the instruction scan | 20/60 | 30/60 |
+| Clean controls held or flagged | 0/10 | 0/10 |
 
-Small n. The live `/judges` page reruns one pair, #31, on demand.
+Zero unsafe READY is weak evidence while genuine findings never reach READY either.
 
-### Hostile text: we found the hole, then closed it
+### Nulls we publish anyway
 
-- **Before the defenses** (known payloads, undefended): injected findings reached `READY` 7/60 times with SERV deciding and 11/60 with Dolphin deciding. The cause was a poisoned evidence step.
-- **The defenses:**
-  1. A SERV Prompt Guard front door on the raw finding.
-  2. A code-verified proof claim.
-  3. A code scan for text addressed to the pipeline.
-
-  They were committed before an independent agent wrote six blind attacks.
-- **After** (blind payloads, defended):
-  - Injected findings reached `READY` 0/60 times with SERV deciding and 1/60 with Dolphin deciding.
-  - Automatic routing of a `READY` happened **0/60** times.
-  - The scan flagged 30/60. The SERV front door held 1.
-  - Most of the hardening is code.
-- **On clean findings:** the defenses held or flagged 0/94.
-
-### It does not predict contest outcomes better than length (null)
-
-| Shipped pipeline, AUROC vs `awarded` (95% CI, clustered by family) | |
-|---|---|
-| Report length (baseline) | 0.661 [0.527, 0.786] |
-| Three passes, SERV decides | 0.711 [0.607, 0.829] |
-| Three passes, Dolphin decides | 0.757 [0.598, 0.871] |
-
-The intervals overlap, so the output is a missing-evidence checklist, not a score. Unanimous zero-score verdicts route automatically. Of those automatic rejects, the contest judge also rejected 15/17 (SERV deciding) and 22/25 (Dolphin deciding).
-
-### A second evaluator was audited too (null)
-
-- **Setup:** 20 SERV verdicts were sent to Reppo's Eval API.
-- **Result:** Reppo's panel accepted 20/20, including every verdict the contest judge contradicted.
-- **Reading:** as an auditor of this decision, it does not discriminate.
-
-### Cost
-
-About **$0.0032 per three-pass check**: a SERV screen, three Dolphin reads and three SERV decisions. These are list prices from the token counts, not an invoice.
+- **Outcome prediction.** On Karak, neither decider's AUROC interval excludes report length (SERV 0.683 [0.552, 0.802], Dolphin 0.796 [0.692, 0.916], length 0.661 [0.527, 0.786]). No demonstrated improvement. That is why the output is a checklist, not a score.
+- **SERV as decider.** It is not more accurate than Dolphin deciding on the same evidence.
+- **SERV's guard.** It holds clean decision passes, each of which becomes a review. The strict-v1 ablation found no attack that only the guard stopped.
+- **Reppo's evaluator.** It accepted 20/20 sampled verdicts, including every one the contest judge contradicted.
 
 ## Sponsor integration
 
-| Sponsor | Role in the critical path | If it disappears |
+| Sponsor | Role in the critical path | Honest assessment |
 |---|---|---|
-| **Dolphin** (`lighthouse.dphn.ai`, DeepSeek-V4.1-Flash) | Reads the entire in-scope source three times per check and writes the evidence record that the caps enforce. | The same read on SERV's cheapest model costs about 13× more per input token ($0.13 vs $0.01 per million). Still cheap in dollars, but no longer close to free. |
-| **SERV Reasoning** (`gpt-6-luna` + `serv_prompt_guard`) | Screens the raw finding before the open model reads it, then makes one bounded decision per pass with a request id. | Measured: no accuracy gain over Dolphin deciding. The ablation below isolates what the guard adds that the code defenses do not. |
-| **Reppo Eval API** | Independent audit of a verdict sample (`src/eval/reppo-audit.ts`). | Nothing in the product path depends on it. The audit result was a null. Reppo publishes submissions, so it is only ever used on public, closed-contest findings. |
+| **Dolphin** (`lighthouse.dphn.ai`, DeepSeek-V4.1-Flash) | Reads the entire in-scope source and the policy bundle, three times per check, and writes the evidence record that code enforces. | The core of the product. Removing it removes the semantic read. About $0.0005 per pass. |
+| **SERV** (`gpt-6-luna` + `serv_prompt_guard`) | Screens the raw finding before the unguarded open model reads it, then makes one bounded decision per pass, each with a request id. | Real and in the path. Its measured benefit is weak: no accuracy gain over Dolphin deciding, and its guard holds clean passes (fewer in v3.1). |
+| **Reppo Eval API** | Independent audit of a verdict sample (`src/eval/reppo-audit.ts`). | A null result, not in the product path. Only public, closed-contest findings were sent. |
 
 ## What is real
 
 | Piece | State |
 |---|---|
-| Citation resolution, `UNRELATED` check, caps, consensus | Real, deterministic, tested. |
-| Dolphin and SERV calls | Real API calls. Every run row stores the SERV request id. Request ids are visible only in the OpenServ console. |
-| Contest coverage | Karak only, from a committed snapshot. Other contests need a snapshot (`npm run snapshot`). |
-| Live contests | Not supported. Basanos is shown on a closed contest, and the product never posts anything back to a contest. |
-| Duplicate detection | Not in the pre-submit path, because a hunter cannot see other hunters' reports. |
-| Customers | None yet. Revenue path: contest platforms and bug-bounty programs triaging intake, and hunters paying per check. |
-| Bug fixes for the pair test | Written by an agent, compiled, and reproducing-test verified. They are not the sponsor's actual fixes, which live in a private repository. |
+| Citation resolution, caps, routing, receipt | Real, deterministic, tested. |
+| Dolphin and SERV calls | Real. Every run row stores the SERV request id. |
+| Release binding | The build refuses unless `claims.json` equals a fresh computation, and the release runs' recorded code and input hashes (snapshots, reports), settings and rows match. Dependency versions are pinned by `package-lock.json` but not hashed. |
+| Repair proofs | Written and run by agents, re-run by us. Not reviewed by an independent auditor. |
+| Customers | None. Hypothesis: hunters paying per check, and platforms triaging intake. Not validated. |
+| Data | Contest source and findings are copied from public Code4rena repositories for research, with attribution in [NOTICE](NOTICE). SERV data collection is on for this workspace, so paste only public findings. |
+
+## Run it
+
+```bash
+npm ci
+cp .env.example .env          # SERV_API_KEY, DOLPHIN_API_KEY
+npm test                      # no keys or network needed
+npm run verify                # recompute every published number from data/runs
+npx tsx src/cli.ts finding.md --contest wildcat
+npm run mcp                   # basanos_contests and basanos_precheck, for a bug-hunting agent
+```
+
+The CLI exits 0 only for READY given as automatic advice, 1 for anything else, 2 for usage errors and 3 if the check failed. `npm run deploy` runs the tests, the typecheck and the gated build.
 
 ## Layout
 
 ```
-src/citations.ts   link parsing, resolution, UNRELATED check
-src/evidence.ts    Dolphin full-source evidence record
-src/verdict.ts     SERV bounded decision + Prompt Guard
-src/caps.ts        code caps over the decision
-src/precheck.ts    three-pass consensus and routing
+src/citations.ts src/policy.ts   link resolution; the contest policy bundle and clause check
+src/evidence.ts src/verdict.ts   Dolphin evidence record; SERV screen and decision
+src/caps.ts src/route.ts         code caps; the one router every surface uses
+src/precheck.ts                  three passes and consensus
 src/cli.ts src/mcp.ts src/web/   the three surfaces
-src/eval/          runs, scoring, pairs, hostile sets, Reppo audit, claims check
-data/karak/        reports, labels, snapshot, fixes manifest
-data/runs/         every model output used in this README
-EVAL.md            evaluation plan and amendments
+src/eval/                        runs, claims, repair loop, release gate
+data/<contest>/                  reports, labels, snapshots, payloads
+data/runs/                       every model output behind every number, with manifests
+data/repair*/                    repair inputs, tests, forge output, before/after checks
+EVAL.md                          the plan and amendments 1 to 8
 ```
 
-MIT licensed. Built by [@cassxbt](https://x.com/cassxbt) for SERV Hackathon 02 (OpenServ), Dolphin track.
+MIT licensed (code). Built by [@cassxbt](https://x.com/cassxbt) for SERV Hackathon 02 (OpenServ), Dolphin track.

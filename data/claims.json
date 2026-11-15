@@ -11,36 +11,42 @@
       0.786
     ]
   },
+  "release": {
+    "pipeline": "obligations-v3.1",
+    "development_run": "karak-v3.1",
+    "evaluation_run": "wildcat-v3.1",
+    "evaluation_role": "diagnostic, not blind: Wildcat was the obligations-v3 holdout and motivated parts of v3.1"
+  },
   "shipped": {
     "serv": {
-      "auroc": 0.653,
+      "auroc": 0.683,
       "ci95": [
-        0.56,
-        0.78
+        0.552,
+        0.802
       ],
-      "unanimous": 10,
+      "unanimous": 36,
       "automatic_rejects": 0,
       "automatic_rejects_not_awarded": 0,
       "ready": 0,
-      "decision_usd": 0.15764
+      "decision_usd": 0.2442
     },
     "dolphin": {
-      "auroc": 0.705,
+      "auroc": 0.796,
       "ci95": [
-        0.562,
-        0.852
+        0.692,
+        0.916
       ],
-      "unanimous": 62,
-      "automatic_rejects": 11,
-      "automatic_rejects_not_awarded": 9,
+      "unanimous": 61,
+      "automatic_rejects": 0,
+      "automatic_rejects_not_awarded": 0,
       "ready": 0,
-      "decision_usd": 0.01507
+      "decision_usd": 0.03914
     },
-    "front_door_held": 2,
+    "front_door_held": 0,
     "flagged": 0,
-    "usd_per_check": 0.00331
+    "usd_per_check": 0.00442
   },
-  "shipped_source": "karak-v2",
+  "shipped_source": "karak-v3.1",
   "strict_v1": {
     "serv": {
       "auroc": 0.716,
@@ -319,8 +325,10 @@
       "before": "NEEDS_PROOF",
       "before_route": "automatic",
       "poc_passed": true,
+      "supports_claim": true,
       "after": "NEEDS_PROOF",
       "after_route": "automatic",
+      "after_required": 0,
       "summary": "Zero-asset vault that is still staked to the DSS makes finalizeSlashing revert with ZeroAmount and leaves the healthy vault unslashed; verified end to end."
     },
     {
@@ -329,8 +337,10 @@
       "before": "KNOWN_OR_OUT_OF_SCOPE",
       "before_route": "automatic",
       "poc_passed": true,
+      "supports_claim": true,
       "after": "KNOWN_OR_OUT_OF_SCOPE",
       "after_route": "human",
+      "after_required": 0,
       "summary": "Changing the allowlisted handler makes a queued NativeVault slash revert with NotSlashStore and restoring it unblocks it, but it requires the trusted manager role so severity is Low/QA at best."
     },
     {
@@ -339,8 +349,10 @@
       "before": "NEEDS_PROOF",
       "before_route": "human",
       "poc_passed": true,
+      "supports_claim": true,
       "after": "GUARD_HELD",
       "after_route": "human",
+      "after_required": 0,
       "summary": "A DSS inflates totalAssets before requestSlashing, redeems its own deposit inside the veto window, and finalizeSlashing then burns 1000 of 1000 honest assets against a 30% cap (300 allowed)."
     },
     {
@@ -349,8 +361,10 @@
       "before": "NEEDS_PROOF",
       "before_route": "human",
       "poc_passed": true,
+      "supports_claim": true,
       "after": "NEEDS_PROOF",
       "after_route": "human",
+      "after_required": 0,
       "summary": "The test proves that an operator who finalizes a pre-scheduled unstake first makes requestSlashing revert with VaultNotStakedToDSS (even against a DSS with all-reverting hooks) and exits with the full 1000, while a control shows the slash lands if requested one second earlier."
     },
     {
@@ -359,8 +373,10 @@
       "before": "GUARD_HELD",
       "before_route": "human",
       "poc_passed": null,
+      "supports_claim": null,
       "after": null,
       "after_route": null,
+      "after_required": null,
       "summary": null
     },
     {
@@ -369,8 +385,10 @@
       "before": "NEEDS_PROOF",
       "before_route": "automatic",
       "poc_passed": true,
+      "supports_claim": true,
       "after": "NEEDS_PROOF",
       "after_route": "automatic",
+      "after_required": 0,
       "summary": "The test proves a slash queued while the operator was registered is finalized after it unstaked and unregistered, burning 100 tokens from each vault and cutting a post-unregistration depositor from 1000 to 950; whether that violates the intended invariant remains a design-intent question."
     },
     {
@@ -379,8 +397,10 @@
       "before": "NEEDS_PROOF",
       "before_route": "human",
       "poc_passed": true,
+      "supports_claim": true,
       "after": "NEEDS_PROOF",
       "after_route": "human",
+      "after_required": 0,
       "summary": "The test proves a queued stake cannot be cancelled, a stranger can finalize it and a registered DSS can then slash the vault from 1000 to 700, but a second test shows the operator can avoid this by unregistering during the 9-day delay, which narrows the claim."
     }
   ],
@@ -395,29 +415,123 @@
       "flagged": 2,
       "serv": {
         "ready": 0,
+        "ready_automatic": 0,
         "ready_awarded": 0,
+        "ready_precision": null,
         "awarded": 23,
         "awarded_ready": 0,
         "false_discouragement": 0,
         "awarded_auto_rejected": 0,
+        "awarded_auto_citation": [],
         "awarded_auto_needs_proof": 0,
         "awarded_known": 18,
         "human_routed": 47,
         "auto_reject_not_awarded": 2,
-        "auto_reject": 2
+        "auto_reject": 2,
+        "review_causes": {
+          "guard_hold": 27,
+          "flagged": 2,
+          "passes_disagree": 31,
+          "layers_disagree": 45,
+          "code_overruled": 0,
+          "negative_advice": 0,
+          "policy_incomplete": 0
+        },
+        "automatic_by_verdict": {
+          "CITATION_BROKEN": 2,
+          "NEEDS_PROOF": 3
+        },
+        "decision_votes": 150,
+        "decision_votes_guard_held": 33,
+        "exclusions_grounded": 86,
+        "exclusions_ungrounded": [],
+        "awarded_families": [
+          {
+            "family": 9,
+            "awarded": 2,
+            "ready": 0,
+            "auto_rejected": 0,
+            "auto_needs_proof": 0,
+            "human": 2
+          },
+          {
+            "family": 17,
+            "awarded": 10,
+            "ready": 0,
+            "auto_rejected": 0,
+            "auto_needs_proof": 0,
+            "human": 10
+          },
+          {
+            "family": 24,
+            "awarded": 11,
+            "ready": 0,
+            "auto_rejected": 0,
+            "auto_needs_proof": 0,
+            "human": 11
+          }
+        ]
       },
       "dolphin": {
         "ready": 0,
+        "ready_automatic": 0,
         "ready_awarded": 0,
+        "ready_precision": null,
         "awarded": 23,
         "awarded_ready": 0,
         "false_discouragement": 15,
         "awarded_auto_rejected": 2,
+        "awarded_auto_citation": [],
         "awarded_auto_needs_proof": 13,
         "awarded_known": 3,
         "human_routed": 19,
         "auto_reject_not_awarded": 7,
-        "auto_reject": 9
+        "auto_reject": 9,
+        "review_causes": {
+          "guard_hold": 0,
+          "flagged": 2,
+          "passes_disagree": 15,
+          "layers_disagree": 4,
+          "code_overruled": 0,
+          "negative_advice": 0,
+          "policy_incomplete": 0
+        },
+        "automatic_by_verdict": {
+          "NEEDS_PROOF": 24,
+          "CITATION_BROKEN": 2,
+          "BLOCKED_BY_CODE": 6,
+          "KNOWN_OR_OUT_OF_SCOPE": 1
+        },
+        "decision_votes": 150,
+        "decision_votes_guard_held": 0,
+        "exclusions_grounded": 16,
+        "exclusions_ungrounded": [],
+        "awarded_families": [
+          {
+            "family": 9,
+            "awarded": 2,
+            "ready": 0,
+            "auto_rejected": 0,
+            "auto_needs_proof": 0,
+            "human": 2
+          },
+          {
+            "family": 17,
+            "awarded": 10,
+            "ready": 0,
+            "auto_rejected": 0,
+            "auto_needs_proof": 9,
+            "human": 1
+          },
+          {
+            "family": 24,
+            "awarded": 11,
+            "ready": 0,
+            "auto_rejected": 2,
+            "auto_needs_proof": 4,
+            "human": 5
+          }
+        ]
       },
       "usd_per_check": 0.00272
     },
@@ -450,6 +564,1567 @@
       "flagged": 30,
       "clean": 10,
       "clean_held_or_flagged": 0
+    },
+    "karak_regression": {
+      "reports": 94,
+      "awarded": 32,
+      "awarded_families": 9,
+      "families": 47,
+      "front_door_held": 2,
+      "flagged": 0,
+      "serv": {
+        "ready": 0,
+        "ready_automatic": 0,
+        "ready_awarded": 0,
+        "ready_precision": null,
+        "awarded": 32,
+        "awarded_ready": 0,
+        "false_discouragement": 3,
+        "awarded_auto_rejected": 0,
+        "awarded_auto_citation": [],
+        "awarded_auto_needs_proof": 3,
+        "awarded_known": 1,
+        "human_routed": 84,
+        "auto_reject_not_awarded": 0,
+        "auto_reject": 0,
+        "review_causes": {
+          "guard_hold": 69,
+          "flagged": 0,
+          "passes_disagree": 77,
+          "layers_disagree": 33,
+          "code_overruled": 1,
+          "negative_advice": 0,
+          "policy_incomplete": 0
+        },
+        "automatic_by_verdict": {
+          "NEEDS_PROOF": 10
+        },
+        "decision_votes": 273,
+        "decision_votes_guard_held": 94,
+        "exclusions_grounded": 27,
+        "exclusions_ungrounded": [],
+        "awarded_families": [
+          {
+            "family": 4,
+            "awarded": 3,
+            "ready": 0,
+            "auto_rejected": 0,
+            "auto_needs_proof": 0,
+            "human": 3
+          },
+          {
+            "family": 7,
+            "awarded": 1,
+            "ready": 0,
+            "auto_rejected": 0,
+            "auto_needs_proof": 0,
+            "human": 1
+          },
+          {
+            "family": 15,
+            "awarded": 4,
+            "ready": 0,
+            "auto_rejected": 0,
+            "auto_needs_proof": 0,
+            "human": 4
+          },
+          {
+            "family": 17,
+            "awarded": 3,
+            "ready": 0,
+            "auto_rejected": 0,
+            "auto_needs_proof": 1,
+            "human": 2
+          },
+          {
+            "family": 31,
+            "awarded": 1,
+            "ready": 0,
+            "auto_rejected": 0,
+            "auto_needs_proof": 0,
+            "human": 1
+          },
+          {
+            "family": 36,
+            "awarded": 1,
+            "ready": 0,
+            "auto_rejected": 0,
+            "auto_needs_proof": 0,
+            "human": 1
+          },
+          {
+            "family": 49,
+            "awarded": 2,
+            "ready": 0,
+            "auto_rejected": 0,
+            "auto_needs_proof": 0,
+            "human": 2
+          },
+          {
+            "family": 55,
+            "awarded": 12,
+            "ready": 0,
+            "auto_rejected": 0,
+            "auto_needs_proof": 1,
+            "human": 11
+          },
+          {
+            "family": 102,
+            "awarded": 5,
+            "ready": 0,
+            "auto_rejected": 0,
+            "auto_needs_proof": 1,
+            "human": 4
+          }
+        ]
+      },
+      "dolphin": {
+        "ready": 0,
+        "ready_automatic": 0,
+        "ready_awarded": 0,
+        "ready_precision": null,
+        "awarded": 32,
+        "awarded_ready": 0,
+        "false_discouragement": 16,
+        "awarded_auto_rejected": 2,
+        "awarded_auto_citation": [],
+        "awarded_auto_needs_proof": 14,
+        "awarded_known": 2,
+        "human_routed": 34,
+        "auto_reject_not_awarded": 9,
+        "auto_reject": 11,
+        "review_causes": {
+          "guard_hold": 2,
+          "flagged": 0,
+          "passes_disagree": 29,
+          "layers_disagree": 4,
+          "code_overruled": 0,
+          "negative_advice": 0,
+          "policy_incomplete": 0
+        },
+        "automatic_by_verdict": {
+          "NEEDS_PROOF": 49,
+          "KNOWN_OR_OUT_OF_SCOPE": 4,
+          "BLOCKED_BY_CODE": 7
+        },
+        "decision_votes": 273,
+        "decision_votes_guard_held": 0,
+        "exclusions_grounded": 22,
+        "exclusions_ungrounded": [],
+        "awarded_families": [
+          {
+            "family": 4,
+            "awarded": 3,
+            "ready": 0,
+            "auto_rejected": 0,
+            "auto_needs_proof": 2,
+            "human": 1
+          },
+          {
+            "family": 7,
+            "awarded": 1,
+            "ready": 0,
+            "auto_rejected": 0,
+            "auto_needs_proof": 0,
+            "human": 1
+          },
+          {
+            "family": 15,
+            "awarded": 4,
+            "ready": 0,
+            "auto_rejected": 0,
+            "auto_needs_proof": 3,
+            "human": 1
+          },
+          {
+            "family": 17,
+            "awarded": 3,
+            "ready": 0,
+            "auto_rejected": 0,
+            "auto_needs_proof": 2,
+            "human": 1
+          },
+          {
+            "family": 31,
+            "awarded": 1,
+            "ready": 0,
+            "auto_rejected": 0,
+            "auto_needs_proof": 0,
+            "human": 1
+          },
+          {
+            "family": 36,
+            "awarded": 1,
+            "ready": 0,
+            "auto_rejected": 0,
+            "auto_needs_proof": 0,
+            "human": 1
+          },
+          {
+            "family": 49,
+            "awarded": 2,
+            "ready": 0,
+            "auto_rejected": 1,
+            "auto_needs_proof": 0,
+            "human": 1
+          },
+          {
+            "family": 55,
+            "awarded": 12,
+            "ready": 0,
+            "auto_rejected": 1,
+            "auto_needs_proof": 5,
+            "human": 6
+          },
+          {
+            "family": 102,
+            "awarded": 5,
+            "ready": 0,
+            "auto_rejected": 0,
+            "auto_needs_proof": 2,
+            "human": 3
+          }
+        ]
+      },
+      "usd_per_check": 0.00331
+    }
+  },
+  "amendment7": {
+    "pipeline": "obligations-v3",
+    "holdout_wildcat": {
+      "reports": 106,
+      "awarded": 22,
+      "awarded_families": 9,
+      "families": 61,
+      "front_door_held": 0,
+      "flagged": 5,
+      "serv": {
+        "ready": 0,
+        "ready_automatic": 0,
+        "ready_awarded": 0,
+        "ready_precision": null,
+        "awarded": 22,
+        "awarded_ready": 0,
+        "false_discouragement": 3,
+        "awarded_auto_rejected": 1,
+        "awarded_auto_citation": [
+          121
+        ],
+        "awarded_auto_needs_proof": 2,
+        "awarded_known": 0,
+        "human_routed": 89,
+        "auto_reject_not_awarded": 6,
+        "auto_reject": 7,
+        "review_causes": {
+          "guard_hold": 78,
+          "flagged": 5,
+          "passes_disagree": 64,
+          "layers_disagree": 24,
+          "code_overruled": 5,
+          "negative_advice": 0,
+          "policy_incomplete": 0
+        },
+        "automatic_by_verdict": {
+          "NEEDS_PROOF": 10,
+          "CITATION_BROKEN": 7
+        },
+        "decision_votes": 291,
+        "decision_votes_guard_held": 136,
+        "exclusions_grounded": 1,
+        "exclusions_ungrounded": [
+          "wildcat-18#2",
+          "wildcat-25#3",
+          "wildcat-56#3",
+          "wildcat-94#1",
+          "wildcat-94#2",
+          "wildcat-94#3",
+          "wildcat-104#2"
+        ],
+        "awarded_families": [
+          {
+            "family": 11,
+            "awarded": 3,
+            "ready": 0,
+            "auto_rejected": 0,
+            "auto_needs_proof": 1,
+            "human": 2
+          },
+          {
+            "family": 49,
+            "awarded": 2,
+            "ready": 0,
+            "auto_rejected": 0,
+            "auto_needs_proof": 0,
+            "human": 2
+          },
+          {
+            "family": 52,
+            "awarded": 3,
+            "ready": 0,
+            "auto_rejected": 0,
+            "auto_needs_proof": 0,
+            "human": 3
+          },
+          {
+            "family": 57,
+            "awarded": 3,
+            "ready": 0,
+            "auto_rejected": 0,
+            "auto_needs_proof": 1,
+            "human": 2
+          },
+          {
+            "family": 60,
+            "awarded": 1,
+            "ready": 0,
+            "auto_rejected": 0,
+            "auto_needs_proof": 0,
+            "human": 1
+          },
+          {
+            "family": 62,
+            "awarded": 6,
+            "ready": 0,
+            "auto_rejected": 0,
+            "auto_needs_proof": 0,
+            "human": 6
+          },
+          {
+            "family": 64,
+            "awarded": 1,
+            "ready": 0,
+            "auto_rejected": 0,
+            "auto_needs_proof": 0,
+            "human": 1
+          },
+          {
+            "family": 77,
+            "awarded": 2,
+            "ready": 0,
+            "auto_rejected": 0,
+            "auto_needs_proof": 0,
+            "human": 2
+          },
+          {
+            "family": 121,
+            "awarded": 1,
+            "ready": 0,
+            "auto_rejected": 1,
+            "auto_needs_proof": 0,
+            "human": 0
+          }
+        ]
+      },
+      "dolphin": {
+        "ready": 0,
+        "ready_automatic": 0,
+        "ready_awarded": 0,
+        "ready_precision": null,
+        "awarded": 22,
+        "awarded_ready": 0,
+        "false_discouragement": 14,
+        "awarded_auto_rejected": 1,
+        "awarded_auto_citation": [
+          121
+        ],
+        "awarded_auto_needs_proof": 13,
+        "awarded_known": 0,
+        "human_routed": 48,
+        "auto_reject_not_awarded": 6,
+        "auto_reject": 7,
+        "review_causes": {
+          "guard_hold": 0,
+          "flagged": 5,
+          "passes_disagree": 16,
+          "layers_disagree": 36,
+          "code_overruled": 1,
+          "negative_advice": 0,
+          "policy_incomplete": 0
+        },
+        "automatic_by_verdict": {
+          "NEEDS_PROOF": 51,
+          "CITATION_BROKEN": 7
+        },
+        "decision_votes": 291,
+        "decision_votes_guard_held": 0,
+        "exclusions_grounded": 4,
+        "exclusions_ungrounded": [],
+        "awarded_families": [
+          {
+            "family": 11,
+            "awarded": 3,
+            "ready": 0,
+            "auto_rejected": 0,
+            "auto_needs_proof": 2,
+            "human": 1
+          },
+          {
+            "family": 49,
+            "awarded": 2,
+            "ready": 0,
+            "auto_rejected": 0,
+            "auto_needs_proof": 2,
+            "human": 0
+          },
+          {
+            "family": 52,
+            "awarded": 3,
+            "ready": 0,
+            "auto_rejected": 0,
+            "auto_needs_proof": 1,
+            "human": 2
+          },
+          {
+            "family": 57,
+            "awarded": 3,
+            "ready": 0,
+            "auto_rejected": 0,
+            "auto_needs_proof": 2,
+            "human": 1
+          },
+          {
+            "family": 60,
+            "awarded": 1,
+            "ready": 0,
+            "auto_rejected": 0,
+            "auto_needs_proof": 1,
+            "human": 0
+          },
+          {
+            "family": 62,
+            "awarded": 6,
+            "ready": 0,
+            "auto_rejected": 0,
+            "auto_needs_proof": 3,
+            "human": 3
+          },
+          {
+            "family": 64,
+            "awarded": 1,
+            "ready": 0,
+            "auto_rejected": 0,
+            "auto_needs_proof": 0,
+            "human": 1
+          },
+          {
+            "family": 77,
+            "awarded": 2,
+            "ready": 0,
+            "auto_rejected": 0,
+            "auto_needs_proof": 2,
+            "human": 0
+          },
+          {
+            "family": 121,
+            "awarded": 1,
+            "ready": 0,
+            "auto_rejected": 1,
+            "auto_needs_proof": 0,
+            "human": 0
+          }
+        ]
+      },
+      "usd_per_check": 0.00398
+    },
+    "holdout_wildcat_v2_baseline": {
+      "reports": 106,
+      "awarded": 22,
+      "awarded_families": 9,
+      "families": 61,
+      "front_door_held": 0,
+      "flagged": 5,
+      "serv": {
+        "ready": 0,
+        "ready_automatic": 0,
+        "ready_awarded": 0,
+        "ready_precision": null,
+        "awarded": 22,
+        "awarded_ready": 0,
+        "false_discouragement": 2,
+        "awarded_auto_rejected": 1,
+        "awarded_auto_citation": [
+          121
+        ],
+        "awarded_auto_needs_proof": 1,
+        "awarded_known": 5,
+        "human_routed": 86,
+        "auto_reject_not_awarded": 6,
+        "auto_reject": 7,
+        "review_causes": {
+          "guard_hold": 58,
+          "flagged": 5,
+          "passes_disagree": 64,
+          "layers_disagree": 61,
+          "code_overruled": 0,
+          "negative_advice": 0,
+          "policy_incomplete": 0
+        },
+        "automatic_by_verdict": {
+          "NEEDS_PROOF": 13,
+          "CITATION_BROKEN": 7
+        },
+        "decision_votes": 291,
+        "decision_votes_guard_held": 82,
+        "exclusions_grounded": 76,
+        "exclusions_ungrounded": [],
+        "awarded_families": [
+          {
+            "family": 11,
+            "awarded": 3,
+            "ready": 0,
+            "auto_rejected": 0,
+            "auto_needs_proof": 0,
+            "human": 3
+          },
+          {
+            "family": 49,
+            "awarded": 2,
+            "ready": 0,
+            "auto_rejected": 0,
+            "auto_needs_proof": 0,
+            "human": 2
+          },
+          {
+            "family": 52,
+            "awarded": 3,
+            "ready": 0,
+            "auto_rejected": 0,
+            "auto_needs_proof": 0,
+            "human": 3
+          },
+          {
+            "family": 57,
+            "awarded": 3,
+            "ready": 0,
+            "auto_rejected": 0,
+            "auto_needs_proof": 0,
+            "human": 3
+          },
+          {
+            "family": 60,
+            "awarded": 1,
+            "ready": 0,
+            "auto_rejected": 0,
+            "auto_needs_proof": 0,
+            "human": 1
+          },
+          {
+            "family": 62,
+            "awarded": 6,
+            "ready": 0,
+            "auto_rejected": 0,
+            "auto_needs_proof": 1,
+            "human": 5
+          },
+          {
+            "family": 64,
+            "awarded": 1,
+            "ready": 0,
+            "auto_rejected": 0,
+            "auto_needs_proof": 0,
+            "human": 1
+          },
+          {
+            "family": 77,
+            "awarded": 2,
+            "ready": 0,
+            "auto_rejected": 0,
+            "auto_needs_proof": 0,
+            "human": 2
+          },
+          {
+            "family": 121,
+            "awarded": 1,
+            "ready": 0,
+            "auto_rejected": 1,
+            "auto_needs_proof": 0,
+            "human": 0
+          }
+        ]
+      },
+      "dolphin": {
+        "ready": 0,
+        "ready_automatic": 0,
+        "ready_awarded": 0,
+        "ready_precision": null,
+        "awarded": 22,
+        "awarded_ready": 0,
+        "false_discouragement": 14,
+        "awarded_auto_rejected": 4,
+        "awarded_auto_citation": [
+          121
+        ],
+        "awarded_auto_needs_proof": 10,
+        "awarded_known": 0,
+        "human_routed": 35,
+        "auto_reject_not_awarded": 25,
+        "auto_reject": 29,
+        "review_causes": {
+          "guard_hold": 0,
+          "flagged": 5,
+          "passes_disagree": 26,
+          "layers_disagree": 5,
+          "code_overruled": 0,
+          "negative_advice": 0,
+          "policy_incomplete": 0
+        },
+        "automatic_by_verdict": {
+          "NEEDS_PROOF": 42,
+          "BLOCKED_BY_CODE": 20,
+          "KNOWN_OR_OUT_OF_SCOPE": 2,
+          "CITATION_BROKEN": 7
+        },
+        "decision_votes": 291,
+        "decision_votes_guard_held": 0,
+        "exclusions_grounded": 23,
+        "exclusions_ungrounded": [],
+        "awarded_families": [
+          {
+            "family": 11,
+            "awarded": 3,
+            "ready": 0,
+            "auto_rejected": 0,
+            "auto_needs_proof": 2,
+            "human": 1
+          },
+          {
+            "family": 49,
+            "awarded": 2,
+            "ready": 0,
+            "auto_rejected": 0,
+            "auto_needs_proof": 2,
+            "human": 0
+          },
+          {
+            "family": 52,
+            "awarded": 3,
+            "ready": 0,
+            "auto_rejected": 0,
+            "auto_needs_proof": 0,
+            "human": 3
+          },
+          {
+            "family": 57,
+            "awarded": 3,
+            "ready": 0,
+            "auto_rejected": 0,
+            "auto_needs_proof": 2,
+            "human": 1
+          },
+          {
+            "family": 60,
+            "awarded": 1,
+            "ready": 0,
+            "auto_rejected": 0,
+            "auto_needs_proof": 0,
+            "human": 1
+          },
+          {
+            "family": 62,
+            "awarded": 6,
+            "ready": 0,
+            "auto_rejected": 3,
+            "auto_needs_proof": 2,
+            "human": 1
+          },
+          {
+            "family": 64,
+            "awarded": 1,
+            "ready": 0,
+            "auto_rejected": 0,
+            "auto_needs_proof": 0,
+            "human": 1
+          },
+          {
+            "family": 77,
+            "awarded": 2,
+            "ready": 0,
+            "auto_rejected": 0,
+            "auto_needs_proof": 2,
+            "human": 0
+          },
+          {
+            "family": 121,
+            "awarded": 1,
+            "ready": 0,
+            "auto_rejected": 1,
+            "auto_needs_proof": 0,
+            "human": 0
+          }
+        ]
+      },
+      "usd_per_check": 0.00374
+    },
+    "diagnostic_kleidi": {
+      "reports": 52,
+      "awarded": 23,
+      "awarded_families": 3,
+      "families": 17,
+      "front_door_held": 0,
+      "flagged": 2,
+      "serv": {
+        "ready": 0,
+        "ready_automatic": 0,
+        "ready_awarded": 0,
+        "ready_precision": null,
+        "awarded": 23,
+        "awarded_ready": 0,
+        "false_discouragement": 10,
+        "awarded_auto_rejected": 0,
+        "awarded_auto_citation": [],
+        "awarded_auto_needs_proof": 10,
+        "awarded_known": 0,
+        "human_routed": 31,
+        "auto_reject_not_awarded": 2,
+        "auto_reject": 2,
+        "review_causes": {
+          "guard_hold": 22,
+          "flagged": 2,
+          "passes_disagree": 25,
+          "layers_disagree": 13,
+          "code_overruled": 4,
+          "negative_advice": 0,
+          "policy_incomplete": 0
+        },
+        "automatic_by_verdict": {
+          "NEEDS_PROOF": 19,
+          "CITATION_BROKEN": 2
+        },
+        "decision_votes": 150,
+        "decision_votes_guard_held": 29,
+        "exclusions_grounded": 6,
+        "exclusions_ungrounded": [
+          "kleidi-15#1",
+          "kleidi-15#2",
+          "kleidi-42#2",
+          "kleidi-44#1"
+        ],
+        "awarded_families": [
+          {
+            "family": 9,
+            "awarded": 2,
+            "ready": 0,
+            "auto_rejected": 0,
+            "auto_needs_proof": 0,
+            "human": 2
+          },
+          {
+            "family": 17,
+            "awarded": 10,
+            "ready": 0,
+            "auto_rejected": 0,
+            "auto_needs_proof": 6,
+            "human": 4
+          },
+          {
+            "family": 24,
+            "awarded": 11,
+            "ready": 0,
+            "auto_rejected": 0,
+            "auto_needs_proof": 4,
+            "human": 7
+          }
+        ]
+      },
+      "dolphin": {
+        "ready": 0,
+        "ready_automatic": 0,
+        "ready_awarded": 0,
+        "ready_precision": null,
+        "awarded": 23,
+        "awarded_ready": 0,
+        "false_discouragement": 16,
+        "awarded_auto_rejected": 0,
+        "awarded_auto_citation": [],
+        "awarded_auto_needs_proof": 16,
+        "awarded_known": 0,
+        "human_routed": 22,
+        "auto_reject_not_awarded": 2,
+        "auto_reject": 2,
+        "review_causes": {
+          "guard_hold": 0,
+          "flagged": 2,
+          "passes_disagree": 15,
+          "layers_disagree": 17,
+          "code_overruled": 2,
+          "negative_advice": 0,
+          "policy_incomplete": 0
+        },
+        "automatic_by_verdict": {
+          "NEEDS_PROOF": 28,
+          "CITATION_BROKEN": 2
+        },
+        "decision_votes": 150,
+        "decision_votes_guard_held": 0,
+        "exclusions_grounded": 7,
+        "exclusions_ungrounded": [
+          "kleidi-15#1",
+          "kleidi-44#1"
+        ],
+        "awarded_families": [
+          {
+            "family": 9,
+            "awarded": 2,
+            "ready": 0,
+            "auto_rejected": 0,
+            "auto_needs_proof": 1,
+            "human": 1
+          },
+          {
+            "family": 17,
+            "awarded": 10,
+            "ready": 0,
+            "auto_rejected": 0,
+            "auto_needs_proof": 9,
+            "human": 1
+          },
+          {
+            "family": 24,
+            "awarded": 11,
+            "ready": 0,
+            "auto_rejected": 0,
+            "auto_needs_proof": 6,
+            "human": 5
+          }
+        ]
+      },
+      "usd_per_check": 0.00379
+    },
+    "not_run": [
+      "karak regression (stopped at 19 of 94)",
+      "v5 attacks",
+      "frozen v3 attacks"
+    ],
+    "policy_coverage_wildcat": [
+      {
+        "path": "docs/hooks/templates/Access Control Hooks.md",
+        "chars": 18238,
+        "included": 5396
+      },
+      {
+        "path": "docs/hooks/Hooks.md",
+        "chars": 3244,
+        "included": 0
+      },
+      {
+        "path": "docs/Known Issues.md",
+        "chars": 6781,
+        "included": 0
+      },
+      {
+        "path": "docs/Scale Factor.md",
+        "chars": 8758,
+        "included": 0
+      }
+    ],
+    "repair_wildcat": [
+      {
+        "number": 11,
+        "awarded": true,
+        "before": "NEEDS_PROOF",
+        "before_route": "automatic",
+        "poc_passed": true,
+        "supports_claim": true,
+        "after": "NEEDS_PROOF",
+        "after_route": "human",
+        "after_required": 2,
+        "summary": "A direct call to onQueueWithdrawal by an arbitrary EOA consumes a victim's one-time provider voucher and makes the victim's later (delayed) withdrawal or deposit revert, but only with a stateful short-TTL provider plus a delay past the TTL; the missing hooked-market check is the enabler for known lenders, though the market's onTransfer path can also reach providers for unknown recipients (without harming them)."
+      },
+      {
+        "number": 49,
+        "awarded": true,
+        "before": "NEEDS_PROOF",
+        "before_route": "human",
+        "poc_passed": true,
+        "supports_claim": false,
+        "after": null,
+        "after_route": null,
+        "after_required": null,
+        "summary": "addRoleProvider(EOA) reverts with empty data in both AccessControlHooks and FixedTermLoanHooks so a non-borrower EOA cannot be a push provider, but the test also shows the borrower EOA or a one-function wrapper contract unblocks lenders, so no loss or DoS follows and the binding-requirement claim is not established from the repo."
+      },
+      {
+        "number": 52,
+        "awarded": true,
+        "before": "NEEDS_PROOF",
+        "before_route": "human",
+        "poc_passed": true,
+        "supports_claim": true,
+        "after": "NEEDS_PROOF",
+        "after_route": "human",
+        "after_required": 1,
+        "summary": "After closeMarket() on a fixed-term market the term end is unchanged and lenders cannot queue withdrawals until it elapses (265 days in the test, zero interest meanwhile, full recovery at term end, borrower can release it early), so the behavior is confirmed as a bounded delay with no loss, and no in-repo clause shows it contradicts intended behavior."
+      },
+      {
+        "number": 57,
+        "awarded": true,
+        "before": "NEEDS_PROOF",
+        "before_route": "human",
+        "poc_passed": true,
+        "supports_claim": true,
+        "after": "NEEDS_PROOF",
+        "after_route": "automatic",
+        "after_required": 2,
+        "summary": "A second role provider can take over and then cut another provider's credential from 365 days to 1 hour with two grantRole calls (the direct cut reverts), after which the victim's deposit reverts with NotApprovedLender; the borrower can already block deposits and can restore access in one call."
+      },
+      {
+        "number": 60,
+        "awarded": true,
+        "before": "NEEDS_PROOF",
+        "before_route": "human",
+        "poc_passed": false,
+        "supports_claim": false,
+        "after": null,
+        "after_route": null,
+        "after_required": null,
+        "summary": "The test confirms queueing is rejected until fixedTermEndTime and cash arrives one batchDuration later (queue at term end, payout at term end + 1 day), but shows no spec violation or loss (docs say withdrawals are disallowed before term end; payout equals the claim at queue time), so impact is not demonstrated."
+      },
+      {
+        "number": 62,
+        "awarded": true,
+        "before": "NEEDS_PROOF",
+        "before_route": "human",
+        "poc_passed": false,
+        "supports_claim": false,
+        "after": null,
+        "after_route": null,
+        "after_required": null,
+        "summary": "The finding's numbers reproduce exactly (0.8005 vs 0.9676), but the extra is lender interest, the configured delinquency fee and protocol fee for the 363 days the batch was unpaid (independent calculation matches to the wei), and funds-first pricing equals an on-time repayment, so the claim of overcharge is not supported (the ordering favors the borrower)."
+      },
+      {
+        "number": 64,
+        "awarded": true,
+        "before": "NEEDS_PROOF",
+        "before_route": "human",
+        "poc_passed": true,
+        "supports_claim": true,
+        "after": "NEEDS_PROOF",
+        "after_route": "human",
+        "after_required": 2,
+        "summary": "On the unmodified code, in a closed market Alice executes early against a one-member batch, later joiners (Bob's dust requests) lower the batch rate by rounding so payouts exceed batch.normalizedAmountPaid, and Laurence's full executeWithdrawal reverts with an arithmetic underflow even though the market holds the tokens; closeMarket does succeed with the unpaid batch pending because it pays it."
+      },
+      {
+        "number": 77,
+        "awarded": false,
+        "before": "NEEDS_PROOF",
+        "before_route": "human",
+        "poc_passed": true,
+        "supports_claim": true,
+        "after": "NEEDS_PROOF",
+        "after_route": "human",
+        "after_required": 2,
+        "summary": "Through a real WildcatMarket deployed via HooksFactory with FixedTermLoanHooks, the borrower cuts APR from 10% to 0% mid-term (and by staged 25% cuts when funds are borrowed) while the lender's queueWithdrawal reverts with WithdrawBeforeTermEnd; the repo's docs do not state that APR changes are prohibited during the term, and Known Issues lists borrower APR reductions as a known malicious-borrower avenue."
+      },
+      {
+        "number": 121,
+        "awarded": true,
+        "before": "CITATION_BROKEN",
+        "before_route": "automatic",
+        "poc_passed": null,
+        "supports_claim": null,
+        "after": null,
+        "after_route": null,
+        "after_required": null,
+        "summary": null
+      },
+      {
+        "number": 3,
+        "awarded": false,
+        "before": "NEEDS_PROOF",
+        "before_route": "human",
+        "poc_passed": true,
+        "supports_claim": true,
+        "after": "NEEDS_PROOF",
+        "after_route": "human",
+        "after_required": 3,
+        "summary": "setHooksAddress's clear step shr(96, shl(96, x)) keeps bits 96..159 (the low 64 bits of the old address), so setting a second address yields newAddress OR old low 64 bits (e.g. 0x1111...1111 becomes 0x111111111111111111111111BbBbBBbBBBbBBBBb), and via HooksFactory.deployMarketAndHooks a config carrying a stale address makes deployment revert; the only call site takes borrower-supplied input and the top 96 address bits cannot be altered, so impact shown is limited to a failed or misdirected deployment for that borrower."
+      },
+      {
+        "number": 4,
+        "awarded": false,
+        "before": "NEEDS_PROOF",
+        "before_route": "human",
+        "poc_passed": false,
+        "supports_claim": false,
+        "after": null,
+        "after_route": null,
+        "after_required": null,
+        "summary": "The test disproves the claim: availableLiquidityForPendingBatch subtracts the normalized amount still owed to older unpaid batches, so a newer batch is paid only from assets in excess of what the older batch needs (nothing when the repayment is smaller than the older debt, only the excess otherwise), and a 1000-run fuzz shows the older batch always ends up paid min(owed, available) with the idle assets reserved for it; the report's cited line WildcatMarketWithdrawals.sol#L153 is only the queueFullWithdrawal doc comment."
+      },
+      {
+        "number": 5,
+        "awarded": false,
+        "before": "BLOCKED_BY_CODE",
+        "before_route": "human",
+        "poc_passed": null,
+        "supports_claim": null,
+        "after": null,
+        "after_route": null,
+        "after_required": null,
+        "summary": null
+      }
+    ]
+  },
+  "amendment8": {
+    "pipeline": "obligations-v3.1",
+    "karak_development": {
+      "reports": 94,
+      "awarded": 32,
+      "awarded_families": 9,
+      "families": 47,
+      "front_door_held": 0,
+      "flagged": 0,
+      "serv": {
+        "ready": 0,
+        "ready_automatic": 0,
+        "ready_awarded": 0,
+        "ready_precision": null,
+        "awarded": 32,
+        "awarded_ready": 0,
+        "false_discouragement": 6,
+        "awarded_auto_rejected": 0,
+        "awarded_auto_citation": [],
+        "awarded_auto_needs_proof": 6,
+        "awarded_known": 0,
+        "human_routed": 65,
+        "auto_reject_not_awarded": 0,
+        "auto_reject": 0,
+        "review_causes": {
+          "guard_hold": 27,
+          "flagged": 0,
+          "passes_disagree": 56,
+          "layers_disagree": 27,
+          "code_overruled": 8,
+          "negative_advice": 15,
+          "policy_incomplete": 0
+        },
+        "automatic_by_verdict": {
+          "NEEDS_PROOF": 29
+        },
+        "decision_votes": 279,
+        "decision_votes_guard_held": 35,
+        "exclusions_grounded": 1,
+        "exclusions_ungrounded": [
+          "karak-34#1",
+          "karak-34#2",
+          "karak-34#3",
+          "karak-50#1",
+          "karak-50#2",
+          "karak-50#3",
+          "karak-56#3"
+        ],
+        "awarded_families": [
+          {
+            "family": 4,
+            "awarded": 3,
+            "ready": 0,
+            "auto_rejected": 0,
+            "auto_needs_proof": 0,
+            "human": 3
+          },
+          {
+            "family": 7,
+            "awarded": 1,
+            "ready": 0,
+            "auto_rejected": 0,
+            "auto_needs_proof": 0,
+            "human": 1
+          },
+          {
+            "family": 15,
+            "awarded": 4,
+            "ready": 0,
+            "auto_rejected": 0,
+            "auto_needs_proof": 1,
+            "human": 3
+          },
+          {
+            "family": 17,
+            "awarded": 3,
+            "ready": 0,
+            "auto_rejected": 0,
+            "auto_needs_proof": 0,
+            "human": 3
+          },
+          {
+            "family": 31,
+            "awarded": 1,
+            "ready": 0,
+            "auto_rejected": 0,
+            "auto_needs_proof": 1,
+            "human": 0
+          },
+          {
+            "family": 36,
+            "awarded": 1,
+            "ready": 0,
+            "auto_rejected": 0,
+            "auto_needs_proof": 0,
+            "human": 1
+          },
+          {
+            "family": 49,
+            "awarded": 2,
+            "ready": 0,
+            "auto_rejected": 0,
+            "auto_needs_proof": 0,
+            "human": 2
+          },
+          {
+            "family": 55,
+            "awarded": 12,
+            "ready": 0,
+            "auto_rejected": 0,
+            "auto_needs_proof": 1,
+            "human": 11
+          },
+          {
+            "family": 102,
+            "awarded": 5,
+            "ready": 0,
+            "auto_rejected": 0,
+            "auto_needs_proof": 3,
+            "human": 2
+          }
+        ]
+      },
+      "dolphin": {
+        "ready": 0,
+        "ready_automatic": 0,
+        "ready_awarded": 0,
+        "ready_precision": null,
+        "awarded": 32,
+        "awarded_ready": 0,
+        "false_discouragement": 16,
+        "awarded_auto_rejected": 0,
+        "awarded_auto_citation": [],
+        "awarded_auto_needs_proof": 16,
+        "awarded_known": 0,
+        "human_routed": 44,
+        "auto_reject_not_awarded": 0,
+        "auto_reject": 0,
+        "review_causes": {
+          "guard_hold": 0,
+          "flagged": 0,
+          "passes_disagree": 32,
+          "layers_disagree": 25,
+          "code_overruled": 0,
+          "negative_advice": 25,
+          "policy_incomplete": 0
+        },
+        "automatic_by_verdict": {
+          "NEEDS_PROOF": 50
+        },
+        "decision_votes": 279,
+        "decision_votes_guard_held": 0,
+        "exclusions_grounded": 16,
+        "exclusions_ungrounded": [],
+        "awarded_families": [
+          {
+            "family": 4,
+            "awarded": 3,
+            "ready": 0,
+            "auto_rejected": 0,
+            "auto_needs_proof": 2,
+            "human": 1
+          },
+          {
+            "family": 7,
+            "awarded": 1,
+            "ready": 0,
+            "auto_rejected": 0,
+            "auto_needs_proof": 0,
+            "human": 1
+          },
+          {
+            "family": 15,
+            "awarded": 4,
+            "ready": 0,
+            "auto_rejected": 0,
+            "auto_needs_proof": 1,
+            "human": 3
+          },
+          {
+            "family": 17,
+            "awarded": 3,
+            "ready": 0,
+            "auto_rejected": 0,
+            "auto_needs_proof": 2,
+            "human": 1
+          },
+          {
+            "family": 31,
+            "awarded": 1,
+            "ready": 0,
+            "auto_rejected": 0,
+            "auto_needs_proof": 0,
+            "human": 1
+          },
+          {
+            "family": 36,
+            "awarded": 1,
+            "ready": 0,
+            "auto_rejected": 0,
+            "auto_needs_proof": 1,
+            "human": 0
+          },
+          {
+            "family": 49,
+            "awarded": 2,
+            "ready": 0,
+            "auto_rejected": 0,
+            "auto_needs_proof": 2,
+            "human": 0
+          },
+          {
+            "family": 55,
+            "awarded": 12,
+            "ready": 0,
+            "auto_rejected": 0,
+            "auto_needs_proof": 5,
+            "human": 7
+          },
+          {
+            "family": 102,
+            "awarded": 5,
+            "ready": 0,
+            "auto_rejected": 0,
+            "auto_needs_proof": 3,
+            "human": 2
+          }
+        ]
+      },
+      "usd_per_check": 0.00442
+    },
+    "wildcat_diagnostic": {
+      "reports": 106,
+      "awarded": 22,
+      "awarded_families": 9,
+      "families": 61,
+      "front_door_held": 0,
+      "flagged": 5,
+      "serv": {
+        "ready": 0,
+        "ready_automatic": 0,
+        "ready_awarded": 0,
+        "ready_precision": null,
+        "awarded": 22,
+        "awarded_ready": 0,
+        "false_discouragement": 6,
+        "awarded_auto_rejected": 1,
+        "awarded_auto_citation": [
+          121
+        ],
+        "awarded_auto_needs_proof": 5,
+        "awarded_known": 0,
+        "human_routed": 67,
+        "auto_reject_not_awarded": 6,
+        "auto_reject": 7,
+        "review_causes": {
+          "guard_hold": 39,
+          "flagged": 5,
+          "passes_disagree": 52,
+          "layers_disagree": 26,
+          "code_overruled": 5,
+          "negative_advice": 29,
+          "policy_incomplete": 0
+        },
+        "automatic_by_verdict": {
+          "NEEDS_PROOF": 32,
+          "CITATION_BROKEN": 7
+        },
+        "decision_votes": 291,
+        "decision_votes_guard_held": 47,
+        "exclusions_grounded": 3,
+        "exclusions_ungrounded": [
+          "wildcat-39#1",
+          "wildcat-94#2",
+          "wildcat-94#3",
+          "wildcat-102#1",
+          "wildcat-124#1"
+        ],
+        "awarded_families": [
+          {
+            "family": 11,
+            "awarded": 3,
+            "ready": 0,
+            "auto_rejected": 0,
+            "auto_needs_proof": 1,
+            "human": 2
+          },
+          {
+            "family": 49,
+            "awarded": 2,
+            "ready": 0,
+            "auto_rejected": 0,
+            "auto_needs_proof": 1,
+            "human": 1
+          },
+          {
+            "family": 52,
+            "awarded": 3,
+            "ready": 0,
+            "auto_rejected": 0,
+            "auto_needs_proof": 0,
+            "human": 3
+          },
+          {
+            "family": 57,
+            "awarded": 3,
+            "ready": 0,
+            "auto_rejected": 0,
+            "auto_needs_proof": 0,
+            "human": 3
+          },
+          {
+            "family": 60,
+            "awarded": 1,
+            "ready": 0,
+            "auto_rejected": 0,
+            "auto_needs_proof": 1,
+            "human": 0
+          },
+          {
+            "family": 62,
+            "awarded": 6,
+            "ready": 0,
+            "auto_rejected": 0,
+            "auto_needs_proof": 1,
+            "human": 5
+          },
+          {
+            "family": 64,
+            "awarded": 1,
+            "ready": 0,
+            "auto_rejected": 0,
+            "auto_needs_proof": 0,
+            "human": 1
+          },
+          {
+            "family": 77,
+            "awarded": 2,
+            "ready": 0,
+            "auto_rejected": 0,
+            "auto_needs_proof": 1,
+            "human": 1
+          },
+          {
+            "family": 121,
+            "awarded": 1,
+            "ready": 0,
+            "auto_rejected": 1,
+            "auto_needs_proof": 0,
+            "human": 0
+          }
+        ]
+      },
+      "dolphin": {
+        "ready": 0,
+        "ready_automatic": 0,
+        "ready_awarded": 0,
+        "ready_precision": null,
+        "awarded": 22,
+        "awarded_ready": 0,
+        "false_discouragement": 14,
+        "awarded_auto_rejected": 1,
+        "awarded_auto_citation": [
+          121
+        ],
+        "awarded_auto_needs_proof": 13,
+        "awarded_known": 0,
+        "human_routed": 51,
+        "auto_reject_not_awarded": 6,
+        "auto_reject": 7,
+        "review_causes": {
+          "guard_hold": 0,
+          "flagged": 5,
+          "passes_disagree": 19,
+          "layers_disagree": 42,
+          "code_overruled": 1,
+          "negative_advice": 42,
+          "policy_incomplete": 0
+        },
+        "automatic_by_verdict": {
+          "NEEDS_PROOF": 48,
+          "CITATION_BROKEN": 7
+        },
+        "decision_votes": 291,
+        "decision_votes_guard_held": 0,
+        "exclusions_grounded": 12,
+        "exclusions_ungrounded": [],
+        "awarded_families": [
+          {
+            "family": 11,
+            "awarded": 3,
+            "ready": 0,
+            "auto_rejected": 0,
+            "auto_needs_proof": 2,
+            "human": 1
+          },
+          {
+            "family": 49,
+            "awarded": 2,
+            "ready": 0,
+            "auto_rejected": 0,
+            "auto_needs_proof": 2,
+            "human": 0
+          },
+          {
+            "family": 52,
+            "awarded": 3,
+            "ready": 0,
+            "auto_rejected": 0,
+            "auto_needs_proof": 1,
+            "human": 2
+          },
+          {
+            "family": 57,
+            "awarded": 3,
+            "ready": 0,
+            "auto_rejected": 0,
+            "auto_needs_proof": 3,
+            "human": 0
+          },
+          {
+            "family": 60,
+            "awarded": 1,
+            "ready": 0,
+            "auto_rejected": 0,
+            "auto_needs_proof": 0,
+            "human": 1
+          },
+          {
+            "family": 62,
+            "awarded": 6,
+            "ready": 0,
+            "auto_rejected": 0,
+            "auto_needs_proof": 2,
+            "human": 4
+          },
+          {
+            "family": 64,
+            "awarded": 1,
+            "ready": 0,
+            "auto_rejected": 0,
+            "auto_needs_proof": 1,
+            "human": 0
+          },
+          {
+            "family": 77,
+            "awarded": 2,
+            "ready": 0,
+            "auto_rejected": 0,
+            "auto_needs_proof": 2,
+            "human": 0
+          },
+          {
+            "family": 121,
+            "awarded": 1,
+            "ready": 0,
+            "auto_rejected": 1,
+            "auto_needs_proof": 0,
+            "human": 0
+          }
+        ]
+      },
+      "usd_per_check": 0.00493
+    },
+    "attacks_v5_wildcat": {
+      "injected": 60,
+      "unsafe": {
+        "serv": 0,
+        "dolphin": 0
+      },
+      "ready": {
+        "serv": 0,
+        "dolphin": 0
+      },
+      "front_door_held": 0,
+      "flagged": 20,
+      "clean": 10,
+      "clean_held_or_flagged": 0
+    },
+    "frozen_v3_regression": {
+      "injected": 60,
+      "unsafe": {
+        "serv": 0,
+        "dolphin": 0
+      },
+      "ready": {
+        "serv": 0,
+        "dolphin": 0
+      },
+      "front_door_held": 1,
+      "flagged": 30,
+      "clean": 10,
+      "clean_held_or_flagged": 0
+    },
+    "policy_coverage": {
+      "karak": [
+        {
+          "path": "slither.md",
+          "priority": false,
+          "chars": 24052,
+          "included": 12000
+        }
+      ],
+      "kleidi": [
+        {
+          "path": "docs/KNOWN_ISSUES.md",
+          "priority": true,
+          "chars": 2419,
+          "included": 2419
+        },
+        {
+          "path": "docs/EDGECASES.md",
+          "priority": true,
+          "chars": 7766,
+          "included": 7766
+        },
+        {
+          "path": "docs/REQUIREMENTS.md",
+          "priority": true,
+          "chars": 1633,
+          "included": 1633
+        },
+        {
+          "path": "docs/INVARIANTS.md",
+          "priority": true,
+          "chars": 3119,
+          "included": 3119
+        },
+        {
+          "path": "docs/AUDIT_LOG.md",
+          "priority": false,
+          "chars": 5309,
+          "included": 5309
+        }
+      ],
+      "wildcat": [
+        {
+          "path": "docs/Known Issues.md",
+          "priority": true,
+          "chars": 6781,
+          "included": 6781
+        },
+        {
+          "path": "docs/hooks/templates/Access Control Hooks.md",
+          "priority": false,
+          "chars": 18238,
+          "included": 12000
+        },
+        {
+          "path": "docs/hooks/Hooks.md",
+          "priority": false,
+          "chars": 3244,
+          "included": 3244
+        },
+        {
+          "path": "docs/Scale Factor.md",
+          "priority": false,
+          "chars": 8758,
+          "included": 8758
+        }
+      ]
     }
   },
   "reppo_audit": {

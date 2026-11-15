@@ -146,7 +146,17 @@ script: proof
     <div class="panel" style="padding:8px 28px" data-reveal><table class="data" id="holdout-table"></table></div>
     <p class="fine" style="margin-top:16px" data-reveal>Every routing number comes from the production router. Awarded findings in one family are duplicates, not independent tests, so each family is shown below. Labels are contest outcomes.</p>
     <div class="panel" style="padding:8px 28px;margin-top:24px" data-reveal><table class="data" id="family-table"></table></div>
-    <div class="grid-2" style="margin-top:24px" id="holdout-notes"></div>
+    <div class="grid-2" style="margin-top:24px">
+      <div class="crit" data-reveal>
+        <h4>What v3 fixed</h4>
+        <p>v2 called <span data-claim="amendment7.holdout_wildcat_v2_baseline.serv.awarded_known">5</span> awarded Wildcat findings known or out of scope; v3, which reads the contest's own rules and must quote them, called <span data-claim="amendment7.holdout_wildcat.serv.awarded_known">0</span>. With Dolphin deciding, automatic rejections fell from <span data-claim="amendment7.holdout_wildcat_v2_baseline.dolphin.auto_reject">29</span> to <span data-claim="amendment7.holdout_wildcat.dolphin.auto_reject">7</span>, and in v3.1 every automatic rejection left is a broken-citation result.</p>
+      </div>
+      <div class="crit" data-reveal>
+        <h4>What it did not fix</h4>
+        <p>Nothing reached READY on any contest. SERV's guard held <span data-claim="amendment7.holdout_wildcat.serv.decision_votes_guard_held">136</span> of <span data-claim="amendment7.holdout_wildcat.serv.decision_votes">291</span> decision passes on Wildcat under v3 (<span data-claim="amendment8.wildcat_diagnostic.serv.decision_votes_guard_held">47</span> under v3.1). One awarded finding, #121, is stopped as a broken citation because its line, though real, shares no identifier with the text. A finding that needs a trusted role can never be READY: code adds what would resolve it, but does not yet check the policy's exceptions.</p>
+        <p class="muted">v3 was blind on Wildcat. v3.1 was built after seeing v3's problems, so its Wildcat column is diagnostic. v3's policy bundle cut Wildcat's known-issues document; v3.1 includes it, and shortens one other document (Access Control Hooks, 12,000 of 18,238 characters).</p>
+      </div>
+    </div>
     <div class="panel" style="padding:8px 28px;margin-top:24px" data-reveal><table class="data" id="attack-table"></table></div>
     <p class="fine" style="margin-top:16px" id="holdout-scope" data-reveal></p>
   </div>
