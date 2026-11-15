@@ -57,3 +57,15 @@ test("column-qualified ranges keep both line numbers", () => {
   const [c] = parseCitations(`${base}/main/src/NativeVault.sol#L168C14-L170C43`, KARAK.githubRepo, KARAK.auditedCommit);
   assert.deepEqual([c.start, c.end], [168, 170]);
 });
+
+test("a brace-only span never counts as MOVED", () => {
+  const r = resolve(`${base}/${INIT}/src/Vault.sol#L228`);
+  assert.notEqual(r.status, "MOVED");
+});
+
+test("?plain=1 permalinks and uppercase SHAs parse", () => {
+  const [a] = parseCitations(`${base}/main/src/Vault.sol?plain=1#L78`, KARAK.githubRepo, KARAK.auditedCommit);
+  assert.equal(a.path, "src/Vault.sol");
+  const [b] = parseCitations(`${base}/F5E52FDCB4C20C4318D532A9F08F7876E9AFB321/src/Vault.sol#L78`, KARAK.githubRepo, KARAK.auditedCommit);
+  assert.equal(b.commit, KARAK.auditedCommit);
+});

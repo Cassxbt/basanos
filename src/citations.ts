@@ -31,7 +31,7 @@ export interface Contest {
   scope: Set<string>;
 }
 
-const LINK = /https:\/\/github\.com\/([\w.-]+\/[\w.-]+)\/blob\/([0-9a-f]{7,40}|main|master)\/([^\s#)\]]+)#L(\d+)(?:C\d+)?(?:-L(\d+)(?:C\d+)?)?/g;
+const LINK = /https:\/\/github\.com\/([\w.-]+\/[\w.-]+)\/blob\/([0-9a-fA-F]{7,40}|main|master)\/([^\s#?)\]]+)(?:\?[^\s#)\]]*)?#L(\d+)(?:C\d+)?(?:-L(\d+)(?:C\d+)?)?/g;
 
 const isBranch = (ref: string) => ref === "main" || ref === "master";
 
@@ -47,7 +47,7 @@ export function parseCitations(body: string, githubRepo: string, auditedCommit: 
     if (seen.has(key)) continue;
     seen.add(key);
     const ref = m[2];
-    const commit = isBranch(ref) ? auditedCommit : ref;
+    const commit = isBranch(ref) ? auditedCommit : ref.toLowerCase();
     out.push({ url: m[0], ref, commit, path: decodeURIComponent(m[3]), start, end });
   }
   return out;
@@ -83,12 +83,19 @@ function commitExists(repoDir: string, commit: string): boolean {
 
 const normalize = (lines: string[]) => lines.map((l) => l.trim()).join("\n");
 
+const TRIVIAL = /^[\s{}();]*$/;
+
+// Only a unique, non-trivial match counts as the same code; a lone "}" matches everywhere.
 function locate(haystack: string[], needle: string[]): number {
   const target = normalize(needle);
+  if (TRIVIAL.test(target)) return -1;
+  let found = -1;
   for (let i = 0; i + needle.length <= haystack.length; i++) {
-    if (normalize(haystack.slice(i, i + needle.length)) === target) return i + 1;
+    if (normalize(haystack.slice(i, i + needle.length)) !== target) continue;
+    if (found !== -1) return -1;
+    found = i + 1;
   }
-  return -1;
+  return found;
 }
 
 export function resolveCitation(c: Citation, contest: Contest): ResolvedCitation {

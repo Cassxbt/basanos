@@ -15,12 +15,16 @@ interface Issue {
   labels: { name: string }[];
 }
 
+type Severity = "high" | "medium" | "qa";
+
 export interface Report {
   id: string;
   number: number;
   title: string;
   body: string;
   submittedSeverity: "high" | "medium";
+  finalSeverity: Severity | null;
+  awarded: boolean;
   judged: "satisfactory" | "unsatisfactory" | null;
   presort: "sufficient" | "insufficient" | null;
   family: number;
@@ -29,10 +33,17 @@ export interface Report {
 
 const JUDGE_AUTHORED = /^\s*Judge has assessed/;
 
-function toReport(issue: Issue): Report | { excluded: number; reason: string } {
+const SEVERITY_LABELS: Record<string, Severity> = {
+  "3 (High Risk)": "high",
+  "2 (Med Risk)": "medium",
+  "QA (Quality Assurance)": "qa",
+};
+
+// Current labels are the judge's final call; the first severity label in the issue's history is what the warden submitted.
+function toReport(issue: Issue, submitted: Severity | null): Report | { excluded: number; reason: string } {
   const labels = new Set(issue.labels.map((l) => l.name));
-  const severity = labels.has("3 (High Risk)") ? "high" : labels.has("2 (Med Risk)") ? "medium" : null;
-  if (!severity) return { excluded: issue.number, reason: "not H/M" };
+  if (submitted !== "high" && submitted !== "medium") return { excluded: issue.number, reason: "not submitted as H/M" };
+  const finalSeverity = issue.labels.map((l) => SEVERITY_LABELS[l.name]).find(Boolean) ?? null;
   const body = issue.body ?? "";
   if (JUDGE_AUTHORED.test(body)) return { excluded: issue.number, reason: "judge-authored body" };
 
@@ -42,7 +53,9 @@ function toReport(issue: Issue): Report | { excluded: number; reason: string } {
     number: issue.number,
     title: issue.title,
     body,
-    submittedSeverity: severity,
+    submittedSeverity: submitted,
+    finalSeverity,
+    awarded: labels.has("satisfactory") && (finalSeverity === "high" || finalSeverity === "medium"),
     judged: labels.has("satisfactory") ? "satisfactory" : labels.has("unsatisfactory") ? "unsatisfactory" : null,
     presort: labels.has("sufficient quality report")
       ? "sufficient"
@@ -57,10 +70,13 @@ function toReport(issue: Issue): Report | { excluded: number; reason: string } {
 if (import.meta.url === `file://${process.argv[1]}`) {
   KARAK.scope = loadScope(KARAK.repoDir, KARAK.auditedCommit);
   const issues: Issue[] = JSON.parse(readFileSync("data/karak/issues.json", "utf8"));
+  const submitted: Record<string, Severity | null> = JSON.parse(
+    readFileSync("data/karak/events/submitted_severity.json", "utf8"),
+  );
   const reports: Report[] = [];
   const excluded: { excluded: number; reason: string }[] = [];
   for (const issue of issues) {
-    const r = toReport(issue);
+    const r = toReport(issue, submitted[issue.number]);
     if ("excluded" in r) excluded.push(r);
     else reports.push(r);
   }

@@ -63,3 +63,25 @@ When an audit-contest report goes through Basanos, does the verdict line up with
 - Labels are contest outcomes, not ground truth about bugs. A report can be valid and still unsatisfactory, for example as a known issue or a downgrade. The README will say so.
 - **Contamination:** these 2024 reports and their outcomes may be in the training data of both models. The bug/fix pairs are the check against that, and the README will state it.
 - One contest, n = 75. Every result is reported with its interval, and nothing is generalized beyond Karak.
+
+## Amendment 1, 2026-11-15, before any scoring
+
+An independent review of the data (`stress/R3_STEP12_DATA_CITATIONS.md`) found two errors, both confirmed against GitHub's label history:
+- The severity labels on these issues are the judge's final severity, not what the warden submitted.
+- The dataset had dropped 19 reports that were submitted as High/Medium and downgraded to QA. These are the clearest cases of overclaimed severity.
+
+Changes:
+- **Set:** every report submitted as High/Medium, using the first severity label in each issue's history. That is 94 reports (#100 is still excluded) in 47 duplicate families.
+- **Primary target:** `awarded` = satisfactory and the final severity is High or Medium. That gives 32 positive and 62 negative, a base rate of 0.66 for "not awarded". #3 and #10 were satisfactory only as QA, so they count as negatives.
+- **Baselines:** naive single-feature scores, each reported as AUROC against `awarded` alongside the arms:
+  - body length;
+  - number of citations;
+  - distinct files cited;
+  - presort `sufficient`.
+  Any arm that does not beat these is reported as not beating them.
+- **Family-level reporting:** alongside the cluster bootstrap, report:
+  - leave-one-family-out AUROC;
+  - per-family accuracy, with each family's verdict taken from its primary report.
+  32 positive reports come from only 9 families, and family 55 alone holds 12 of them.
+- **Run 1:** it had already been run on the original 75 reports. Their rows are kept. Run 1 is extended to the 19 added reports with the same code and prompts. Run 2 covers all 94.
+- **Citation check:** it resolves every in-scope citation in Karak, so it is a hygiene gate, not a predictor. The README will say so. Its value is tested on the hostile and fabricated sets.
