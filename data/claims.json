@@ -13,6 +13,36 @@
   },
   "shipped": {
     "serv": {
+      "auroc": 0.716,
+      "ci95": [
+        0.592,
+        0.839
+      ],
+      "unanimous": 48,
+      "automatic_rejects": 11,
+      "automatic_rejects_not_awarded": 11,
+      "ready": 0,
+      "decision_usd": 0.15242
+    },
+    "dolphin": {
+      "auroc": 0.784,
+      "ci95": [
+        0.658,
+        0.916
+      ],
+      "unanimous": 57,
+      "automatic_rejects": 18,
+      "automatic_rejects_not_awarded": 16,
+      "ready": 0,
+      "decision_usd": 0.00763
+    },
+    "front_door_held": 7,
+    "flagged": 0,
+    "usd_per_check": 0.00309
+  },
+  "shipped_source": "run5",
+  "defended_before_contract_fixes": {
+    "serv": {
       "auroc": 0.711,
       "ci95": [
         0.607,
@@ -114,6 +144,16 @@
   "bug_fix_pairs": {
     "findings": 9,
     "runs": 2,
+    "preregistered_score_drop": {
+      "serv": {
+        "dropped": 1,
+        "eligible": 3
+      },
+      "dolphin": {
+        "dropped": 2,
+        "eligible": 6
+      }
+    },
     "blocked_original": {
       "dolphin": 2,
       "serv": 1,
@@ -165,6 +205,156 @@
     "front_door_held": 1,
     "flagged": 30
   },
+  "ablation": {
+    "arms": {
+      "full": {
+        "unsafe": {
+          "serv": 0,
+          "dolphin": 0
+        },
+        "ready": {
+          "serv": 0,
+          "dolphin": 0
+        },
+        "injected": 60,
+        "clean_held": 1,
+        "clean_flagged": 0,
+        "clean": 10,
+        "usd": 0.19283
+      },
+      "no_front_door": {
+        "unsafe": {
+          "serv": 0,
+          "dolphin": 0
+        },
+        "ready": {
+          "serv": 0,
+          "dolphin": 0
+        },
+        "injected": 60,
+        "clean_held": 0,
+        "clean_flagged": 0,
+        "clean": 10,
+        "usd": 0.18732
+      },
+      "no_scan": {
+        "unsafe": {
+          "serv": 0,
+          "dolphin": 0
+        },
+        "ready": {
+          "serv": 0,
+          "dolphin": 0
+        },
+        "injected": 60,
+        "clean_held": 1,
+        "clean_flagged": 0,
+        "clean": 10,
+        "usd": 0.1858
+      },
+      "no_proof_cap": {
+        "unsafe": {
+          "serv": 0,
+          "dolphin": 0
+        },
+        "ready": {
+          "serv": 0,
+          "dolphin": 1
+        },
+        "injected": 60,
+        "clean_held": 1,
+        "clean_flagged": 0,
+        "clean": 10,
+        "usd": 0.19412
+      }
+    },
+    "unique_saves": {
+      "front_door": {
+        "serv": [],
+        "dolphin": []
+      },
+      "scan": {
+        "serv": [],
+        "dolphin": []
+      },
+      "proof_cap": {
+        "serv": [],
+        "dolphin": []
+      }
+    }
+  },
+  "repair_loop": [
+    {
+      "number": 7,
+      "awarded": true,
+      "before": "NEEDS_PROOF",
+      "before_route": "automatic",
+      "poc_passed": true,
+      "after": "NEEDS_PROOF",
+      "after_route": "automatic",
+      "summary": "Zero-asset vault that is still staked to the DSS makes finalizeSlashing revert with ZeroAmount and leaves the healthy vault unslashed; verified end to end."
+    },
+    {
+      "number": 49,
+      "awarded": true,
+      "before": "KNOWN_OR_OUT_OF_SCOPE",
+      "before_route": "automatic",
+      "poc_passed": true,
+      "after": "KNOWN_OR_OUT_OF_SCOPE",
+      "after_route": "human",
+      "summary": "Changing the allowlisted handler makes a queued NativeVault slash revert with NotSlashStore and restoring it unblocks it, but it requires the trusted manager role so severity is Low/QA at best."
+    },
+    {
+      "number": 28,
+      "awarded": false,
+      "before": "NEEDS_PROOF",
+      "before_route": "human",
+      "poc_passed": true,
+      "after": "GUARD_HELD",
+      "after_route": "human",
+      "summary": "A DSS inflates totalAssets before requestSlashing, redeems its own deposit inside the veto window, and finalizeSlashing then burns 1000 of 1000 honest assets against a 30% cap (300 allowed)."
+    },
+    {
+      "number": 41,
+      "awarded": false,
+      "before": "NEEDS_PROOF",
+      "before_route": "human",
+      "poc_passed": true,
+      "after": "NEEDS_PROOF",
+      "after_route": "human",
+      "summary": "The test proves that an operator who finalizes a pre-scheduled unstake first makes requestSlashing revert with VaultNotStakedToDSS (even against a DSS with all-reverting hooks) and exits with the full 1000, while a control shows the slash lands if requested one second earlier."
+    },
+    {
+      "number": 55,
+      "awarded": true,
+      "before": "GUARD_HELD",
+      "before_route": "human",
+      "poc_passed": null,
+      "after": null,
+      "after_route": null,
+      "summary": null
+    },
+    {
+      "number": 4,
+      "awarded": true,
+      "before": "NEEDS_PROOF",
+      "before_route": "automatic",
+      "poc_passed": true,
+      "after": "NEEDS_PROOF",
+      "after_route": "automatic",
+      "summary": "The test proves a slash queued while the operator was registered is finalized after it unstaked and unregistered, burning 100 tokens from each vault and cutting a post-unregistration depositor from 1000 to 950; whether that violates the intended invariant remains a design-intent question."
+    },
+    {
+      "number": 26,
+      "awarded": false,
+      "before": "NEEDS_PROOF",
+      "before_route": "human",
+      "poc_passed": true,
+      "after": "NEEDS_PROOF",
+      "after_route": "human",
+      "summary": "The test proves a queued stake cannot be cancelled, a stranger can finalize it and a registered DSS can then slash the vault from 1000 to 700, but a second test shows the operator can avoid this by unregistering during the 9-day delay, which narrows the claim."
+    }
+  ],
   "reppo_audit": {
     "completed": 20,
     "accepted": 20,
