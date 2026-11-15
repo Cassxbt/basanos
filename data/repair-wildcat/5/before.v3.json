@@ -1,0 +1,136 @@
+{
+  "verdict": "BLOCKED_BY_CODE",
+  "agreement": "majority",
+  "route": "human",
+  "severity_supported": "low_or_none",
+  "missing": [
+    {
+      "item": "Demonstration that updateScaleFactorAndFees does not add to accruedProtocolFees",
+      "category": "required",
+      "obligation": 2,
+      "why": "The claim's reachability depends on the accrual path being absent; the cited in-scope code calls into FeeMath which performs the accrual, so the claimed path is blocked.",
+      "resolves_when": "A trace of FeeMath.updateScaleFactorAndFees showing accruedProtocolFees is never incremented, or a test where collectFees reverts after interest accrues with protocolFeeBips > 0."
+    }
+  ],
+  "reason": "The claimed path is blocked by fee accrual in WildcatMarketBase at lines 415 and 435, which calls FeeMath.updateScaleFactorAndFees; FeeMath adds the protocol fee to accruedProtocolFees. Thus collectFees is not always unable to collect.",
+  "caps": [
+    "dropped 1 blocking reference(s) to code that does not exist",
+    "layers disagree: evidence requires E1 (obligation 2), the decision does not"
+  ],
+  "flags": [],
+  "citations": [
+    {
+      "status": "OK",
+      "path": "src/libraries/MarketState.sol",
+      "lines": [
+        15,
+        15
+      ],
+      "audited_lines": [
+        15,
+        15
+      ]
+    },
+    {
+      "status": "OK",
+      "path": "src/market/WildcatMarketConfig.sol",
+      "lines": [
+        164,
+        164
+      ],
+      "audited_lines": [
+        164,
+        164
+      ]
+    }
+  ],
+  "votes": [
+    {
+      "verdict": "GUARD_HELD",
+      "severity": null,
+      "request_id": null
+    },
+    {
+      "verdict": "BLOCKED_BY_CODE",
+      "severity": "low_or_none",
+      "request_id": "64f8c0f7-90c5-4f28-9a27-3c8e71f988ab"
+    },
+    {
+      "verdict": "BLOCKED_BY_CODE",
+      "severity": "low_or_none",
+      "request_id": "80f6b21b-bb5a-4043-8da0-ad8834eaae0e"
+    }
+  ],
+  "evidence": {
+    "model": "deepseek-ai/DeepSeek-V4.1-Flash",
+    "tokens_read": 86891,
+    "claim": "Protocol fees are never accrued: `accruedProtocolFees` is never incremented, so `collectFees` always reverts and the protocol can never collect fees.",
+    "root_cause_file": "src/libraries/MarketState.sol",
+    "root_cause_line": 15,
+    "code_supports_claim": "no",
+    "support_reason": "Fee accrual is implemented in FeeMath.updateScaleFactorAndFees (out-of-scope library, called from WildcatMarketBase._getUpdatedState lines 415-420 and 435-440), which returns a protocolFee that is added to state.accruedProtocolFees. The report only inspects the struct and the setter/collector and misses the accrual path.",
+    "blocking_code": [
+      {
+        "file": "src/market/WildcatMarketBase.sol",
+        "line": 415,
+        "why": "updateScaleFactorAndFees accrues protocol fee into state.accruedProtocolFees"
+      },
+      {
+        "file": "src/market/WildcatMarketBase.sol",
+        "line": 435,
+        "why": "same accrual on every state update"
+      }
+    ],
+    "poc": "narrative_only",
+    "impact": "protocol_dos",
+    "preconditions": [],
+    "trusted_role_required": false,
+    "known_issue_match": "",
+    "missing_evidence": [
+      {
+        "item": "Demonstration that updateScaleFactorAndFees does not add to accruedProtocolFees",
+        "category": "required",
+        "obligation": 2,
+        "why": "The claim's reachability depends on the accrual path being absent; the cited in-scope code calls into FeeMath which performs the accrual, so the claimed path is blocked.",
+        "resolves_when": "A trace of FeeMath.updateScaleFactorAndFees showing accruedProtocolFees is never incremented, or a test where collectFees reverts after interest accrues with protocolFeeBips > 0."
+      }
+    ]
+  },
+  "decision": {
+    "provider": "serv",
+    "model": "gpt-6-luna",
+    "prompt_guard_requested": true
+  },
+  "usd": 0.004082,
+  "certificate": {
+    "version": 1,
+    "seal_type": "sha256-checksum",
+    "pipeline": "obligations-v3",
+    "contest": "wildcat",
+    "audited_commit": "fe746cc0fbedc4447a981a50e6ba4c95f98b9fe1",
+    "finding_sha256": "9c1fecbdcd59756ec4d60de425a42ccc24d0eb8594cc75f1fd97f6add5c0470f",
+    "verdict": "BLOCKED_BY_CODE",
+    "agreement": "majority",
+    "route": "human",
+    "votes": [
+      {
+        "verdict": "GUARD_HELD",
+        "serv_request_id": null
+      },
+      {
+        "verdict": "BLOCKED_BY_CODE",
+        "serv_request_id": "64f8c0f7-90c5-4f28-9a27-3c8e71f988ab"
+      },
+      {
+        "verdict": "BLOCKED_BY_CODE",
+        "serv_request_id": "80f6b21b-bb5a-4043-8da0-ad8834eaae0e"
+      }
+    ],
+    "decider": "serv/gpt-6-luna",
+    "evidence_model": "deepseek-ai/DeepSeek-V4.1-Flash",
+    "flags": [],
+    "usd": 0.004082,
+    "issued_at": "2026-11-15T14:49:52.941Z"
+  },
+  "seal": "8b1a1be7156a21013c1a8ef90f68c1a77877f1b380f6003206852ed6d5323d4e"
+}

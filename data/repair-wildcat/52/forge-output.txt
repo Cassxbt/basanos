@@ -1,0 +1,29 @@
+Warning: Found unknown `fuzz_runs` config for profile `coverage` defined in foundry.toml.
+No files changed, compilation skipped
+error: unresolved symbol `locals`
+   --> src/spherex/SphereXProtectedRegisteredBase.sol:153:39
+    |
+153 |   ) internal returnsIfNotActivatedPre(locals) returns (ModifierLocals memory locals) {
+    |                                       ^^^^^^
+
+
+Ran 4 tests for test/repair/Poc52.t.sol:Poc52Test
+[PASS] test_closedMarket_lenderCannotWithdrawBeforeTermEnd() (gas: 148911)
+Logs:
+  computeCreateAddress is deprecated. Please use vm.computeCreateAddress instead.
+
+[PASS] test_closedMarket_lenderExitsAtTermEnd() (gas: 280799)
+Logs:
+  computeCreateAddress is deprecated. Please use vm.computeCreateAddress instead.
+
+[PASS] test_closedMarket_noInterestWhileLocked() (gas: 178018)
+Logs:
+  computeCreateAddress is deprecated. Please use vm.computeCreateAddress instead.
+
+[PASS] test_onlyBorrowerCanReleaseLockEarly() (gas: 285287)
+Logs:
+  computeCreateAddress is deprecated. Please use vm.computeCreateAddress instead.
+
+Suite result: ok. 4 passed; 0 failed; 0 skipped; finished in 6.30ms (2.80ms CPU time)
+
+Ran 1 test suite in 158.34ms (6.30ms CPU time): 4 tests passed, 0 failed, 0 skipped (4 total tests)

@@ -1,0 +1,140 @@
+{
+  "verdict": "NEEDS_PROOF",
+  "agreement": "split",
+  "route": "human",
+  "severity_supported": "low_or_none",
+  "missing": [
+    {
+      "item": "Evidence that early market closure is intended to let lenders withdraw despite an unexpired fixed term.",
+      "category": "required",
+      "obligation": 3,
+      "why": "The code supports the withdrawal revert after closure, but the impact depends on whether the fixed-term restriction should end when the market closes. The record identifies no policy or documentation establishing that expectation.",
+      "resolves_when": "Provide a cited policy clause or documentation establishing that closing a market must permit lender withdrawals before the fixed-term end time."
+    },
+    {
+      "item": "Evidence clarifying the practical severity of the time-limited withdrawal delay.",
+      "category": "strengthens",
+      "obligation": 3,
+      "why": "The record says the restriction ends when the fixed term expires, so the demonstrated effect is a delay rather than permanent loss. This limits support for a higher severity.",
+      "resolves_when": "Document the maximum remaining lock duration and any concrete consequences of that delay relevant to severity."
+    }
+  ],
+  "reason": "The passes disagreed (NEEDS_PROOF). Route this report to a human reviewer.",
+  "caps": [],
+  "flags": [],
+  "citations": [
+    {
+      "status": "OK",
+      "path": "src/access/FixedTermLoanHooks.sol",
+      "lines": [
+        848,
+        868
+      ],
+      "audited_lines": [
+        848,
+        868
+      ]
+    },
+    {
+      "status": "OK",
+      "path": "src/access/FixedTermLoanHooks.sol",
+      "lines": [
+        943,
+        946
+      ],
+      "audited_lines": [
+        943,
+        946
+      ]
+    }
+  ],
+  "votes": [
+    {
+      "verdict": "GUARD_HELD",
+      "severity": null,
+      "request_id": null
+    },
+    {
+      "verdict": "GUARD_HELD",
+      "severity": null,
+      "request_id": null
+    },
+    {
+      "verdict": "NEEDS_PROOF",
+      "severity": "low_or_none",
+      "request_id": "c0c3c1ca-d449-42db-95ca-be89d6025670"
+    }
+  ],
+  "evidence": {
+    "model": "deepseek-ai/DeepSeek-V4.1-Flash",
+    "tokens_read": 87516,
+    "claim": "FixedTermLoanHooks.onQueueWithdrawal blocks all withdrawals until fixedTermEndTime, and closing the market does not reset fixedTermEndTime, so lenders cannot exit even after the borrower closes the market.",
+    "root_cause_file": "src/access/FixedTermLoanHooks.sol",
+    "root_cause_line": 857,
+    "code_supports_claim": "yes",
+    "support_reason": "onQueueWithdrawal reverts with WithdrawBeforeTermEnd whenever fixedTermEndTime > block.timestamp (L857-859), unconditionally and before any closed-market consideration. onCloseMarket is a no-op (L943-946) and the constructor config does not set Bit_Enabled_CloseMarket (L154-157), so fixedTermEndTime is never cleared on close. closeMarket (WildcatMarket.sol L226-287) does not touch the hook. Thus a closed market with an unexpired fixed term still reverts on queueWithdrawal/queueFullWithdrawal.",
+    "blocking_code": [],
+    "poc": "runnable_test",
+    "impact": "funds_loss",
+    "preconditions": [
+      "Market deployed with FixedTermLoanHooks and fixedTermEndTime in the future",
+      "Borrower calls closeMarket before fixedTermEndTime",
+      "Lender attempts queueWithdrawal/queueFullWithdrawal before fixedTermEndTime"
+    ],
+    "trusted_role_required": true,
+    "known_issue_match": "",
+    "missing_evidence": [
+      {
+        "item": "Whether the fixed-term lock is intended to survive market closure (design intent), i.e. whether 'lenders can always exit a closed market' is a protocol invariant the borrower closing early violates.",
+        "category": "required",
+        "obligation": 3,
+        "why": "The impact 'lenders cannot exit' depends on treating the fixed-term lock as invalid after close. The docs describe fixed-term as a deliberate withdrawal restriction; if the lock is intended to persist through closure, the demonstrated revert is expected behavior, not a vulnerability. No cited policy clause establishes that closure must override the fixed term.",
+        "resolves_when": "A cited policy clause or docs statement establishes that closing a market must allow lenders to withdraw regardless of fixed-term end time."
+      },
+      {
+        "item": "Whether the borrower can simply wait out the term or whether funds are permanently stuck (temporary vs permanent lock).",
+        "category": "strengthens",
+        "obligation": 3,
+        "why": "The lock is time-bounded (max 365 days); lenders can withdraw after fixedTermEndTime passes, so the effect is a delay, not permanent loss. This affects severity but not whether the path is reachable.",
+        "resolves_when": "N/A"
+      }
+    ]
+  },
+  "decision": {
+    "provider": "serv",
+    "model": "gpt-6-luna",
+    "prompt_guard_requested": true
+  },
+  "usd": 0.003764,
+  "certificate": {
+    "version": 1,
+    "seal_type": "sha256-checksum",
+    "pipeline": "obligations-v3",
+    "contest": "wildcat",
+    "audited_commit": "fe746cc0fbedc4447a981a50e6ba4c95f98b9fe1",
+    "finding_sha256": "b70dd3af4340ca02245b957cb22274f09835728199b679df3865b85ad220e388",
+    "verdict": "NEEDS_PROOF",
+    "agreement": "split",
+    "route": "human",
+    "votes": [
+      {
+        "verdict": "GUARD_HELD",
+        "serv_request_id": null
+      },
+      {
+        "verdict": "GUARD_HELD",
+        "serv_request_id": null
+      },
+      {
+        "verdict": "NEEDS_PROOF",
+        "serv_request_id": "c0c3c1ca-d449-42db-95ca-be89d6025670"
+      }
+    ],
+    "decider": "serv/gpt-6-luna",
+    "evidence_model": "deepseek-ai/DeepSeek-V4.1-Flash",
+    "flags": [],
+    "usd": 0.003764,
+    "issued_at": "2026-11-15T14:50:08.963Z"
+  },
+  "seal": "36211511741a57b289001c532ab700b29c9c226baddc6a6ffca0f8eaf5708c43"
+}

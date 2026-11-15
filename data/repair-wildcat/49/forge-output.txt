@@ -1,0 +1,33 @@
+Warning: Found unknown `fuzz_runs` config for profile `coverage` defined in foundry.toml.
+No files changed, compilation skipped
+error: unresolved symbol `locals`
+   --> src/spherex/SphereXProtectedRegisteredBase.sol:153:39
+    |
+153 |   ) internal returnsIfNotActivatedPre(locals) returns (ModifierLocals memory locals) {
+    |                                       ^^^^^^
+
+
+Ran 5 tests for test/repair/Poc49.t.sol:Poc49Test
+[PASS] test_addRoleProvider_EOA_reverts_AccessControlHooks() (gas: 18886)
+Logs:
+  computeCreateAddress is deprecated. Please use vm.computeCreateAddress instead.
+
+[PASS] test_addRoleProvider_EOA_reverts_FixedTermLoanHooks() (gas: 5058783)
+Logs:
+  computeCreateAddress is deprecated. Please use vm.computeCreateAddress instead.
+
+[PASS] test_borrowerEOA_isProvider_andCanUnblockLender() (gas: 201544)
+Logs:
+  computeCreateAddress is deprecated. Please use vm.computeCreateAddress instead.
+
+[PASS] test_contractWrapper_workaround() (gas: 498339)
+Logs:
+  computeCreateAddress is deprecated. Please use vm.computeCreateAddress instead.
+
+[PASS] test_unregisteredEOA_cannotGrantRole() (gas: 66830)
+Logs:
+  computeCreateAddress is deprecated. Please use vm.computeCreateAddress instead.
+
+Suite result: ok. 5 passed; 0 failed; 0 skipped; finished in 4.45ms (1.07ms CPU time)
+
+Ran 1 test suite in 150.80ms (4.45ms CPU time): 5 tests passed, 0 failed, 0 skipped (5 total tests)

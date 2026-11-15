@@ -1,0 +1,49 @@
+Warning: Found unknown `fuzz_runs` config for profile `coverage` defined in foundry.toml.
+No files changed, compilation skipped
+error: unresolved symbol `locals`
+   --> src/spherex/SphereXProtectedRegisteredBase.sol:153:39
+    |
+153 |   ) internal returnsIfNotActivatedPre(locals) returns (ModifierLocals memory locals) {
+    |                                       ^^^^^^
+
+
+Warning: the following cheatcode(s) are deprecated and will be removed in future versions:
+  snapshot(): replaced by `snapshotState`
+  revertTo(uint256): replaced by `revertToState`
+Ran 4 tests for test/repair/Poc62.t.sol:Poc62
+[PASS] test_poc62_extraIsAccrualOwedForElapsedTime() (gas: 1160023)
+Logs:
+  computeCreateAddress is deprecated. Please use vm.computeCreateAddress instead.
+  borrower net paid, funds-first : 800455200405885337
+  borrower net paid, state-first : 967625143234433533
+  lender payout,     funds-first : 1000433282597666159
+  lender payout,     state-first : 1159642751958188250
+  protocol fees,     funds-first : 21917808219178
+  protocol fees,     state-first : 7982391276245283
+  extra borrower cost            : 167169942828548196
+  extra to lender                : 159209469360522091
+  extra to protocol fees         : 7960473468026105
+
+[PASS] test_poc62_fundsFirstPriceEqualsOnTimeRepayment() (gas: 1942165)
+Logs:
+  computeCreateAddress is deprecated. Please use vm.computeCreateAddress instead.
+  lender payout, repaid on time (expiry+1s)     : 1000433282597666159
+  lender payout, funds-first, 52 weeks late     : 1000433282597666159
+
+[PASS] test_poc62_reproducesFindingNumbers() (gas: 1031829)
+Logs:
+  computeCreateAddress is deprecated. Please use vm.computeCreateAddress instead.
+  paid, funds already in market (finding log 1): 800455200405885337
+  paid, closeMarket pulls funds  (finding log 2): 967625143234433533
+
+[PASS] test_poc62_stateFirstPayoutMatchesStatedRates() (gas: 1042456)
+Logs:
+  computeCreateAddress is deprecated. Please use vm.computeCreateAddress instead.
+  seconds the batch stayed unpaid after the poke: 31363199
+  lender payout, actual                : 1159642752967888049
+  lender payout, independent calc      : 1159642752967888049
+  lender payout if no delinquency fee  : 1080038020320934393
+
+Suite result: ok. 4 passed; 0 failed; 0 skipped; finished in 9.01ms (14.85ms CPU time)
+
+Ran 1 test suite in 172.44ms (9.01ms CPU time): 4 tests passed, 0 failed, 0 skipped (4 total tests)

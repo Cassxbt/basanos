@@ -1,0 +1,38 @@
+Warning: Found unknown `fuzz_runs` config for profile `coverage` defined in foundry.toml.
+Compiling 1 files with Solc 0.8.25
+Solc 0.8.25 finished in 1.47s
+Compiler run successful!
+error: unresolved symbol `locals`
+   --> src/spherex/SphereXProtectedRegisteredBase.sol:153:39
+    |
+153 |   ) internal returnsIfNotActivatedPre(locals) returns (ModifierLocals memory locals) {
+    |                                       ^^^^^^
+
+
+Ran 4 tests for test/repair/Poc3.t.sol:Poc3
+[PASS] test_poc3_clearStepRetainsLow64BitsOfOldAddress() (gas: 6160)
+Logs:
+  computeCreateAddress is deprecated. Please use vm.computeCreateAddress instead.
+
+[PASS] test_poc3_factoryControlCleanInputWorks() (gas: 11891018)
+Logs:
+  computeCreateAddress is deprecated. Please use vm.computeCreateAddress instead.
+
+[PASS] test_poc3_factoryDirtyAddressBitsBreakDeployment() (gas: 4578495)
+Logs:
+  computeCreateAddress is deprecated. Please use vm.computeCreateAddress instead.
+  computeCreateAddress is deprecated. Please use vm.computeCreateAddress instead.
+  hooks instance that will be deployed: 0x564D000Ba40e907478790B54319506460389127a
+  address the factory will treat as hooks: 0x564D000Ba40E907478790b54bBbFAEeEAbAbbaFA
+
+[PASS] test_poc3_logValues() (gas: 9251)
+Logs:
+  computeCreateAddress is deprecated. Please use vm.computeCreateAddress instead.
+  config word after clear step: 0x000000000000000000000000aaaaaaaaaaaaaaaa000000000000000000000000
+  old address: 0xaAaAaAaaAaAaAaaAaAAAAAAAAaaaAaAaAaaAaaAa
+  requested new address: 0x1111111111111111111111111111111111111111
+  address read back: 0x111111111111111111111111BbBbBBbBBBbBBBBb
+
+Suite result: ok. 4 passed; 0 failed; 0 skipped; finished in 4.62ms (1.48ms CPU time)
+
+Ran 1 test suite in 139.79ms (4.62ms CPU time): 4 tests passed, 0 failed, 0 skipped (4 total tests)

@@ -1,0 +1,8 @@
+{
+ "number": 60,
+ "poc_passed": false,
+ "attempts": 2,
+ "summary": "The test confirms queueing is rejected until fixedTermEndTime and cash arrives one batchDuration later (queue at term end, payout at term end + 1 day), but shows no spec violation or loss (docs say withdrawals are disallowed before term end; payout equals the claim at queue time), so impact is not demonstrated.",
+ "checklist_items_addressed": 0,
+ "checklist_items_total": 1
+}

@@ -1,0 +1,38 @@
+Warning: Found unknown `fuzz_runs` config for profile `coverage` defined in foundry.toml.
+No files changed, compilation skipped
+error: unresolved symbol `locals`
+   --> src/spherex/SphereXProtectedRegisteredBase.sol:153:39
+    |
+153 |   ) internal returnsIfNotActivatedPre(locals) returns (ModifierLocals memory locals) {
+    |                                       ^^^^^^
+
+
+Warning: the following cheatcode(s) are deprecated and will be removed in future versions:
+  revertTo(uint256): replaced by `revertToState`
+  snapshot(): replaced by `snapshotState`
+Ran 3 tests for test/repair/Poc4.t.sol:Poc4
+[PASS] testFuzz_poc4_olderBatchNeverShortChanged(uint256) (runs: 1000, μ: 1259802, ~: 1257827)
+Logs:
+  computeCreateAddress is deprecated. Please use vm.computeCreateAddress instead.
+
+[PASS] test_poc4_repayAboveOlderDebt_newBatchGetsOnlyExcess() (gas: 1364927)
+Logs:
+  computeCreateAddress is deprecated. Please use vm.computeCreateAddress instead.
+  repay 4e18 (> 3e18 owed to alice), then bob queues
+    market assets: 6000000000000000000
+    alice batch: paid: 2000000000000000000
+    alice batch: still owed: 3000000000000000000
+    bob batch: paid: 1000000000000000000
+
+[PASS] test_poc4_repayBelowOlderDebt_newBatchGetsNothing() (gas: 1314417)
+Logs:
+  computeCreateAddress is deprecated. Please use vm.computeCreateAddress instead.
+  repay 1e18 (< 3e18 owed to alice), then bob queues
+    market assets: 3000000000000000000
+    alice batch: paid: 2000000000000000000
+    alice batch: still owed: 3000000000000000000
+    bob batch: paid: 0
+
+Suite result: ok. 3 passed; 0 failed; 0 skipped; finished in 1.99s (1.99s CPU time)
+
+Ran 1 test suite in 2.00s (1.99s CPU time): 3 tests passed, 0 failed, 0 skipped (3 total tests)

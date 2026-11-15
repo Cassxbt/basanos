@@ -1,0 +1,159 @@
+{
+  "verdict": "NEEDS_PROOF",
+  "agreement": "split",
+  "route": "human",
+  "severity_supported": "low_or_none",
+  "missing": [
+    {
+      "item": "Replace the listed Lines of Code citation at WildcatMarketWithdrawals.sol#L153 with a relevant location.",
+      "category": "required",
+      "obligation": 1,
+      "why": "The citation check marks this location unrelated. Relevant citations in the report do not make the unrelated primary location accurate.",
+      "resolves_when": "Use a location that directly supports the claimed behavior, such as the cited state-update or repayment logic."
+    },
+    {
+      "item": "Demonstrate that the newer batch receives idle assets while an older batch that could have been fully paid remains unpaid, or otherwise concretely show the stated invariant is violated.",
+      "category": "required",
+      "obligation": 3,
+      "why": "The record says the impact is unclear. Without showing the older batch was closable with the available assets, paying a newer batch does not establish an invariant violation.",
+      "resolves_when": "Provide a concrete sequence showing the older batch could be fully closed using those assets but remains unpaid while the newer batch is paid, or otherwise demonstrate the invariant violation."
+    },
+    {
+      "item": "Provide a concrete reproduction of the claimed ordering.",
+      "category": "required",
+      "obligation": 5,
+      "why": "The proof is narrative-only and gives no amounts or executed test establishing that a newer batch is paid before a closable older batch.",
+      "resolves_when": "Provide a step-by-step sequence with batch amounts and timing, or a runnable test, that reproduces the newer-batch-first payment."
+    }
+  ],
+  "reason": "The passes disagreed (NEEDS_PROOF). Route this report to a human reviewer.",
+  "caps": [],
+  "flags": [],
+  "citations": [
+    {
+      "status": "UNRELATED",
+      "path": "src/market/WildcatMarketWithdrawals.sol",
+      "lines": [
+        153,
+        153
+      ],
+      "audited_lines": [
+        153,
+        153
+      ]
+    },
+    {
+      "status": "OK",
+      "path": "src/market/WildcatMarket.sol",
+      "lines": [
+        202,
+        202
+      ],
+      "audited_lines": [
+        202,
+        202
+      ]
+    },
+    {
+      "status": "OK",
+      "path": "src/market/WildcatMarketBase.sol",
+      "lines": [
+        406,
+        406
+      ],
+      "audited_lines": [
+        406,
+        406
+      ]
+    }
+  ],
+  "votes": [
+    {
+      "verdict": "NEEDS_PROOF",
+      "severity": "low_or_none",
+      "request_id": "ee2b26c6-7364-4cc6-b9a4-f299f06d44b4"
+    },
+    {
+      "verdict": "GUARD_HELD",
+      "severity": null,
+      "request_id": null
+    },
+    {
+      "verdict": "GUARD_HELD",
+      "severity": null,
+      "request_id": null
+    }
+  ],
+  "evidence": {
+    "model": "deepseek-ai/DeepSeek-V4.1-Flash",
+    "tokens_read": 88272,
+    "claim": "Repayments/direct transfers to a market are applied to the current pending withdrawal batch (or left idle) instead of the FIFO queue of expired unpaid batches, so a newer batch can be paid before older expired batches.",
+    "root_cause_file": "src/market/WildcatMarketBase.sol",
+    "root_cause_line": 406,
+    "code_supports_claim": "yes",
+    "support_reason": "_getUpdatedState (WildcatMarketBase.sol:406-465) only processes the pending expired batch and the current pending batch; it never iterates _withdrawalData.unpaidBatches. repay (WildcatMarket.sol:202) and plain transfers only call _getUpdatedState, so idle assets are not routed to the FIFO queue. Only repayAndProcessUnpaidWithdrawalBatches (WildcatMarketWithdrawals.sol:283) drains unpaid batches. A new queueWithdrawal creates a fresh pending batch (WildcatMarketWithdrawals.sol:93-99) whose availableLiquidityForPendingBatch can consume the idle assets, paying the newer batch before older expired ones.",
+    "blocking_code": [],
+    "poc": "narrative_only",
+    "impact": "unclear",
+    "preconditions": [
+      "A withdrawal batch expires unpaid (borrower delinquent on withdrawals).",
+      "Borrower repays or transfers assets while no new pending batch exists, so assets sit idle.",
+      "A lender queues a new withdrawal, creating a new pending batch that absorbs the idle liquidity."
+    ],
+    "trusted_role_required": false,
+    "known_issue_match": "",
+    "missing_evidence": [
+      {
+        "item": "Demonstration that the newer batch actually receives the idle assets while the older expired batch remains unpaid, and that this violates the stated invariant rather than being consistent with it.",
+        "category": "required",
+        "obligation": 3,
+        "why": "The invariant says assets are only paid to newer batches if the market has sufficient assets to close older batches. The report does not show the older batch could have been closed with the same assets; if the older batch is larger than available liquidity, paying the newer batch may still be consistent with the invariant, so the stated impact is unproven.",
+        "resolves_when": "A concrete sequence (amounts, batch sizes, timestamps) shows the older expired batch could be fully closed with the idle assets yet the newer batch is paid first, or the invariant is otherwise concretely broken."
+      },
+      {
+        "item": "Concrete call sequence with values (batch amounts, repay amount, timing) reproducing the ordering.",
+        "category": "required",
+        "obligation": 5,
+        "why": "Only a narrative is given; no amounts or executed test show the newer batch is prioritized over a closable older batch.",
+        "resolves_when": "A step-by-step sequence with numeric amounts and timestamps, or a runnable test, reproduces the newer-batch-first payment."
+      }
+    ]
+  },
+  "decision": {
+    "provider": "serv",
+    "model": "gpt-6-luna",
+    "prompt_guard_requested": true
+  },
+  "usd": 0.004265,
+  "certificate": {
+    "version": 1,
+    "seal_type": "sha256-checksum",
+    "pipeline": "obligations-v3",
+    "contest": "wildcat",
+    "audited_commit": "fe746cc0fbedc4447a981a50e6ba4c95f98b9fe1",
+    "finding_sha256": "51cfe970fda28eff8e1cfcd71a1f13e26cb2ad30a589a1a010b30fc1c81ca67f",
+    "verdict": "NEEDS_PROOF",
+    "agreement": "split",
+    "route": "human",
+    "votes": [
+      {
+        "verdict": "NEEDS_PROOF",
+        "serv_request_id": "ee2b26c6-7364-4cc6-b9a4-f299f06d44b4"
+      },
+      {
+        "verdict": "GUARD_HELD",
+        "serv_request_id": null
+      },
+      {
+        "verdict": "GUARD_HELD",
+        "serv_request_id": null
+      }
+    ],
+    "decider": "serv/gpt-6-luna",
+    "evidence_model": "deepseek-ai/DeepSeek-V4.1-Flash",
+    "flags": [],
+    "usd": 0.004265,
+    "issued_at": "2026-11-15T14:56:22.477Z"
+  },
+  "seal": "57d8e02b8b388088c244bd8fa77ba92bcefde856162afe737d8614c6ff345195"
+}

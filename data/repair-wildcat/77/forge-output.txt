@@ -1,0 +1,29 @@
+Warning: Found unknown `fuzz_runs` config for profile `coverage` defined in foundry.toml.
+Compiling 1 files with Solc 0.8.25
+Solc 0.8.25 finished in 1.39s
+Compiler run successful!
+error: unresolved symbol `locals`
+   --> src/spherex/SphereXProtectedRegisteredBase.sol:153:39
+    |
+153 |   ) internal returnsIfNotActivatedPre(locals) returns (ModifierLocals memory locals) {
+    |                                       ^^^^^^
+
+
+Ran 2 tests for test/repair/Poc77.t.sol:Poc77
+[PASS] test_poc77_borrowedMarketStagedCuts() (gas: 825373)
+Logs:
+  computeCreateAddress is deprecated. Please use vm.computeCreateAddress instead.
+  apr after cut: 750
+  apr after cut: 563
+  apr after cut: 423
+  apr after cut: 318
+
+[PASS] test_poc77_fixedTermAprCutToZeroWhileWithdrawalsBlocked() (gas: 506626)
+Logs:
+  computeCreateAddress is deprecated. Please use vm.computeCreateAddress instead.
+  reserve ratio after cut (temporary): 10000
+  alice balance (no growth over 60 days): 10082191780821917808
+
+Suite result: ok. 2 passed; 0 failed; 0 skipped; finished in 21.16ms (5.83ms CPU time)
+
+Ran 1 test suite in 156.73ms (21.16ms CPU time): 2 tests passed, 0 failed, 0 skipped (2 total tests)

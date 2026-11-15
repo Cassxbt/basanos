@@ -1,0 +1,154 @@
+{
+  "verdict": "NEEDS_PROOF",
+  "agreement": "split",
+  "route": "human",
+  "severity_supported": "low_or_none",
+  "missing": [
+    {
+      "item": "Support that the fixed term is intended to prevent APR reductions, or a policy basis for treating the demonstrated lost yield as an in-scope impact without that premise.",
+      "category": "required",
+      "obligation": 3,
+      "why": "The supplied evidence says the in-repository documentation establishes a withdrawal lock, not an APR freeze. The executed test demonstrates the code path, but does not establish that changing APR violates a stated design requirement.",
+      "resolves_when": "Provide a relevant in-scope policy or documentation statement, or substantiate the claim under an applicable impact criterion without relying on an APR-freeze expectation."
+    },
+    {
+      "item": "Severity support for the lost-yield impact.",
+      "category": "required",
+      "obligation": 3,
+      "why": "The real-market tests show that a lender cannot withdraw and that its balance stops growing after the APR cut; they do not show principal loss or establish which contest severity applies to lost yield alone.",
+      "resolves_when": "Tie the demonstrated lost yield to a specific contest impact/severity criterion and quantify the relevant loss, or provide evidence of a more severe impact."
+    },
+    {
+      "item": "Clarify how the staged 25% cuts relate to the known-issue behavior.",
+      "category": "strengthens",
+      "obligation": 4,
+      "why": "The staged-cut test follows behavior described as anticipated in the known-issues material. The separate zero-APR test supports the broader fixed-term claim, so this clarification would strengthen rather than establish it.",
+      "resolves_when": "Distinguish the fixed-term withdrawal lock and APR-change path from the anticipated staged-cut behavior."
+    }
+  ],
+  "reason": "The passes disagreed (NEEDS_PROOF). Route this report to a human reviewer.",
+  "caps": [],
+  "flags": [],
+  "citations": [
+    {
+      "status": "OK",
+      "path": "src/access/FixedTermLoanHooks.sol",
+      "lines": [
+        857,
+        859
+      ],
+      "audited_lines": [
+        857,
+        859
+      ]
+    },
+    {
+      "status": "OK",
+      "path": "src/access/FixedTermLoanHooks.sol",
+      "lines": [
+        960,
+        978
+      ],
+      "audited_lines": [
+        960,
+        978
+      ]
+    }
+  ],
+  "votes": [
+    {
+      "verdict": "NEEDS_PROOF",
+      "severity": "low_or_none",
+      "request_id": "3c858156-9e85-40ad-ad9c-22f4448a45e7"
+    },
+    {
+      "verdict": "GUARD_HELD",
+      "severity": null,
+      "request_id": null
+    },
+    {
+      "verdict": "GUARD_HELD",
+      "severity": null,
+      "request_id": null
+    }
+  ],
+  "evidence": {
+    "model": "deepseek-ai/DeepSeek-V4.1-Flash",
+    "tokens_read": 89904,
+    "claim": "FixedTermLoanHooks does not block the borrower from changing the market APR before the fixed term ends, so the borrower can cut the APR (to 0% or in staged 25% steps) while lenders are locked out of withdrawals, denying them yield.",
+    "root_cause_file": "src/access/FixedTermLoanHooks.sol",
+    "root_cause_line": 960,
+    "code_supports_claim": "yes",
+    "support_reason": "onSetAnnualInterestAndReserveRatioBips (L960-978) only forwards to MarketConstraintHooks.onSetAnnualInterestAndReserveRatioBips, which has no fixedTermEndTime check; the fixed-term gate exists only in onQueueWithdrawal (L857-859). setAnnualInterestAndReserveRatioBips (WildcatMarketConfig.sol L123-162) is onlyBorrower and applies the hook result, so the borrower can lower APR mid-term while lenders cannot queue withdrawals.",
+    "blocking_code": [],
+    "poc": "runnable_test",
+    "impact": "informational",
+    "preconditions": [
+      "Market deployed with FixedTermLoanHooks and a future fixedTermEndTime",
+      "Borrower (trusted role) acts to reduce APR",
+      "Lenders hold market tokens and cannot queue withdrawals until term end"
+    ],
+    "trusted_role_required": true,
+    "known_issue_match": "",
+    "missing_evidence": [
+      {
+        "item": "In-repo documentation or policy clause establishing that APR changes must be frozen during the fixed term",
+        "category": "required",
+        "obligation": 3,
+        "why": "The report's impact rests on a design expectation ('fixed term market shouldn't allow APR reduction'). The in-repo Fixed Term Loan Hooks doc only describes the withdrawal lock; the cited ragequit page is external. Without a policy/doc basis, the demonstrated effect (lost yield, no principal loss) may not support the stated 'rug' severity.",
+        "resolves_when": "A cited in-repo doc/policy sentence states APR cannot be changed before fixedTermEndTime, or the impact is restated as lost yield only."
+      },
+      {
+        "item": "Quantified lender loss / severity justification",
+        "category": "required",
+        "obligation": 3,
+        "why": "The executed PoC shows only lost yield (balance stops growing) and no principal loss; the report claims a 'rug'. Severity (H/M) depends on whether lost yield alone qualifies under the contest's impact rules.",
+        "resolves_when": "The report ties the demonstrated lost-yield effect to a specific severity criterion in the contest policy, or shows principal loss."
+      },
+      {
+        "item": "Confirmation that the staged 25% cut path is not the known-issue 'slowly reducing APR by 25% every two weeks'",
+        "category": "strengthens",
+        "obligation": 4,
+        "why": "The known-issues file anticipates 25% staged cuts to avoid reserve-ratio penalties; the report's second test relies on exactly that path, but the core claim (no fixed-term APR freeze) is independent of the staged-cut mechanism, so this does not undermine the claim.",
+        "resolves_when": "The report distinguishes the fixed-term-lock aspect from the known staged-cut behavior."
+      }
+    ]
+  },
+  "decision": {
+    "provider": "serv",
+    "model": "gpt-6-luna",
+    "prompt_guard_requested": true
+  },
+  "usd": 0.005132,
+  "certificate": {
+    "version": 1,
+    "seal_type": "sha256-checksum",
+    "pipeline": "obligations-v3",
+    "contest": "wildcat",
+    "audited_commit": "fe746cc0fbedc4447a981a50e6ba4c95f98b9fe1",
+    "finding_sha256": "4ab36a66a4c01d3f5ca563f32b31fc3f3ebf4ae80bd9dcd37a2567b2ec0a2480",
+    "verdict": "NEEDS_PROOF",
+    "agreement": "split",
+    "route": "human",
+    "votes": [
+      {
+        "verdict": "NEEDS_PROOF",
+        "serv_request_id": "3c858156-9e85-40ad-ad9c-22f4448a45e7"
+      },
+      {
+        "verdict": "GUARD_HELD",
+        "serv_request_id": null
+      },
+      {
+        "verdict": "GUARD_HELD",
+        "serv_request_id": null
+      }
+    ],
+    "decider": "serv/gpt-6-luna",
+    "evidence_model": "deepseek-ai/DeepSeek-V4.1-Flash",
+    "flags": [],
+    "usd": 0.005132,
+    "issued_at": "2026-11-15T15:20:35.282Z"
+  },
+  "seal": "69c8c10db5eced8ba131ff11a5a8c5b635ce6d4b943736e87e7e012f969eb718"
+}

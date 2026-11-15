@@ -1,0 +1,126 @@
+{
+  "verdict": "NEEDS_PROOF",
+  "agreement": "majority",
+  "route": "human",
+  "severity_supported": "low_or_none",
+  "missing": [
+    {
+      "item": "Evidence that early market closure is intended to release lenders from an unexpired fixed term.",
+      "category": "required",
+      "obligation": 3,
+      "why": "The reproduction supports a withdrawal delay, but also shows the lock ends at the original term end, principal is recoverable, and the borrower can shorten the term. It does not establish the claimed loss-of-funds impact or that this behavior violates an expectation.",
+      "resolves_when": "Provide a cited policy clause or documented expectation stating that closing a market permits withdrawals despite an unexpired fixed term."
+    }
+  ],
+  "reason": "The cited code and reproduction support that closure leaves the fixed-term withdrawal restriction in place. The evidence establishes a bounded delay, not a loss of funds; the required expectation that closure overrides the term lock remains unproven.",
+  "caps": [],
+  "flags": [],
+  "citations": [
+    {
+      "status": "OK",
+      "path": "src/access/FixedTermLoanHooks.sol",
+      "lines": [
+        848,
+        868
+      ],
+      "audited_lines": [
+        848,
+        868
+      ]
+    },
+    {
+      "status": "OK",
+      "path": "src/access/FixedTermLoanHooks.sol",
+      "lines": [
+        943,
+        946
+      ],
+      "audited_lines": [
+        943,
+        946
+      ]
+    }
+  ],
+  "votes": [
+    {
+      "verdict": "NEEDS_PROOF",
+      "severity": "low_or_none",
+      "request_id": "4d9eed26-e0ab-48e8-bdae-38cb6545b556"
+    },
+    {
+      "verdict": "GUARD_HELD",
+      "severity": null,
+      "request_id": null
+    },
+    {
+      "verdict": "NEEDS_PROOF",
+      "severity": "low_or_none",
+      "request_id": "d9fcd096-6ceb-4f5d-ada1-c942647d53f4"
+    }
+  ],
+  "evidence": {
+    "model": "deepseek-ai/DeepSeek-V4.1-Flash",
+    "tokens_read": 89830,
+    "claim": "Closing a FixedTermLoanHooks market does not clear fixedTermEndTime, so lenders cannot queue withdrawals until the original term end even after the market is closed.",
+    "root_cause_file": "src/access/FixedTermLoanHooks.sol",
+    "root_cause_line": 857,
+    "code_supports_claim": "yes",
+    "support_reason": "onQueueWithdrawal reverts with WithdrawBeforeTermEnd whenever fixedTermEndTime > block.timestamp (L857-859), unconditionally and before any closed-market consideration. onCloseMarket is a no-op (L943-946) and the config does not require Bit_Enabled_CloseMarket (L154-157), so closeMarket (WildcatMarket.sol L226-287) never touches fixedTermEndTime. The path is reachable by any lender after the borrower closes the market.",
+    "blocking_code": [],
+    "poc": "runnable_test",
+    "impact": "funds_loss",
+    "preconditions": [
+      "Market deployed with FixedTermLoanHooks and a future fixedTermEndTime (up to 365 days).",
+      "Borrower calls closeMarket() before fixedTermEndTime.",
+      "Lender attempts queueWithdrawal/queueFullWithdrawal before fixedTermEndTime."
+    ],
+    "trusted_role_required": true,
+    "known_issue_match": "",
+    "missing_evidence": [
+      {
+        "item": "Evidence that early closure is intended to release lenders from the fixed term (a cited policy clause or documented expectation that closeMarket overrides the term lock).",
+        "category": "required",
+        "obligation": 3,
+        "why": "The demonstrated effect is a time-limited delay (bounded by the remaining term, max 365 days), with the market fully backed, no interest accruing, full recovery at term end, and the borrower able to release the lock immediately via setFixedTermEndTime. Without a cited expectation that closure must free lenders, the effect does not support a loss-of-funds impact; it is at most a temporary lockup the borrower controls.",
+        "resolves_when": "A cited policy clause or in-repo doc states that closing a market must allow lenders to withdraw regardless of an unexpired fixed term."
+      }
+    ]
+  },
+  "decision": {
+    "provider": "serv",
+    "model": "gpt-6-luna",
+    "prompt_guard_requested": true
+  },
+  "usd": 0.005732,
+  "certificate": {
+    "version": 1,
+    "seal_type": "sha256-checksum",
+    "pipeline": "obligations-v3",
+    "contest": "wildcat",
+    "audited_commit": "fe746cc0fbedc4447a981a50e6ba4c95f98b9fe1",
+    "finding_sha256": "f754bef1c08598b588b0895166d7d1c8ca7fbb15fbf58dce030c77696ab5476b",
+    "verdict": "NEEDS_PROOF",
+    "agreement": "majority",
+    "route": "human",
+    "votes": [
+      {
+        "verdict": "NEEDS_PROOF",
+        "serv_request_id": "4d9eed26-e0ab-48e8-bdae-38cb6545b556"
+      },
+      {
+        "verdict": "GUARD_HELD",
+        "serv_request_id": null
+      },
+      {
+        "verdict": "NEEDS_PROOF",
+        "serv_request_id": "d9fcd096-6ceb-4f5d-ada1-c942647d53f4"
+      }
+    ],
+    "decider": "serv/gpt-6-luna",
+    "evidence_model": "deepseek-ai/DeepSeek-V4.1-Flash",
+    "flags": [],
+    "usd": 0.005732,
+    "issued_at": "2026-11-15T15:18:22.545Z"
+  },
+  "seal": "1db0162f80aa9851f9df1ed1c2f23c321e7fa694b3f64665b57c1a558d1e36f7"
+}

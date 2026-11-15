@@ -1,0 +1,45 @@
+{
+  "verdict": "CITATION_BROKEN",
+  "agreement": null,
+  "route": "automatic",
+  "severity_supported": null,
+  "missing": [],
+  "reason": "No citation points at audited code the report actually discusses (src/market/WildcatMarketBase.sol#L665-L665: UNRELATED).",
+  "caps": [],
+  "flags": [],
+  "citations": [
+    {
+      "status": "UNRELATED",
+      "path": "src/market/WildcatMarketBase.sol",
+      "lines": [
+        665,
+        665
+      ],
+      "audited_lines": [
+        665,
+        665
+      ]
+    }
+  ],
+  "votes": [],
+  "decision": null,
+  "usd": 0,
+  "certificate": {
+    "version": 1,
+    "seal_type": "sha256-checksum",
+    "pipeline": "obligations-v3",
+    "contest": "wildcat",
+    "audited_commit": "fe746cc0fbedc4447a981a50e6ba4c95f98b9fe1",
+    "finding_sha256": "19d0d82c764a8c08cfaf293c692c5ab42c94cb3e55dfc54fabbc24ce121d8792",
+    "verdict": "CITATION_BROKEN",
+    "agreement": null,
+    "route": "automatic",
+    "votes": [],
+    "decider": null,
+    "evidence_model": null,
+    "flags": [],
+    "usd": 0,
+    "issued_at": "2026-11-15T14:47:56.106Z"
+  },
+  "seal": "f8b72db0bb78cdf162eb60a1776cc7a15186e93640ee37d45e6e96224d186705"
+}

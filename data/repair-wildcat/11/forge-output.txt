@@ -1,0 +1,37 @@
+Warning: Found unknown `fuzz_runs` config for profile `coverage` defined in foundry.toml.
+No files changed, compilation skipped
+error: unresolved symbol `locals`
+   --> src/spherex/SphereXProtectedRegisteredBase.sol:153:39
+    |
+153 |   ) internal returnsIfNotActivatedPre(locals) returns (ModifierLocals memory locals) {
+    |                                       ^^^^^^
+
+
+Ran 6 tests for test/repair/Poc11.t.sol:Poc11Test
+[PASS] test_control_honestDelayedWithdrawalSucceeds() (gas: 245392)
+Logs:
+  computeCreateAddress is deprecated. Please use vm.computeCreateAddress instead.
+
+[PASS] test_directCall_consumesVoucherAndBlocksDelayedWithdrawal() (gas: 177257)
+Logs:
+  computeCreateAddress is deprecated. Please use vm.computeCreateAddress instead.
+
+[PASS] test_directCall_sameBlockFrontRunIsHarmless() (gas: 259084)
+Logs:
+  computeCreateAddress is deprecated. Please use vm.computeCreateAddress instead.
+
+[PASS] test_knownLender_onlyReachableByDirectCall() (gas: 486660)
+Logs:
+  computeCreateAddress is deprecated. Please use vm.computeCreateAddress instead.
+
+[PASS] test_viaMarketQueueWithdrawal_cannotTargetOtherAccount() (gas: 158910)
+Logs:
+  computeCreateAddress is deprecated. Please use vm.computeCreateAddress instead.
+
+[PASS] test_viaMarketTransfer_consumesVoucherButMakesRecipientKnownLender() (gas: 392421)
+Logs:
+  computeCreateAddress is deprecated. Please use vm.computeCreateAddress instead.
+
+Suite result: ok. 6 passed; 0 failed; 0 skipped; finished in 6.28ms (4.06ms CPU time)
+
+Ran 1 test suite in 137.67ms (6.28ms CPU time): 6 tests passed, 0 failed, 0 skipped (6 total tests)

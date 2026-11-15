@@ -1,0 +1,23 @@
+Warning: Found unknown `fuzz_runs` config for profile `coverage` defined in foundry.toml.
+No files changed, compilation skipped
+error: unresolved symbol `locals`
+   --> src/spherex/SphereXProtectedRegisteredBase.sol:153:39
+    |
+153 |   ) internal returnsIfNotActivatedPre(locals) returns (ModifierLocals memory locals) {
+    |                                       ^^^^^^
+
+
+Warning: the following cheatcode(s) are deprecated and will be removed in future versions:
+  snapshot(): replaced by `snapshotState`
+  revertTo(uint256): replaced by `revertToState`
+Ran 3 tests for test/repair/Poc57.t.sol:Poc57
+[PASS] test_poc57_borrowerAlreadyHasThisPower() (gas: 174146)
+[PASS] test_poc57_lastProviderCanAlsoRevokeOutright() (gas: 122507)
+[PASS] test_poc57_providerShortensAnotherProvidersCredential() (gas: 629624)
+Logs:
+  expiry set by A (seconds from now): 31536000
+  expiry after B (seconds from now)  : 3600
+
+Suite result: ok. 3 passed; 0 failed; 0 skipped; finished in 3.92ms (1.25ms CPU time)
+
+Ran 1 test suite in 135.76ms (3.92ms CPU time): 3 tests passed, 0 failed, 0 skipped (3 total tests)

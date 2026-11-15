@@ -1,0 +1,146 @@
+{
+  "verdict": "NEEDS_PROOF",
+  "agreement": "split",
+  "route": "human",
+  "severity_supported": "low_or_none",
+  "missing": [
+    {
+      "item": "Demonstrate an impact beyond the calling borrower's deployment reverting.",
+      "category": "required",
+      "obligation": 3,
+      "why": "The provided path uses borrower-supplied configuration, and the described failure is a revert in that borrower's deployment. No loss or adverse effect on another party is shown, so a higher-impact severity is unsupported.",
+      "resolves_when": "Provide a reproducible in-scope scenario showing another party suffers a loss or state impact, or that a deployed market uses the corrupted hooks address and this causes exploitable consequences."
+    },
+    {
+      "item": "Resolve whether borrower-supplied deployment inputs are an allowed attacker-controlled path under the contest policy.",
+      "category": "required",
+      "obligation": 2,
+      "why": "The only identified in-protocol call site receives configuration from the borrower deploying its own market. The evidence record identifies borrowers as trusted for parameterizing their markets, but does not provide a policy clause resolving this case.",
+      "resolves_when": "Provide the applicable policy language or establish a reachable path to setHooksAddress that does not depend on the trusted borrower misconfiguring its own deployment."
+    },
+    {
+      "item": "Verify the claimed test reproduction against the audited commit.",
+      "category": "required",
+      "obligation": 5,
+      "why": "The report includes test-shaped code and a transcript, but the evidence record classifies the PoC as narrative-only; the transcript also includes an unresolved-symbol error alongside passing-test results.",
+      "resolves_when": "Provide a verifiable run against the unmodified audited commit with the test setup and output demonstrating the claimed behavior."
+    }
+  ],
+  "reason": "The passes disagreed (NEEDS_PROOF). Route this report to a human reviewer.",
+  "caps": [],
+  "flags": [],
+  "citations": [
+    {
+      "status": "OK",
+      "path": "src/types/HooksConfig.sol",
+      "lines": [
+        90,
+        90
+      ],
+      "audited_lines": [
+        90,
+        90
+      ]
+    },
+    {
+      "status": "OK",
+      "path": "src/types/HooksConfig.sol",
+      "lines": [
+        84,
+        84
+      ],
+      "audited_lines": [
+        84,
+        84
+      ]
+    }
+  ],
+  "votes": [
+    {
+      "verdict": "NEEDS_PROOF",
+      "severity": "low_or_none",
+      "request_id": "3f7d3f0e-87e8-46a0-912b-d15be9158ffe"
+    },
+    {
+      "verdict": "GUARD_HELD",
+      "severity": null,
+      "request_id": null
+    },
+    {
+      "verdict": "GUARD_HELD",
+      "severity": null,
+      "request_id": null
+    }
+  ],
+  "evidence": {
+    "model": "deepseek-ai/DeepSeek-V4.1-Flash",
+    "tokens_read": 88688,
+    "claim": "LibHooksConfig.setHooksAddress clears the old hooks address with shr(96, shl(96, hooks)), which only discards bits 160..255, so bits 96..159 (low 64 bits of the old address) survive and corrupt the newly set hooks address.",
+    "root_cause_file": "src/types/HooksConfig.sol",
+    "root_cause_line": 90,
+    "code_supports_claim": "yes",
+    "support_reason": "HooksConfig packs the address in bits 96..255 (encodeHooksConfig shl(96, hooksAddress), hooksAddress() = shr(96, hooks)). shl(96, hooks) discards bits 160..255; the following shr(96, ...) leaves bits 96..159 (the low 64 bits of the old address) in place. The OR with shl(96, _hooksAddress) then yields newAddress | (oldAddress & uint64.max). The only in-protocol call site is HooksFactory.deployMarketAndHooks line 535, which passes a borrower-supplied config.",
+    "blocking_code": [],
+    "poc": "narrative_only",
+    "impact": "informational",
+    "preconditions": [
+      "Borrower calls deployMarketAndHooks with a DeployMarketInputs.hooks whose address field is non-zero (stale address).",
+      "The low 64 bits of that stale address are non-zero."
+    ],
+    "trusted_role_required": true,
+    "known_issue_match": "",
+    "missing_evidence": [
+      {
+        "item": "Demonstration that the corrupted address causes a loss or lock of funds, or any effect beyond the borrower's own deployment reverting.",
+        "category": "required",
+        "obligation": 3,
+        "why": "The report's own PoC shows the only reachable path is a borrower-supplied config in deployMarketAndHooks; the corrupted address has no code, so the deployment reverts. The borrower is the caller and the only party harmed, and the report concedes no impact beyond this. Without a non-borrower victim or a fund/state effect, the stated impact and severity are not supported.",
+        "resolves_when": "A test shows a party other than the calling borrower losing assets or state, or a market being deployed with a wrong hooks address that is later exploited."
+      },
+      {
+        "item": "Whether the borrower supplying a stale address in its own deployment input is an allowed-actor path under the contest policy.",
+        "category": "required",
+        "obligation": 2,
+        "why": "The only call site is deployMarketAndHooks, where the borrower controls the input config. The policy lists borrowers as trusted to parameterise their own markets; a self-inflicted revert on the borrower's own deployment is not an attack path unless the policy treats borrower misconfiguration as in-scope. This is a policy-ambiguity point the claim depends on.",
+        "resolves_when": "The policy or a judge confirms borrower-supplied deployment inputs are attacker-controlled for this purpose, or a non-borrower path to setHooksAddress is shown."
+      }
+    ]
+  },
+  "decision": {
+    "provider": "serv",
+    "model": "gpt-6-luna",
+    "prompt_guard_requested": true
+  },
+  "usd": 0.004704,
+  "certificate": {
+    "version": 1,
+    "seal_type": "sha256-checksum",
+    "pipeline": "obligations-v3",
+    "contest": "wildcat",
+    "audited_commit": "fe746cc0fbedc4447a981a50e6ba4c95f98b9fe1",
+    "finding_sha256": "ac3796e0f27a34296c699e52871216f22fc626a2df529c693cfeb37ab9237db8",
+    "verdict": "NEEDS_PROOF",
+    "agreement": "split",
+    "route": "human",
+    "votes": [
+      {
+        "verdict": "NEEDS_PROOF",
+        "serv_request_id": "3f7d3f0e-87e8-46a0-912b-d15be9158ffe"
+      },
+      {
+        "verdict": "GUARD_HELD",
+        "serv_request_id": null
+      },
+      {
+        "verdict": "GUARD_HELD",
+        "serv_request_id": null
+      }
+    ],
+    "decider": "serv/gpt-6-luna",
+    "evidence_model": "deepseek-ai/DeepSeek-V4.1-Flash",
+    "flags": [],
+    "usd": 0.004704,
+    "issued_at": "2026-11-15T15:22:12.946Z"
+  },
+  "seal": "f309d074fb8fefc0ef6e4f59bf56bd1dd890dd76d96ed3df12376743698a0b11"
+}

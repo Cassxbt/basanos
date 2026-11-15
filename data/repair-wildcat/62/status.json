@@ -1,0 +1,8 @@
+{
+ "number": 62,
+ "poc_passed": false,
+ "attempts": 4,
+ "summary": "The finding's numbers reproduce exactly (0.8005 vs 0.9676), but the extra is lender interest, the configured delinquency fee and protocol fee for the 363 days the batch was unpaid (independent calculation matches to the wei), and funds-first pricing equals an on-time repayment, so the claim of overcharge is not supported (the ordering favors the borrower).",
+ "checklist_items_addressed": 2,
+ "checklist_items_total": 2
+}

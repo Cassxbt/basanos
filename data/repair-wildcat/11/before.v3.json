@@ -1,0 +1,199 @@
+{
+  "verdict": "NEEDS_PROOF",
+  "agreement": "unanimous",
+  "route": "automatic",
+  "severity_supported": "low_or_none",
+  "missing": [
+    {
+      "item": "Demonstrate a concrete harmful effect from a direct call to onQueueWithdrawal, such as a provider state change or revert that blocks a legitimate lender action.",
+      "category": "required",
+      "obligation": 3,
+      "why": "The report describes a possible stateful-provider abuse but supplies no provider implementation, executed test, or trace establishing harm.",
+      "resolves_when": "Provide a test or trace showing a direct external call reaches the provider with attacker-supplied data and causes a state change or revert that blocks a legitimate action."
+    },
+    {
+      "item": "Show that the harmful behavior depends on the missing hooked-market check, rather than ordinary front-running of a legitimate market call.",
+      "category": "required",
+      "obligation": 5,
+      "why": "The proposed miner scenario may also work through a legitimate market call, so the report does not establish that the missing check enables the claimed harm.",
+      "resolves_when": "Provide evidence that the attack requires a call outside a market—for example, that a market call is blocked by another check while the direct call succeeds."
+    }
+  ],
+  "reason": "The cited code supports an externally reachable provider-validation path, and no blocking code or applicable exclusion is identified. However, concrete impact and the missing check’s causal role remain unproven.",
+  "caps": [],
+  "flags": [],
+  "citations": [
+    {
+      "status": "OK",
+      "path": "src/access/AccessControlHooks.sol",
+      "lines": [
+        812,
+        812
+      ],
+      "audited_lines": [
+        812,
+        812
+      ]
+    },
+    {
+      "status": "OK",
+      "path": "src/access/AccessControlHooks.sol",
+      "lines": [
+        698,
+        698
+      ],
+      "audited_lines": [
+        698,
+        698
+      ]
+    },
+    {
+      "status": "OK",
+      "path": "src/access/AccessControlHooks.sol",
+      "lines": [
+        654,
+        654
+      ],
+      "audited_lines": [
+        654,
+        654
+      ]
+    },
+    {
+      "status": "OK",
+      "path": "src/access/AccessControlHooks.sol",
+      "lines": [
+        670,
+        670
+      ],
+      "audited_lines": [
+        670,
+        670
+      ]
+    },
+    {
+      "status": "OK",
+      "path": "src/access/AccessControlHooks.sol",
+      "lines": [
+        617,
+        617
+      ],
+      "audited_lines": [
+        617,
+        617
+      ]
+    },
+    {
+      "status": "OK",
+      "path": "src/access/AccessControlHooks.sol",
+      "lines": [
+        525,
+        525
+      ],
+      "audited_lines": [
+        525,
+        525
+      ]
+    },
+    {
+      "status": "OK",
+      "path": "src/access/FixedTermLoanHooks.sol",
+      "lines": [
+        848,
+        848
+      ],
+      "audited_lines": [
+        848,
+        848
+      ]
+    }
+  ],
+  "votes": [
+    {
+      "verdict": "NEEDS_PROOF",
+      "severity": "low_or_none",
+      "request_id": "b99eb2ed-ed44-463e-bdb1-301cb5445bdf"
+    },
+    {
+      "verdict": "NEEDS_PROOF",
+      "severity": "low_or_none",
+      "request_id": "9ceeed2f-83e4-47b9-8136-3b0cdde76585"
+    },
+    {
+      "verdict": "NEEDS_PROOF",
+      "severity": "low_or_none",
+      "request_id": "ab599ab5-3969-4769-99d7-596bb6c8bf62"
+    }
+  ],
+  "evidence": {
+    "model": "deepseek-ai/DeepSeek-V4.1-Flash",
+    "tokens_read": 87583,
+    "claim": "AccessControlHooks.onQueueWithdrawal lacks an isHooked check, so anyone can call it and trigger _tryValidateAccess → _handleHooksData → provider.validateCredential with arbitrary hooksData, enabling griefing/DoS of pull providers.",
+    "root_cause_file": "src/access/AccessControlHooks.sol",
+    "root_cause_line": 812,
+    "code_supports_claim": "yes",
+    "support_reason": "onQueueWithdrawal (812-825) reads _lenderStatus[lender] and, if !isKnownLenderOnMarket[lender][msg.sender], calls _tryValidateAccess(status, lender, hooksData) with no _hookedMarkets[msg.sender].isHooked check. _tryValidateAccessInner (654) → _handleHooksData (617) → _tryValidateCredential (525) performs an external call to the provider with attacker-supplied hooksData. FixedTermLoanHooks.onQueueWithdrawal (848-868) does check isHooked, confirming the asymmetry.",
+    "blocking_code": [],
+    "poc": "narrative_only",
+    "impact": "unclear",
+    "preconditions": [
+      "Market uses AccessControlHooks with useOnQueueWithdrawal enabled",
+      "A pull/validate provider is registered whose validateCredential is stateful and grants short-lived credentials"
+    ],
+    "trusted_role_required": false,
+    "known_issue_match": "",
+    "missing_evidence": [
+      {
+        "item": "Demonstration that calling onQueueWithdrawal directly (not via a market) actually reaches a stateful provider call with attacker data and produces a concrete harm (e.g. consumed one-time credential, provider revert, or blocked honest withdrawal).",
+        "category": "required",
+        "obligation": 3,
+        "why": "The report asserts a DoS but never shows a provider implementation or a concrete effect; without it the stated impact/severity is unsupported. Note the hook is only invoked by the market when useOnQueueWithdrawal is set, and the direct-call path only matters if the provider is stateful.",
+        "resolves_when": "A test or trace shows a direct external call to onQueueWithdrawal causing a provider state change or revert that blocks a legitimate lender action."
+      },
+      {
+        "item": "Confirmation that the griefing is not merely the lender's own transaction being front-run (a generic mempool/MEV issue) but specifically enabled by the missing isHooked check.",
+        "category": "required",
+        "obligation": 5,
+        "why": "The described miner front-run scenario would work even through a legitimate market call; the report does not isolate the missing-check as the causal enabler, leaving a contradictory premise.",
+        "resolves_when": "Evidence shows the attack requires calling onQueueWithdrawal outside a market (e.g. a market call would be blocked by isKnownLender or other checks) while the direct call succeeds."
+      }
+    ]
+  },
+  "decision": {
+    "provider": "serv",
+    "model": "gpt-6-luna",
+    "prompt_guard_requested": true
+  },
+  "usd": 0.005344,
+  "certificate": {
+    "version": 1,
+    "seal_type": "sha256-checksum",
+    "pipeline": "obligations-v3",
+    "contest": "wildcat",
+    "audited_commit": "fe746cc0fbedc4447a981a50e6ba4c95f98b9fe1",
+    "finding_sha256": "b6332857b3116497706a7ab270849251174e6a6b487ace1ea36bc13fdcbc90ae",
+    "verdict": "NEEDS_PROOF",
+    "agreement": "unanimous",
+    "route": "automatic",
+    "votes": [
+      {
+        "verdict": "NEEDS_PROOF",
+        "serv_request_id": "b99eb2ed-ed44-463e-bdb1-301cb5445bdf"
+      },
+      {
+        "verdict": "NEEDS_PROOF",
+        "serv_request_id": "9ceeed2f-83e4-47b9-8136-3b0cdde76585"
+      },
+      {
+        "verdict": "NEEDS_PROOF",
+        "serv_request_id": "ab599ab5-3969-4769-99d7-596bb6c8bf62"
+      }
+    ],
+    "decider": "serv/gpt-6-luna",
+    "evidence_model": "deepseek-ai/DeepSeek-V4.1-Flash",
+    "flags": [],
+    "usd": 0.005344,
+    "issued_at": "2026-11-15T14:51:12.146Z"
+  },
+  "seal": "307f2f4f1afe68b1c62186e41b58b255e1424a46f2e7ec89699b17dcf2e3df3a"
+}
