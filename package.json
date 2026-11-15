@@ -5,11 +5,17 @@
   "scripts": {
     "build:karak": "tsx src/data/karak.ts",
     "test": "node --import tsx --test test/*.test.ts",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "check": "tsx src/cli.ts",
+    "mcp": "tsx src/mcp.ts",
+    "snapshot": "tsx src/data/snapshot.ts",
+    "eval": "tsx src/eval/run.ts",
+    "score": "tsx src/eval/score.ts"
   },
   "author": "",
   "license": "MIT",
   "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.32.2",
     "openai": "^7.57.0",
     "zod": "^4.6.7"
   },
@@ -18,5 +24,8 @@
     "tsx": "^4.23.15",
     "typescript": "^7.0.2"
   },
-  "type": "module"
+  "type": "module",
+  "bin": {
+    "basanos": "src/cli.ts"
+  }
 }

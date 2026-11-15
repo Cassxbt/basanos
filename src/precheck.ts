@@ -3,7 +3,8 @@ import { extractEvidence, DOLPHIN_MODEL, type Evidence } from "./evidence.ts";
 import { judge, SERV_MODEL, type Judgment, type ModelVerdict } from "./verdict.ts";
 import { GuardBlocked, type Call, type Provider } from "./llm.ts";
 
-export type Verdict = ModelVerdict | "CITATION_BROKEN" | "INJECTION_BLOCKED";
+// GUARD_HELD is not a rejection: Prompt Guard also holds some clean reports, so a human decides.
+export type Verdict = ModelVerdict | "CITATION_BROKEN" | "GUARD_HELD";
 
 export interface Precheck {
   verdict: Verdict;
@@ -61,7 +62,7 @@ export async function precheck(
     judgment = await judge(provider, model, report, summarizeCitations(citations), evidence.value);
   } catch (err) {
     if (!(err instanceof GuardBlocked)) throw err;
-    return { ...base, evidence, usd: evidence.usd, verdict: "INJECTION_BLOCKED", reason: err.message };
+    return { ...base, evidence, usd: evidence.usd, verdict: "GUARD_HELD", reason: `SERV Prompt Guard held this report (${err.message}). Route it to a human reviewer.` };
   }
 
   const j = judgment.value;

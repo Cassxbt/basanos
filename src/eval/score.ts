@@ -2,7 +2,7 @@ import { readFileSync, writeFileSync } from "node:fs";
 import type { Report } from "../data/karak.ts";
 import type { Row, ArmResult } from "./run.ts";
 
-const ZERO = new Set(["BLOCKED_BY_CODE", "KNOWN_OR_OUT_OF_SCOPE", "CITATION_BROKEN", "INJECTION_BLOCKED"]);
+const ZERO = new Set(["BLOCKED_BY_CODE", "KNOWN_OR_OUT_OF_SCOPE", "CITATION_BROKEN", "INJECTION_BLOCKED", "GUARD_HELD"]);
 
 export function ordinal(verdict: string, severity: string | null): number {
   if (ZERO.has(verdict)) return 0;
