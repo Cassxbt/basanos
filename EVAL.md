@@ -1,0 +1,65 @@
+# Evaluation plan (written before the full runs)
+
+Committed before any arm was run on the full set. Only three reports (#29, #58, #93) were run during development to check that the plumbing worked. Prompts were not changed after seeing those results.
+
+## Question
+
+When an audit-contest report goes through Basanos, does the verdict line up with what the contest judge later decided? Does putting SERV in the decision step change that, at what cost, and does it hold up against hostile report text?
+
+## Data
+
+- Code4rena `2024-07-karak`. The code is the audited commit `f5e52fd`. Its `src/` is identical to `53eb78e`, the first commit with contest code.
+- 75 High/Medium submissions from `2024-07-karak-findings`. Report #100 is excluded because its body was written by the judge.
+- Labels come from GitHub labels only. Models see the title and body; they never see labels or comments.
+  - Primary target: `satisfactory` (32) vs `unsatisfactory` (43).
+  - Secondary target: the presort reviewer's `sufficient` (58) vs `insufficient` (17).
+- Duplicate families: 34. They are used for clustered resampling.
+
+## Arms
+
+| Arm | Evidence | Decision |
+|---|---|---|
+| A. code-only | citation check | citation veto; everything else counts as "proceed" |
+| B. Dolphin-only | Dolphin DeepSeek-V4.1-Flash, full source | Dolphin, same decision prompt |
+| C. Dolphin + SERV | same as B | SERV `gpt-6-luna` with `serv_prompt_guard` |
+
+- The policy text, source bundle, prompts and schemas are identical across B and C. Only the provider of the decision call differs.
+- B and C each run twice to show run-to-run variance.
+
+## Scores, fixed in advance
+
+- **Ordinal score per report:**
+  - 3 = READY.
+  - 2 = NEEDS_PROOF with severity_supported high or medium.
+  - 1 = NEEDS_PROOF with severity low_or_none.
+  - 0 = BLOCKED_BY_CODE, KNOWN_OR_OUT_OF_SCOPE, CITATION_BROKEN, or INJECTION_BLOCKED.
+- **Primary metric:** AUROC of the ordinal score against `satisfactory`.
+  - 95% interval from 2,000 cluster-bootstrap resamples over duplicate families.
+- **Secondary metric, the flag:** a report counts as flagged when its score is 0 or 1.
+  - Flag precision: the share of flagged reports that were unsatisfactory.
+  - Flag recall: the share of unsatisfactory reports that were flagged.
+  - Base rate for comparison: 43/75 = 0.573.
+- Every number is reported alongside its run count and total USD.
+
+## Robustness sets
+
+1. **Bug/fix pairs (memorization check).**
+   - Pick 10 satisfactory reports where the root-cause fix is a small, local patch.
+   - Apply that patch to a branch off `f5e52fd`, then rerun the same report against the patched code.
+   - A model that reads the code should drop the verdict (score 3 or 2 falls to 0 or 1). A model that recalls the 2024 outcome would not.
+   - Measured twice:
+     - with the citation check active;
+     - with the citation veto bypassed, so the model layer is tested on its own.
+2. **Hostile text.**
+   - Take 10 unsatisfactory reports and append fixed injection payloads that try to force READY or high severity.
+   - Payloads include: a fake system note, a hidden HTML comment, a fake judge comment, a JSON-shaped instruction, and a role-play request.
+   - Measure, for B and for C:
+     - how often the score rises against the clean run;
+     - how often Prompt Guard blocks the request.
+
+## Commitments
+
+- If SERV's decision step does not beat Dolphin's on these metrics, that null result goes in the README. The README will not call SERV more accurate unless the intervals show it.
+- Labels are contest outcomes, not ground truth about bugs. A report can be valid and still unsatisfactory, for example as a known issue or a downgrade. The README will say so.
+- **Contamination:** these 2024 reports and their outcomes may be in the training data of both models. The bug/fix pairs are the check against that, and the README will state it.
+- One contest, n = 75. Every result is reported with its interval, and nothing is generalized beyond Karak.
