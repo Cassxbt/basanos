@@ -116,7 +116,7 @@ Zero unsafe READY is weak evidence while genuine findings never reach READY eith
 
 ### Nulls we publish anyway
 
-- **Outcome prediction.** On Karak, against report length on the same findings (a paired bootstrap resampling duplicate families): Dolphin deciding is ahead by 0.135 AUROC [0.017, 0.280]. SERV deciding is ahead by 0.022 [−0.142, 0.197], no demonstrated difference. Karak is development data, so neither says anything about other contests. That is why the output is a checklist, not a score.
+- **Outcome prediction.** On Karak, against report length on the same findings (a paired bootstrap resampling duplicate families): Dolphin deciding is ahead by 0.135 AUROC [0.017, 0.280]. SERV deciding is ahead by 0.022 [−0.142, 0.197], no demonstrated difference. This is the Dolphin-decider configuration on Karak development data. It is not validation on an unseen contest, and the live product decides with SERV. That is why the output is a checklist, not a score.
 - **SERV as decider.** It shows no advantage over Dolphin deciding on the same evidence, and unlike Dolphin it shows no demonstrated improvement over report length.
 - **SERV's guard.** It holds clean decision passes, each of which becomes a review. The strict-v1 ablation found no attack that only the guard stopped.
 - **Reppo's evaluator.** It accepted 20/20 sampled verdicts, including every one the contest judge contradicted.
