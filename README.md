@@ -6,7 +6,7 @@ Basanos checks an audit-contest finding against the audited code before it is su
 
 > *βάσανος*: the touchstone. Assayers rubbed gold on a black stone and read the streak.
 
-Live: _pending deploy_ · Judge path: [`/judges`](#judge-path-90-seconds) · Every number below: `npm run verify` · SERV Hackathon 02, **Dolphin track**
+Live: **[basanos-nu.vercel.app](https://basanos-nu.vercel.app)** · Judge path: [`/judges`](https://basanos-nu.vercel.app/judges/) · Proof: [`/proof`](https://basanos-nu.vercel.app/proof/) · Every number below: `npm run verify` · SERV Hackathon 02, **Dolphin track**
 
 ## The Touchstone Pass
 
@@ -42,17 +42,21 @@ The caps are tested in `test/caps.test.ts`.
 
 ## Judge path (90 seconds)
 
-1. Open the live page and press **Fabricated lines**: `CITATION_BROKEN`, $0, no model call.
-2. Press **Known issue** (Karak #93): `KNOWN_OR_OUT_OF_SCOPE`, with bot finding M-1 named.
-3. Press **Injected** (#10 with a role-play payload): watch whether Prompt Guard holds it.
-4. Read [What we measured](#what-we-measured). Then run `npm run verify` to recompute every number from the committed run files. It exits 1 if this README's source data disagrees.
+1. Open [`/judges`](https://basanos-nu.vercel.app/judges/) and press **Run all four attacks**. Each card shows the expected result first, then the live one.
+   - Fabricated lines: `CITATION_BROKEN`, $0.
+   - A known issue: `KNOWN_OR_OUT_OF_SCOPE`, with M-1 named.
+   - An injection: sent to a human.
+   - A fixed bug: `BLOCKED_BY_CODE`, pointing at the fix line.
+2. Open [`/proof`](https://basanos-nu.vercel.app/proof/). Your browser recomputes every claim from the committed rows. Press **Tamper with the data** and the affected claims turn red.
+3. On the [home page](https://basanos-nu.vercel.app/#check), run any example and press **Tamper with it** on the Assay Certificate. The seal breaks.
+4. Locally, `npm run verify` recomputes every published number and exits 1 on any mismatch.
 
 Local, with your own keys:
 
 ```bash
 npm ci
 cp .env.example .env            # SERV_API_KEY, DOLPHIN_API_KEY (REPPO_API_KEY only for the audit)
-npm test                        # 20 tests, no keys or network needed
+npm test                        # 23 tests, no keys or network needed
 npm run verify                  # recompute published numbers from data/runs
 npx tsx src/cli.ts finding.md --contest karak
 ```
@@ -72,65 +76,58 @@ One closed Code4rena contest, [2024-07 Karak](https://github.com/code-423n4/2024
 
 - **Findings:** 94 submitted as High or Medium, in 47 duplicate families.
 - **Labels:** 32 were awarded as High or Medium. Labels are contest outcomes, not ground truth about bugs.
-- **Method:** the plan was committed before the full runs, with three disclosed amendments: [EVAL.md](EVAL.md).
-- **Source of every number:** [`data/claims.json`](data/claims.json), checked by `npm run verify`.
+- **Method:** the plan was committed before the full runs, with four dated amendments: [EVAL.md](EVAL.md).
+- **Source of every number:** [`data/claims.json`](data/claims.json), checked by `npm run verify`. The live [`/proof`](https://basanos-nu.vercel.app/proof/) page recomputes the same numbers in your browser.
 
 ### It reads the code (bug/fix pairs)
 
-- **Setup:** each of the 9 awarded findings was rerun against a branch where its bug is fixed. The fixes were written by a separate agent, compile, and each one fails a reproducing test before the fix and passes after.
+- **Setup:** each of the 9 awarded findings was rerun against a branch where its bug is fixed. The fixes compile, and each one fails a reproducing test before the fix and passes after.
 - **Citations withheld:** the citation check was hidden, so only reading the source could reveal the fix.
 - **Contamination:** a model recalling the 2024 outcome would keep calling these findings valid.
 
 | | Original code | Patched code |
 |---|---|---|
-| Verdict `BLOCKED_BY_CODE`, Dolphin decides | 2 / 18 | **10 / 18** |
 | Verdict `BLOCKED_BY_CODE`, SERV decides | 1 / 18 | **10 / 18** |
-| The evidence names blocking code | 5 / 18 | 10 / 18 |
-| …and that code is in a file the fix changed | n/a | **10 / 10** |
+| Verdict `BLOCKED_BY_CODE`, Dolphin decides | 2 / 18 | **10 / 18** |
+| The blocking code named is in a file the fix changed | n/a | **10 / 10** |
 
-Small n: 9 findings × 2 runs. The second pair run used Dolphin at temperature 0.
+Small n. The live `/judges` page reruns one pair, #31, on demand.
+
+### Hostile text: we found the hole, then closed it
+
+- **Before the defenses** (known payloads, undefended): injected findings reached `READY` 7/60 times with SERV deciding and 11/60 with Dolphin deciding. The cause was a poisoned evidence step.
+- **The defenses:**
+  1. A SERV Prompt Guard front door on the raw finding.
+  2. A code-verified proof claim.
+  3. A code scan for text addressed to the pipeline.
+
+  They were committed before an independent agent wrote six blind attacks.
+- **After** (blind payloads, defended):
+  - Injected findings reached `READY` 0/60 times with SERV deciding and 1/60 with Dolphin deciding.
+  - Automatic routing of a `READY` happened **0/60** times.
+  - The scan flagged 30/60. The SERV front door held 1.
+  - Most of the hardening is code.
+- **On clean findings:** the defenses held or flagged 0/94.
 
 ### It does not predict contest outcomes better than length (null)
 
-| AUROC vs `awarded` (95% CI, clustered by family) | Run 1 | Run 2 |
-|---|---|---|
-| Body length (baseline) | 0.661 [0.527, 0.786] | — |
-| Single pass, Dolphin decides | 0.678 [0.547, 0.815] | 0.660 [0.519, 0.775] |
-| Single pass, SERV decides | 0.641 [0.505, 0.782] | 0.658 [0.565, 0.792] |
-| Three-pass consensus (amendment 3) | _run 3 pending_ | |
+| Shipped pipeline, AUROC vs `awarded` (95% CI, clustered by family) | |
+|---|---|
+| Report length (baseline) | 0.661 [0.527, 0.786] |
+| Three passes, SERV decides | 0.711 [0.607, 0.829] |
+| Three passes, Dolphin decides | 0.757 [0.598, 0.871] |
 
-- **Run-to-run noise dominates.** A single pass gives the same verdict on the same finding only 64% to 70% of the time. That is why the product asks three times and routes automatically only on unanimity.
-- **SERV versus Dolphin:** as the decider, SERV is no more accurate than Dolphin here, at about 19× the per-decision cost. It earns its place on the next two measurements, not on accuracy.
-
-### Hostile text and Prompt Guard
-
-- **Clean findings:** Prompt Guard held 9 of 186 decision calls (4.8%), and held them inconsistently. Only #48 was held in both runs. A hold routes to a human for that reason.
-- **Injected findings:** payloads appended to 10 rejected findings were held 6 of 10 times. The same 10 clean findings were held 0 of 20 times.
-- **Per payload:**
-
-  | Payload | Held |
-  |---|---|
-  | Fake system note | 2/2 |
-  | Role play | 2/2 |
-  | JSON answer | 1/2 |
-  | HTML comment | 1/2 |
-  | Fake judge comment | 0/2 |
-
-- **No payload produced `READY` in either arm.** The unguarded Dolphin decider resisted too, so the guard's marginal benefit is not shown here.
-- **Version 2:** six payloads per finding, including one aimed at the unguarded evidence step, are in amendment 3: _pending_.
+The intervals overlap, so the output is a missing-evidence checklist, not a score. Unanimous zero-score verdicts route automatically. Of those automatic rejects, the contest judge also rejected 15/17 (SERV deciding) and 22/25 (Dolphin deciding).
 
 ### A second evaluator was audited too (null)
 
-- **Setup:** dashersw's line was "the system that makes a decision shouldn't be the only one evaluating it". So 20 SERV verdicts went to Reppo's Eval API: 10 on awarded findings and 10 on rejected ones.
-- **Result:** Reppo's panel accepted 19 of 19 completed audits, scoring 83 to 100. It scored the verdicts the contest judge contradicted slightly higher (mean 96.3) than the ones it agreed with (94.6).
-- **Reading:** as an auditor of this decision, it does not discriminate. A second evaluator needs evaluating too.
+- **Setup:** 20 SERV verdicts were sent to Reppo's Eval API.
+- **Result:** Reppo's panel accepted 20/20, including every verdict the contest judge contradicted.
+- **Reading:** as an auditor of this decision, it does not discriminate.
 
 ### Cost
 
-- **Dolphin evidence pass:** about $0.00046.
-- **SERV decision:** about $0.0006.
-- **Dolphin decision:** about $0.00003.
-- **Three-pass check:** about $0.003 at list prices from each provider's live catalog. These are list prices, not an invoice.
+About **$0.0032 per three-pass check**: a SERV screen, three Dolphin reads and three SERV decisions. These are list prices from the token counts, not an invoice.
 
 ## Sponsor integration
 
